@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-vazir: 'Vazirmatn', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-vazir);
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Mobile full-height standalone optimizations */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Custom scrollbar for sleek dark sports UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Padel court pattern background */
+.padel-grid-bg {
+  background-image: radial-gradient(#a3e635 0.75px, transparent 0.75px), radial-gradient(#38bdf8 0.75px, #090d16 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  opacity: 0.05;
+}
+
+/* Luxury tournament bracket line connection utilities */
+.bracket-connector-r {
+  position: relative;
+}
+.bracket-connector-r::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -24px;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, #334155, #64748b);
+}
+
+.glow-btn-lime {
+  box-shadow: 0 0 20px -3px rgba(163, 230, 53, 0.45);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-btn-lime:hover {
+  box-shadow: 0 0 28px 0px rgba(163, 230, 53, 0.65);
+  transform: translateY(-1px);
+}
+
+.glow-btn-gold {
+  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.45);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-btn-gold:hover {
+  box-shadow: 0 0 28px 0px rgba(245, 158, 11, 0.65);
+  transform: translateY(-1px);
+}
+
+.glow-btn-cyan {
+  box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.45);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-btn-cyan:hover {
+  box-shadow: 0 0 28px 0px rgba(6, 182, 212, 0.65);
+  transform: translateY(-1px);
+}
+
+

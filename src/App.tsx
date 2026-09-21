@@ -1,0 +1,132 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState } from 'react';
+import { PadelProvider, usePadel } from './context/PadelContext';
+import { Navbar } from './components/Navbar';
+import { CourtBookingView } from './components/CourtBookingView';
+import { MatchmakingView } from './components/MatchmakingView';
+import { FreeAgentsView } from './components/FreeAgentsView';
+import { TournamentsView } from './components/TournamentsView';
+import { CoachBookingView } from './components/CoachBookingView';
+import { PlayerProfileView } from './components/PlayerProfileView';
+import { ClubOwnerModal } from './components/ClubOwnerModal';
+import { SupabaseModal } from './components/SupabaseModal';
+import { PwaInstallModal } from './components/PwaInstallModal';
+import { CloudExportModal } from './components/CloudExportModal';
+import { PwaInstallBanner } from './components/PwaInstallBanner';
+import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucide-react';
+
+const MainContent: React.FC = () => {
+  const { activeTab, isMobileDeviceView, setIsMobileDeviceView } = usePadel();
+
+  const [clubModalOpen, setClubModalOpen] = useState(false);
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
+  const [pwaModalOpen, setPwaModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+
+  const renderCurrentView = () => {
+    switch (activeTab) {
+      case 'booking':
+        return <CourtBookingView onOpenClubOwnerModal={() => setClubModalOpen(true)} />;
+      case 'matchmaking':
+        return <MatchmakingView />;
+      case 'free-agents':
+        return <FreeAgentsView />;
+      case 'tournaments':
+        return <TournamentsView />;
+      case 'coaches':
+        return <CoachBookingView />;
+      case 'profile':
+        return <PlayerProfileView />;
+      default:
+        return <CourtBookingView onOpenClubOwnerModal={() => setClubModalOpen(true)} />;
+    }
+  };
+
+  const appBody = (
+    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-[#a3e635] selection:text-black">
+      {/* Top Mobile Friendly Install Banner */}
+      <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />
+
+      <Navbar
+        onOpenClubOwnerModal={() => setClubModalOpen(true)}
+        onOpenCloudModal={() => setCloudModalOpen(true)}
+        onOpenPwaModal={() => setPwaModalOpen(true)}
+        onOpenExportModal={() => setExportModalOpen(true)}
+      />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-20 lg:pb-6">
+        {renderCurrentView()}
+      </main>
+
+      {/* Modals */}
+      <ClubOwnerModal isOpen={clubModalOpen} onClose={() => setClubModalOpen(false)} />
+      <SupabaseModal isOpen={cloudModalOpen} onClose={() => setCloudModalOpen(false)} />
+      <PwaInstallModal isOpen={pwaModalOpen} onClose={() => setPwaModalOpen(false)} />
+      <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800/80 bg-slate-950/60 py-6 px-4 text-center text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#a3e635] animate-pulse" />
+            <span className="font-bold text-white">پدل‌پرو آرنا (PadelPro Arena)</span>
+            <span className="text-slate-500">| الهام گرفته از استانداردهای برتر جهانی Playtomic</span>
+          </div>
+
+          <p className="text-[11px] text-slate-500">
+            رزرو کورت، مچ‌میکینگ، تابلوی بازیکنان آزاد، مسابقات و رنکینگ استانی
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+
+  // If mobile simulator device mode is toggled on desktop
+  if (isMobileDeviceView) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        {/* Device Switcher Bar */}
+        <div className="mb-4 flex items-center justify-between w-full max-w-sm bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs">
+          <div className="flex items-center gap-2 text-white font-bold">
+            <Smartphone className="w-4 h-4 text-[#a3e635]" />
+            <span>پیش‌نمایش اپلیکیشن موبایل (PWA)</span>
+          </div>
+          <button
+            onClick={() => setIsMobileDeviceView(false)}
+            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded-xl cursor-pointer"
+          >
+            خروج از نمای موبایل
+          </button>
+        </div>
+
+        {/* Mobile Mockup Device Frame */}
+        <div className="relative w-full max-w-[400px] h-[840px] bg-black rounded-[48px] p-3 ring-1 ring-slate-800 shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+          {/* Dynamic Island */}
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800/60">
+            <div className="w-2 h-2 rounded-full bg-slate-800" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[#a3e635]/80" />
+          </div>
+
+          {/* Screen Content */}
+          <div className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden bg-[#090d16] text-slate-100 flex flex-col scrollbar-none pt-4">
+            {appBody}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return appBody;
+};
+
+export default function App() {
+  return (
+    <PadelProvider>
+      <MainContent />
+    </PadelProvider>
+  );
+}
