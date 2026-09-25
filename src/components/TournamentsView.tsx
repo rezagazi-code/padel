@@ -166,18 +166,18 @@ export const TournamentsView: React.FC = () => {
     <div className="space-y-6 pb-12">
       
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/50 border border-slate-800 p-6 sm:p-8 relative overflow-hidden">
+      <div className="rounded-3xl bg-gradient-to-r from-[#ff2d55]/12 via-white/[0.03] to-[#2f7bff]/12 border border-white/10 p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff2d55]/10 border border-[#ff2d55]/30 text-[#ff6b81] text-xs font-bold">
               <Trophy className="w-3.5 h-3.5" />
               مرکز مسابقات رسمی، جام‌های استانی و رنکینگ کشوری
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
               جام‌ها، تورنومنت‌های باشگاهی و رتبه‌بندی بازیکنان پدل
             </h1>
-            <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
               برگزاری تورنومنت و جدول‌های حذفی بر اساس سطح دسترسی (ادمین هر باشگاه برای مسابقات داخلی باشگاه، و ادمین استان برای جام‌های استانی) محدود شده است.
             </p>
           </div>
@@ -186,7 +186,7 @@ export const TournamentsView: React.FC = () => {
             {canCreateTournament ? (
               <button
                 onClick={() => setShowCreateTournModal(true)}
-                className="glow-btn-lime flex items-center justify-center gap-2 text-slate-950 font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl transition cursor-pointer"
+                className="btn-fire glow-btn-fire flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl cursor-pointer"
               >
                 <PlusCircle className="w-5 h-5" />
                 <span>
@@ -196,7 +196,7 @@ export const TournamentsView: React.FC = () => {
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-slate-400 text-xs">
+              <div className="flex items-center gap-2 p-3 rounded-2xl bg-white/[0.05] border border-white/10 text-slate-500 text-xs">
                 <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>ساخت تورنومنت مختص ادمین باشگاه یا استان است (برای تست نقش خود را تغییر دهید)</span>
               </div>
@@ -205,11 +205,11 @@ export const TournamentsView: React.FC = () => {
         </div>
 
         {/* RBAC Role Switcher Bar */}
-        <div className="mt-5 p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="mt-5 p-3.5 rounded-2xl bg-white/[0.06] border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#a3e635]" />
-            <span className="text-slate-400 font-bold">نقش فعال کاربری شما (RBAC):</span>
-            <span className="px-2.5 py-0.5 rounded-lg bg-slate-800 text-white font-black">
+            <ShieldCheck className="w-4 h-4 text-[#ff6b81]" />
+            <span className="text-slate-500 font-bold">نقش فعال کاربری شما (RBAC):</span>
+            <span className="px-2.5 py-0.5 rounded-lg bg-white/[0.04] text-slate-100 font-black">
               {currentUserRole === 'player' && '🎾 بازیکن عادی (Player)'}
               {currentUserRole === 'club_admin' && '🏢 مدیر باشگاه پدل (Club Admin)'}
               {currentUserRole === 'province_admin' && '🏛️ مدیر و ناظر استان (Provincial Admin)'}
@@ -222,7 +222,7 @@ export const TournamentsView: React.FC = () => {
             <button
               onClick={() => setCurrentUserRole('player')}
               className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'player' ? 'bg-white text-slate-950 font-black' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                currentUserRole === 'player' ? 'btn-fire font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
               }`}
             >
               بازیکن
@@ -233,7 +233,7 @@ export const TournamentsView: React.FC = () => {
                 setAdminClubId('club-1');
               }}
               className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'club_admin' ? 'bg-[#a3e635] text-slate-950 font-black' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                currentUserRole === 'club_admin' ? 'btn-fire font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
               }`}
             >
               ادمین باشگاه انقلاب
@@ -244,7 +244,7 @@ export const TournamentsView: React.FC = () => {
                 setAdminProvince('تهران');
               }}
               className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'province_admin' ? 'bg-cyan-400 text-slate-950 font-black' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                currentUserRole === 'province_admin' ? 'bg-cyan-400 text-white font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
               }`}
             >
               ادمین استان تهران
@@ -253,14 +253,14 @@ export const TournamentsView: React.FC = () => {
         </div>
 
         {/* Tab switcher: Tournaments vs Ranking */}
-        <div className="mt-6 pt-6 border-t border-slate-800 flex items-center justify-between flex-wrap gap-4">
+        <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('tournaments')}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
                 activeTab === 'tournaments'
-                  ? 'bg-white text-slate-950 shadow-sm'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'btn-fire shadow-sm'
+                  : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >
               <Trophy className="w-4 h-4 text-amber-500" />
@@ -270,22 +270,22 @@ export const TournamentsView: React.FC = () => {
               onClick={() => setActiveTab('rankings')}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
                 activeTab === 'rankings'
-                  ? 'bg-white text-slate-950 shadow-sm'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'btn-fire shadow-sm'
+                  : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >
-              <Award className="w-4 h-4 text-[#a3e635]" />
+              <Award className="w-4 h-4 text-[#ff6b81]" />
               <span>جدول رنکینگ رسمی استانی و کشوری</span>
             </button>
           </div>
 
           {/* Province Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">استان:</span>
+            <span className="text-xs font-bold text-slate-500">استان:</span>
             <select
               value={selectedProvince}
               onChange={(e) => setSelectedProvince(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-xs text-white rounded-xl px-3 py-1.5 focus:border-[#a3e635] focus:outline-none"
+              className="bg-white/[0.05] border border-white/10 text-xs text-slate-100 rounded-xl px-3 py-1.5 focus:border-[#ff2d55]/60 focus:outline-none"
             >
               {PROVINCES_LIST.map((prov) => (
                 <option key={prov} value={prov}>
@@ -307,7 +307,7 @@ export const TournamentsView: React.FC = () => {
             return (
               <div
                 key={tourn.id}
-                className="rounded-3xl bg-slate-900/90 border border-slate-800 overflow-hidden hover:border-slate-700 transition space-y-4 shadow-lg flex flex-col justify-between"
+                className="rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden hover:border-white/10 transition space-y-4 shadow-lg flex flex-col justify-between"
               >
                 <div>
                   {/* Tournament Banner Cover */}
@@ -317,21 +317,21 @@ export const TournamentsView: React.FC = () => {
                       alt={tourn.title}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" />
 
                     <div className="absolute top-3 right-3 flex items-center gap-2">
-                      <span className="bg-[#090d16]/80 backdrop-blur-md border border-slate-700 text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                      <span className="bg-white/[0.06] backdrop-blur-md border border-white/10 text-slate-200 text-[11px] font-bold px-3 py-1 rounded-full">
                         {tourn.category}
                       </span>
-                      <span className="bg-amber-500/90 text-slate-950 text-[11px] font-black px-3 py-1 rounded-full">
+                      <span className="bg-amber-400/95 text-amber-950 text-[11px] font-black px-3 py-1 rounded-full">
                         {tourn.format}
                       </span>
                     </div>
 
                     <div className="absolute bottom-3 right-4 left-4">
                       <h3 className="text-lg font-black text-white drop-shadow-md">{tourn.title}</h3>
-                      <p className="text-xs text-slate-300 flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#a3e635]" />
+                      <p className="text-xs text-white/85 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-lime-300" />
                         {tourn.clubName} ({tourn.province})
                       </p>
                     </div>
@@ -341,34 +341,34 @@ export const TournamentsView: React.FC = () => {
                   <div className="p-5 space-y-4 text-xs">
                     
                     {/* Prize pool & Fee */}
-                    <div className="grid grid-cols-2 gap-3 bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800">
+                    <div className="grid grid-cols-2 gap-3 bg-white/[0.05] p-3.5 rounded-2xl border border-white/10">
                       <div>
-                        <span className="text-slate-400 block text-[10px]">مجموع جوایز و پاداش:</span>
+                        <span className="text-slate-500 block text-[10px]">مجموع جوایز و پاداش:</span>
                         <span className="text-sm font-black text-amber-400">{tourn.prizePool}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[10px]">ورودی تیم (دونفره):</span>
-                        <span className="text-sm font-black text-white">
+                        <span className="text-slate-500 block text-[10px]">ورودی تیم (دونفره):</span>
+                        <span className="text-sm font-black text-slate-100">
                           {(tourn.entryFee).toLocaleString('fa-IR')}{' '}
-                          <span className="text-[10px] text-slate-400">تومان</span>
+                          <span className="text-[10px] text-slate-500">تومان</span>
                         </span>
                       </div>
                     </div>
 
                     {/* Dates & Status */}
-                    <div className="flex items-center justify-between text-slate-300">
+                    <div className="flex items-center justify-between text-slate-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                         تاریخ برگزاری: {tourn.startDate} الی {tourn.endDate}
                       </span>
 
-                      <span className="text-slate-400 font-bold">
+                      <span className="text-slate-500 font-bold">
                         تیم‌ها: {tourn.registeredTeamsCount} از {tourn.maxTeams}
                       </span>
                     </div>
 
                     {/* Progress Bar for Registration */}
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-white/[0.04] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-cyan-500 to-[#a3e635]"
                         style={{
@@ -384,10 +384,10 @@ export const TournamentsView: React.FC = () => {
                           <Trophy className="w-5 h-5 text-amber-400" />
                           <div>
                             <span className="text-[10px] text-amber-300/80 font-bold block">تیم قهرمان تورنومنت:</span>
-                            <span className="text-xs font-black text-white">{tourn.winnerTeam}</span>
+                            <span className="text-xs font-black text-slate-100">{tourn.winnerTeam}</span>
                           </div>
                         </div>
-                        <span className="text-[10px] font-black bg-amber-500 text-slate-950 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-black bg-amber-500 text-white px-2 py-0.5 rounded">
                           +۲۵۰ امتیاز رنکینگ
                         </span>
                       </div>
@@ -396,11 +396,11 @@ export const TournamentsView: React.FC = () => {
                 </div>
 
                 {/* Card Actions */}
-                <div className="p-5 pt-0 border-t border-slate-800/80 space-y-3">
+                <div className="p-5 pt-0 border-t border-white/10 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     {isCompleted ? (
                       <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
                         این مسابقات با ثبت رسمی رنکینگ خاتمه یافته است.
                       </span>
                     ) : (
@@ -410,8 +410,8 @@ export const TournamentsView: React.FC = () => {
                           disabled={isFull}
                           className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
                             isFull
-                              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                              : 'glow-btn-lime text-slate-950 font-black'
+                              ? 'bg-white/[0.04] text-slate-500 cursor-not-allowed'
+                              : 'btn-fire glow-btn-fire text-white font-black'
                           }`}
                         >
                           <Users className="w-4 h-4" />
@@ -426,7 +426,7 @@ export const TournamentsView: React.FC = () => {
                               setWinnerTeamInput(tourn.registeredTeams[0]?.teamName || 'تیم قهرمان');
                               setRunnerUpTeamInput(tourn.registeredTeams[1]?.teamName || 'تیم نایب‌قهرمان');
                             }}
-                            className="px-3.5 py-3 glow-btn-gold text-slate-950 font-black text-xs rounded-xl transition cursor-pointer"
+                            className="px-3.5 py-3 glow-btn-gold text-white font-black text-xs rounded-xl transition cursor-pointer"
                             title="ثبت نتایج توسط مسئول باشگاه و افزایش امتیازات رنکینگ بازیکنان"
                           >
                             ثبت نتایج و آپدیت رنک
@@ -437,7 +437,7 @@ export const TournamentsView: React.FC = () => {
                   </div>
 
                   {/* Toggle Bracket Display Button */}
-                  <div className="pt-2 border-t border-slate-800/50 flex items-center justify-between">
+                  <div className="pt-2 border-t border-white/50 flex items-center justify-between">
                     <button
                       onClick={() =>
                         setExpandedBracketTournId(
@@ -459,14 +459,14 @@ export const TournamentsView: React.FC = () => {
                       />
                     </button>
 
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-500">
                       برگزارکننده: {tourn.organizerType === 'province' ? 'ادمین هیات استان' : `باشگاه ${tourn.clubName}`}
                     </span>
                   </div>
 
                   {/* Collapsible Tournament Bracket UI */}
                   {expandedBracketTournId === tourn.id && (
-                    <div className="pt-3 border-t border-slate-800/80">
+                    <div className="pt-3 border-t border-white/10">
                       <TournamentBracket
                         bracket={tourn.bracket}
                         canManage={canManageTournament(tourn)}
@@ -487,28 +487,28 @@ export const TournamentsView: React.FC = () => {
 
       {/* Sub-Tab 2: Official Rankings Table */}
       {activeTab === 'rankings' && (
-        <div className="rounded-3xl bg-slate-900/90 border border-slate-800 overflow-hidden shadow-xl">
+        <div className="rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden shadow-xl">
           
-          <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
+              <h3 className="text-lg font-black text-slate-100 flex items-center gap-2">
                 <Medal className="w-5 h-5 text-amber-400" />
                 جدول رنکینگ رسمی بازیکنان پدل (مردان و آزاد)
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 محاسبه خودکار امتیازات پس از هر تورنومنت در باشگاه‌های {selectedProvince}
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-slate-300 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-              <Sparkles className="w-4 h-4 text-[#a3e635]" />
+            <div className="flex items-center gap-2 text-xs text-slate-400 bg-white/[0.05] px-3 py-1.5 rounded-xl border border-white/10">
+              <Sparkles className="w-4 h-4 text-[#ff6b81]" />
               <span>موقعیت شما: رتبه #{playerProfile.rankingPosition} در {playerProfile.province}</span>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className="bg-slate-950/80 text-slate-400 font-bold border-b border-slate-800">
+              <thead className="bg-white/[0.05] text-slate-500 font-bold border-b border-white/10">
                 <tr>
                   <th className="py-3.5 px-4">رتبه</th>
                   <th className="py-3.5 px-4">مشخصات بازیکن</th>
@@ -520,33 +520,33 @@ export const TournamentsView: React.FC = () => {
                   <th className="py-3.5 px-4">فرم اخیر</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-white/60">
                 {filteredRankings.map((player) => {
                   const isMe = player.id === playerProfile.id;
                   return (
                     <tr
                       key={player.id}
-                      className={`hover:bg-slate-800/40 transition ${
-                        isMe ? 'bg-[#a3e635]/10 font-bold' : ''
+                      className={`hover:bg-white/[0.03] transition ${
+                        isMe ? 'bg-[#ff2d55]/10 font-bold' : ''
                       }`}
                     >
                       {/* Rank Position */}
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-1.5">
                           {player.rank === 1 ? (
-                            <span className="w-7 h-7 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-md">
+                            <span className="w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center font-black shadow-md">
                               ۱
                             </span>
                           ) : player.rank === 2 ? (
-                            <span className="w-7 h-7 rounded-full bg-slate-300 text-slate-950 flex items-center justify-center font-black">
+                            <span className="w-7 h-7 rounded-full bg-slate-300 text-white flex items-center justify-center font-black">
                               ۲
                             </span>
                           ) : player.rank === 3 ? (
-                            <span className="w-7 h-7 rounded-full bg-amber-700 text-white flex items-center justify-center font-black">
+                            <span className="w-7 h-7 rounded-full bg-amber-700 text-slate-100 flex items-center justify-center font-black">
                               ۳
                             </span>
                           ) : (
-                            <span className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center font-bold">
+                            <span className="w-7 h-7 rounded-full bg-white/[0.04] text-slate-500 flex items-center justify-center font-bold">
                               {player.rank}
                             </span>
                           )}
@@ -559,27 +559,27 @@ export const TournamentsView: React.FC = () => {
                           <img
                             src={player.avatar}
                             alt={player.name}
-                            className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-700"
+                            className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200/60"
                           />
                           <div>
-                            <span className="font-bold text-white block">
-                              {player.name} {isMe && <span className="text-[#a3e635] text-[10px]">(شما)</span>}
+                            <span className="font-bold text-slate-100 block">
+                              {player.name} {isMe && <span className="text-[#ff6b81] text-[10px]">(شما)</span>}
                             </span>
-                            <span className="text-[10px] text-slate-400">رنک استان #{player.provinceRank}</span>
+                            <span className="text-[10px] text-slate-500">رنک استان #{player.provinceRank}</span>
                           </div>
                         </div>
                       </td>
 
                       {/* Province */}
                       <td className="py-4 px-4">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px]">
+                        <span className="px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-400 text-[11px]">
                           {player.province}
                         </span>
                       </td>
 
                       {/* Level */}
                       <td className="py-4 px-4">
-                        <span className="font-black text-[#a3e635]">
+                        <span className="font-black text-[#ff6b81]">
                           {player.level.toFixed(2)}
                         </span>
                       </td>
@@ -588,18 +588,18 @@ export const TournamentsView: React.FC = () => {
                       <td className="py-4 px-4">
                         <span className="font-mono text-sm font-black text-cyan-400">
                           {player.points.toLocaleString('fa-IR')}{' '}
-                          <span className="text-[10px] text-slate-400 font-sans">امتیاز</span>
+                          <span className="text-[10px] text-slate-500 font-sans">امتیاز</span>
                         </span>
                       </td>
 
                       {/* Tournaments */}
-                      <td className="py-4 px-4 text-slate-300">
+                      <td className="py-4 px-4 text-slate-400">
                         {player.tournamentsWon} قهرمانی / {player.tournamentsPlayed} جام
                       </td>
 
                       {/* Win Rate */}
                       <td className="py-4 px-4">
-                        <span className="font-bold text-emerald-400">{player.winRate}٪</span>
+                        <span className="font-bold text-emerald-300">{player.winRate}٪</span>
                       </td>
 
                       {/* Form */}
@@ -610,7 +610,7 @@ export const TournamentsView: React.FC = () => {
                               key={i}
                               className={`w-5 h-5 rounded-md text-[10px] font-black flex items-center justify-center ${
                                 res === 'W'
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                                   : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                               }`}
                             >
@@ -632,16 +632,16 @@ export const TournamentsView: React.FC = () => {
 
       {/* Modal: Register Team in Tournament */}
       {showRegisterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-white">ثبت‌نام تیم در {showRegisterModal.title}</h3>
+                <h3 className="text-base font-black text-slate-100">ثبت‌نام تیم در {showRegisterModal.title}</h3>
               </div>
               <button
                 onClick={() => setShowRegisterModal(null)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-500 hover:text-slate-100 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -649,39 +649,39 @@ export const TournamentsView: React.FC = () => {
 
             <form onSubmit={handleRegisterTeam} className="space-y-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">نام انتخابی تیم:</label>
+                <label className="block text-slate-400 font-bold mb-1">نام انتخابی تیم:</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: تیم شاهین پایتخت"
                   value={teamNameInput}
                   onChange={(e) => setTeamNameInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <span className="font-bold text-slate-400 block text-[11px]">بازیکن شماره ۱ (کاپیتان):</span>
-                <div className="flex items-center justify-between text-white font-bold">
+              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-2">
+                <span className="font-bold text-slate-500 block text-[11px]">بازیکن شماره ۱ (کاپیتان):</span>
+                <div className="flex items-center justify-between text-slate-100 font-bold">
                   <span>{playerProfile.name}</span>
-                  <span className="text-[#a3e635]">سطح {playerProfile.level.toFixed(2)}</span>
+                  <span className="text-[#ff6b81]">سطح {playerProfile.level.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">نام پارتنر (بازیکن ۲):</label>
+                  <label className="block text-slate-400 font-bold mb-1">نام پارتنر (بازیکن ۲):</label>
                   <input
                     type="text"
                     required
                     placeholder="مثال: علی شایان"
                     value={partnerNameInput}
                     onChange={(e) => setPartnerNameInput(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">سطح پارتنر:</label>
+                  <label className="block text-slate-400 font-bold mb-1">سطح پارتنر:</label>
                   <input
                     type="number"
                     step="0.1"
@@ -689,7 +689,7 @@ export const TournamentsView: React.FC = () => {
                     max="7.0"
                     value={partnerLevelInput}
                     onChange={(e) => setPartnerLevelInput(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
               </div>
@@ -701,14 +701,14 @@ export const TournamentsView: React.FC = () => {
               <div className="pt-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black rounded-xl cursor-pointer"
+                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
                 >
                   تایید و ثبت نهایی تیم در جدول
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowRegisterModal(null)}
-                  className="px-4 py-3 bg-slate-800 text-slate-300 rounded-xl cursor-pointer"
+                  className="px-4 py-3 bg-white/[0.04] text-slate-400 rounded-xl cursor-pointer"
                 >
                   انصراف
                 </button>
@@ -720,59 +720,59 @@ export const TournamentsView: React.FC = () => {
 
       {/* Modal: Finalize Tournament Results */}
       {showFinalizeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-white">ثبت نتایج نهایی و آپدیت رنکینگ استانی</h3>
+                <h3 className="text-base font-black text-slate-100">ثبت نتایج نهایی و آپدیت رنکینگ استانی</h3>
               </div>
               <button
                 onClick={() => setShowFinalizeModal(null)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-500 hover:text-slate-100 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-slate-400 text-[11px]">
+            <p className="text-slate-500 text-[11px]">
               با ثبت نتایج، مسابقات {showFinalizeModal.title} به پایان رسیده و امتیازات به رنکینگ رسمی افزوده خواهد شد.
             </p>
 
             <form onSubmit={handleFinalize} className="space-y-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">تیم قهرمان (مقام اول - ۲۵۰ امتیاز):</label>
+                <label className="block text-slate-400 font-bold mb-1">تیم قهرمان (مقام اول - ۲۵۰ امتیاز):</label>
                 <input
                   type="text"
                   required
                   value={winnerTeamInput}
                   onChange={(e) => setWinnerTeamInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">تیم نایب‌قهرمان (مقام دوم - ۱۵۰ امتیاز):</label>
+                <label className="block text-slate-400 font-bold mb-1">تیم نایب‌قهرمان (مقام دوم - ۱۵۰ امتیاز):</label>
                 <input
                   type="text"
                   required
                   value={runnerUpTeamInput}
                   onChange={(e) => setRunnerUpTeamInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
               <div className="pt-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl cursor-pointer"
+                  className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 text-white font-black rounded-xl cursor-pointer"
                 >
                   ثبت نتایج و بروزرسانی جدول رنکینگ
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowFinalizeModal(null)}
-                  className="px-4 py-3 bg-slate-800 text-slate-300 rounded-xl cursor-pointer"
+                  className="px-4 py-3 bg-white/[0.04] text-slate-400 rounded-xl cursor-pointer"
                 >
                   انصراف
                 </button>
@@ -784,25 +784,25 @@ export const TournamentsView: React.FC = () => {
 
       {/* Modal: Create Tournament by Club */}
       {showCreateTournModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 my-8 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-3xl glass-strong p-6 shadow-2xl space-y-4 my-8 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-[#a3e635]" />
+                <PlusCircle className="w-5 h-5 text-[#ff6b81]" />
                 <div>
-                  <h3 className="text-base font-black text-white">
+                  <h3 className="text-base font-black text-slate-100">
                     {currentUserRole === 'province_admin'
                       ? 'ایجاد تورنومنت استانی رسمی (سطح استان)'
                       : 'ایجاد تورنومنت باشگاهی (ویژه باشگاه)'}
                   </h3>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-500">
                     مجوز صادر شده برای: {currentUserRole === 'province_admin' ? `هیات پدل استان ${adminProvince}` : 'مدیریت باشگاه'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setShowCreateTournModal(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-500 hover:text-slate-100 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -810,22 +810,22 @@ export const TournamentsView: React.FC = () => {
 
             <form onSubmit={handleCreateTournament} className="space-y-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">عنوان تورنومنت:</label>
+                <label className="block text-slate-400 font-bold mb-1">عنوان تورنومنت:</label>
                 <input
                   type="text"
                   required
                   placeholder={currentUserRole === 'province_admin' ? 'مثال: مسابقات قهرمانی پدل استان تهران - جام فجر' : 'مثال: کاپ پاییزه پدل مارینا'}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
               {/* Organizer Scope Indicator */}
-              <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                <span className="text-slate-400 font-bold">سطح برگزاری و ناظر:</span>
+              <div className="p-3 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-between">
+                <span className="text-slate-500 font-bold">سطح برگزاری و ناظر:</span>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-lg bg-[#a3e635]/15 text-[#a3e635] font-black border border-[#a3e635]/30">
+                  <span className="px-2.5 py-1 rounded-lg bg-[#ff2d55]/15 text-[#ff6b81] font-black border border-[#ff2d55]/60/30">
                     {currentUserRole === 'province_admin' ? `🏛️ استانی (${adminProvince})` : '🏢 داخلی باشگاهی'}
                   </span>
                 </div>
@@ -833,11 +833,11 @@ export const TournamentsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">باشگاه میزبان بازی‌ها:</label>
+                  <label className="block text-slate-400 font-bold mb-1">باشگاه میزبان بازی‌ها:</label>
                   <select
                     value={newClubId}
                     onChange={(e) => setNewClubId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     {clubs.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -848,11 +848,11 @@ export const TournamentsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">فرمت مسابقه:</label>
+                  <label className="block text-slate-400 font-bold mb-1">فرمت مسابقه:</label>
                   <select
                     value={newFormat}
                     onChange={(e) => setNewFormat(e.target.value as TournamentFormat)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     <option value="Knockout (تک‌حذفی)">تک‌حذفی (Knockout با جدول خط‌کشی‌شده)</option>
                     <option value="Group + Knockout (گروهی و حذفی)">گروهی و حذفی</option>
@@ -864,11 +864,11 @@ export const TournamentsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">رده / سطح مسابقه:</label>
+                  <label className="block text-slate-400 font-bold mb-1">رده / سطح مسابقه:</label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as TournamentCategory)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     <option value="Cat 1 (پیشرفته)">رده ۱ (پیشرفته)</option>
                     <option value="Cat 2 (متوسط)">رده ۲ (متوسط)</option>
@@ -879,11 +879,11 @@ export const TournamentsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">ظرفیت تیم‌ها:</label>
+                  <label className="block text-slate-400 font-bold mb-1">ظرفیت تیم‌ها:</label>
                   <select
                     value={newMaxTeams}
                     onChange={(e) => setNewMaxTeams(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     <option value={8}>۸ تیم (دونفره)</option>
                     <option value={12}>۱۲ تیم</option>
@@ -895,39 +895,39 @@ export const TournamentsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">ورودی هر تیم (تومان):</label>
+                  <label className="block text-slate-400 font-bold mb-1">ورودی هر تیم (تومان):</label>
                   <input
                     type="number"
                     step="100000"
                     value={newEntryFee}
                     onChange={(e) => setNewEntryFee(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">جوایز و پاداش نقدی:</label>
+                  <label className="block text-slate-400 font-bold mb-1">جوایز و پاداش نقدی:</label>
                   <input
                     type="text"
                     value={newPrizePool}
                     onChange={(e) => setNewPrizePool(e.target.value)}
                     placeholder="مثال: ۴۰ میلیون تومان وجه نقد"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex gap-2">
+              <div className="pt-3 border-t border-white/10 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black rounded-xl cursor-pointer"
+                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
                 >
                   ثبت رسمی تورنومنت در تقویم
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateTournModal(false)}
-                  className="px-4 py-3 bg-slate-800 text-slate-300 rounded-xl cursor-pointer"
+                  className="px-4 py-3 bg-white/[0.04] text-slate-400 rounded-xl cursor-pointer"
                 >
                   انصراف
                 </button>

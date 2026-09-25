@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Club, Court } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -41,16 +41,33 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     clubs[0]?.courts[0]?.id || ''
   );
   
-  // Dates: Next 7 days
-  const daysList = [
-    { dayName: 'امروز', dateStr: '۱۴۰۳/۰۶/۲۸', raw: '2024-09-18' },
-    { dayName: 'فردا', dateStr: '۱۴۰۳/۰۶/۲۹', raw: '2024-09-19' },
-    { dayName: 'جمعه', dateStr: '۱۴۰۳/۰۶/۳۰', raw: '2024-09-20' },
-    { dayName: 'شنبه', dateStr: '۱۴۰۳/۰۷/۰۱', raw: '2024-09-21' },
-    { dayName: 'یک‌شنبه', dateStr: '۱۴۰۳/۰۷/۰۲', raw: '2024-09-22' },
-    { dayName: 'دوشنبه', dateStr: '۱۴۰۳/۰۷/۰۳', raw: '2024-09-23' },
-    { dayName: 'سه‌شنبه', dateStr: '۱۴۰۳/۰۷/۰۴', raw: '2024-09-24' },
-  ];
+  // Dates: next 7 days, generated live in the Jalali (Persian) calendar
+  const daysList = useMemo(() => {
+    const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' });
+    const fmtDayMonth = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' });
+    const fmtJalali = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const fmtIso = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const parts = fmtDayMonth.formatToParts(d);
+      return {
+        dayName: i === 0 ? 'امروز' : i === 1 ? 'فردا' : fmtWeekday.format(d),
+        dateStr: fmtJalali.format(d),
+        dayNum: parts.find((p) => p.type === 'day')?.value ?? '',
+        monthName: parts.find((p) => p.type === 'month')?.value ?? '',
+        raw: fmtIso.format(d),
+      };
+    });
+  }, []);
 
   const [selectedDate, setSelectedDate] = useState(daysList[0]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('۱۹:۳۰ - ۲۱:۰۰');
@@ -116,7 +133,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#a3e635', '#38bdf8', '#ffffff']
+        colors: ['#ff2d55', '#2f7bff', '#ffffff']
       });
     } catch {
       // safe fallback
@@ -126,48 +143,58 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   return (
     <div className="space-y-6 pb-12">
       
-      {/* Top Banner / Headline */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 p-6 sm:p-8">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#a3e635]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#a3e635]/10 border border-[#a3e635]/30 text-[#a3e635] text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
-              رزرو هوشمند و لحظه‌ای زمین‌های پدل سراسر کشور
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              رزرو زمین پدل با استانداردهای جهانی Playtomic
-            </h1>
-            <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
-              انتخاب کورت‌های شیشه‌ای پانورامیک، چمن تخصصی Mondo 4NX، زمان‌بندی دقیق و پرداخت سهمی ۴ نفره به همراه اعلام نیاز به بازیکن.
-            </p>
+      {/* Hero — Midnight Volt */}
+      <div className="relative overflow-hidden rounded-[2rem] grad-border">
+        <img
+          src="/hero-court.jpg"
+          alt="زمین پدل"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-[#060a13] via-[#060a13]/60 to-[#060a13]/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#060a13]/85 via-transparent to-transparent" />
+        <div className="relative z-10 p-6 sm:p-10 flex flex-col gap-4 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-bold text-slate-200 w-fit">
+            <span className="w-2 h-2 rounded-full bg-[#ff2d55] animate-pulse-dot" />
+            رزرو هوشمند و لحظه‌ای زمین‌های پدل سراسر کشور
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-snug">
+            رزرو زمین پدل با <span className="grad-text">استانداردهای جهانی</span> Playtomic
+          </h1>
+          <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+            انتخاب کورت‌های شیشه‌ای پانورامیک، چمن تخصصی Mondo 4NX، زمان‌بندی دقیق و پرداخت سهمی ۴ نفره به همراه اعلام نیاز به بازیکن.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={onOpenClubOwnerModal}
-              className="flex items-center gap-2 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-sm px-5 py-3 rounded-2xl shadow-[0_4px_20px_rgba(163,230,53,0.3)] transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 btn-volt font-black text-sm px-6 py-3.5 rounded-2xl"
             >
               <PlusCircle className="w-5 h-5" />
               <span>افزودن باشگاه و زمین (ویژه باشگاه‌داران)</span>
+            </button>
+            <button
+              onClick={() => document.getElementById('clubs-list')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-2 btn-ghost btn text-sm px-6 py-3.5 rounded-2xl"
+            >
+              <Sparkles className="w-5 h-5 text-ice" />
+              <span>مشاهده باشگاه‌ها</span>
             </button>
           </div>
         </div>
 
         {/* Province Filter Pills */}
-        <div className="mt-6 pt-6 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <span className="text-xs font-semibold text-slate-400 flex items-center gap-1 shrink-0 ml-2">
-            <MapPin className="w-3.5 h-3.5 text-[#a3e635]" />
+        <div className="relative z-10 px-6 sm:px-10 py-4 border-t border-white/10 bg-black/40 backdrop-blur-md flex items-center gap-2 overflow-x-auto scrollbar-none">
+          <span className="text-xs font-semibold text-slate-500 flex items-center gap-1 shrink-0 ml-2">
+            <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
             استان:
           </span>
           {PROVINCES_LIST.map((prov) => (
             <button
               key={prov}
               onClick={() => setSelectedProvince(prov)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition cursor-pointer chip ${
                 selectedProvince === prov
-                  ? 'bg-white text-slate-950 shadow-sm'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                  ? 'btn-fire shadow-[0_2px_12px_rgba(255,45,85,0.4)]'
+                  : 'bg-white/[0.05] text-slate-400 hover:bg-white/10 border border-white/10'
               }`}
             >
               {prov}
@@ -177,16 +204,16 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       </div>
 
       {/* Main Grid: Club Selection & Court Schedule */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div id="clubs-list" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Clubs List (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#a3e635]" />
+            <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#ff6b81]" />
               باشگاه‌های منتخب ({filteredClubs.length})
             </h2>
-            <span className="text-xs text-slate-400">کورت‌های دارای مجوز</span>
+            <span className="text-xs text-slate-500">کورت‌های دارای مجوز</span>
           </div>
 
           <div className="space-y-3">
@@ -203,19 +230,19 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   }}
                   className={`group relative overflow-hidden rounded-2xl p-4 transition cursor-pointer border ${
                     isSelected
-                      ? 'bg-slate-800/90 border-[#a3e635] shadow-[0_0_20px_rgba(163,230,53,0.15)] ring-1 ring-[#a3e635]'
-                      : 'bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:bg-slate-800/50'
+                      ? 'bg-white/[0.06] border-[#ff2d55]/60 shadow-[0_0_20px_rgba(255,45,85,0.15)] ring-1 ring-[#a3e635]'
+                      : 'bg-white/[0.05] border-white/10 hover:border-white/10 hover:bg-white/[0.04]'
                   }`}
                 >
                   <div className="flex gap-3">
                     <img
                       src={club.coverImage}
                       alt={club.name}
-                      className="w-20 h-20 rounded-xl object-cover shrink-0 ring-1 ring-slate-700"
+                      className="w-20 h-20 rounded-xl object-cover shrink-0 ring-1 ring-slate-200/60"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <h3 className="text-sm font-bold text-white truncate group-hover:text-[#a3e635] transition">
+                        <h3 className="text-sm font-bold text-slate-100 truncate group-hover:text-[#ff6b81] transition">
                           {club.name}
                         </h3>
                         <div className="flex items-center gap-1 text-[#facc15] text-xs font-black shrink-0">
@@ -224,16 +251,16 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-1 truncate">
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-1 truncate">
                         <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
                         {club.city}
                       </p>
 
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[#a3e635]/15 text-[#a3e635] border border-[#a3e635]/30">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[#ff2d55]/15 text-[#ff6b81] border border-[#ff2d55]/60/30">
                           {club.courtsCount} کورت فعال
                         </span>
-                        <span className="text-[11px] text-slate-400 font-medium">
+                        <span className="text-[11px] text-slate-500 font-medium">
                           ساعت کار: {club.openingHour} الی {club.closingHour}
                         </span>
                       </div>
@@ -250,25 +277,25 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           
           {/* Selected Club Details Card */}
           {currentClub && (
-            <div className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 space-y-6">
+            <div className="rounded-3xl bg-white/[0.05] border border-white/10 p-6 space-y-6">
               
               {/* Club Header Info */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-white">{currentClub.name}</h2>
-                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <h2 className="text-xl font-black text-slate-100">{currentClub.name}</h2>
+                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3" />
                       تایید رسمی
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#a3e635]" />
+                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
                     {currentClub.address}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                   <Phone className="w-3.5 h-3.5 text-cyan-400" />
                   <span dir="ltr">{currentClub.phone}</span>
                 </div>
@@ -276,14 +303,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Amenities Tags */}
               <div>
-                <span className="text-xs font-bold text-slate-400 block mb-2">امکانات ویژه باشگاه:</span>
+                <span className="text-xs font-bold text-slate-500 block mb-2">امکانات ویژه باشگاه:</span>
                 <div className="flex flex-wrap gap-2">
                   {currentClub.amenities.map((am, idx) => (
                     <span
                       key={idx}
-                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 text-slate-300 border border-slate-700/80 flex items-center gap-1"
+                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-white/[0.06] text-slate-400 border border-white/10 flex items-center gap-1"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-[#a3e635]" />
+                      <CheckCircle2 className="w-3 h-3 text-[#ff6b81]" />
                       {am}
                     </span>
                   ))}
@@ -292,7 +319,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Court Selection Tabs */}
               <div>
-                <label className="text-xs font-bold text-slate-300 block mb-2">
+                <label className="text-xs font-bold text-slate-400 block mb-2">
                   ۱. انتخاب زمین مورد نظر ({currentClub.courts.length} زمین):
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -304,22 +331,22 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         onClick={() => setSelectedCourtId(court.id)}
                         className={`p-3.5 rounded-2xl text-right transition cursor-pointer border ${
                           isCourtSelected
-                            ? 'bg-[#a3e635]/15 border-[#a3e635] text-white shadow-[0_0_15px_rgba(163,230,53,0.2)]'
-                            : 'bg-slate-800/70 border-slate-700 text-slate-300 hover:bg-slate-800'
+                            ? 'bg-[#ff2d55]/15 border-[#ff2d55]/60 text-slate-100 shadow-[0_0_15px_rgba(255,45,85,0.2)]'
+                            : 'bg-white/[0.05] border-white/10 text-slate-400 hover:bg-white/[0.04]'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-black">{court.name}</span>
                           <span
-                            className="w-3 h-3 rounded-full border border-slate-700"
+                            className="w-3 h-3 rounded-full border border-white/10"
                             style={{ backgroundColor: court.turfColor }}
                             title="رنگ چمن کورت"
                           />
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           {court.type === 'panoramic' ? 'شیشه‌ای تمام پانورامیک' : court.type === 'indoor' ? 'سالنی سرپوشیده' : 'روباز با نور LED'}
                         </p>
-                        <div className="mt-2 text-xs font-bold text-[#a3e635]">
+                        <div className="mt-2 text-xs font-bold text-[#ff6b81]">
                           {(court.hourlyRate / 1000).toLocaleString('fa-IR')} هزار تومان / ساعت
                         </div>
                       </button>
@@ -330,7 +357,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Date Selection Horizontal Bar */}
               <div>
-                <label className="text-xs font-bold text-slate-300 block mb-2">
+                <label className="text-xs font-bold text-slate-400 block mb-2">
                   ۲. انتخاب روز رزرو:
                 </label>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -342,12 +369,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         onClick={() => setSelectedDate(d)}
                         className={`min-w-[90px] py-3 px-3 rounded-2xl text-center transition cursor-pointer border shrink-0 ${
                           isDateSelected
-                            ? 'bg-[#a3e635] text-slate-950 font-black shadow-[0_4px_12px_rgba(163,230,53,0.3)]'
-                            : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                            ? 'btn-fire font-black shadow-[0_4px_12px_rgba(255,45,85,0.3)]'
+                            : 'bg-white/[0.05] text-slate-400 border-white/10 hover:bg-white/10'
                         }`}
                       >
                         <span className="text-xs font-semibold block">{d.dayName}</span>
-                        <span className="text-sm font-black mt-0.5 block">{d.dateStr.split('/')[2]} شهریور</span>
+                        <span className="text-sm font-black mt-0.5 block">{d.dayNum} {d.monthName}</span>
                       </button>
                     );
                   })}
@@ -356,10 +383,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Duration Toggle: 60, 90, 120 mins */}
               <div>
-                <label className="text-xs font-bold text-slate-300 block mb-2">
+                <label className="text-xs font-bold text-slate-400 block mb-2">
                   ۳. مدت زمان سانس بازی:
                 </label>
-                <div className="inline-flex p-1 rounded-xl bg-slate-800 border border-slate-700 gap-1">
+                <div className="inline-flex p-1 rounded-xl bg-white/[0.04] border border-white/10 gap-1">
                   {[
                     { mins: 60, label: '۶۰ دقیقه' },
                     { mins: 90, label: '۹۰ دقیقه (استاندارد مچ پدل)' },
@@ -370,8 +397,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       onClick={() => setDuration(dur.mins)}
                       className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
                         duration === dur.mins
-                          ? 'bg-[#a3e635] text-slate-950 shadow-sm'
-                          : 'text-slate-300 hover:text-white'
+                          ? 'btn-fire shadow-sm'
+                          : 'text-slate-400 hover:text-slate-100'
                       }`}
                     >
                       {dur.label}
@@ -382,7 +409,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Time Slots Grid */}
               <div>
-                <label className="text-xs font-bold text-slate-300 block mb-2">
+                <label className="text-xs font-bold text-slate-400 block mb-2">
                   ۴. انتخاب سانس ساعت:
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -395,10 +422,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         onClick={() => setSelectedTimeSlot(slot.time)}
                         className={`p-3 rounded-xl text-center border transition relative cursor-pointer ${
                           slot.isBooked
-                            ? 'bg-slate-900/40 border-slate-800/60 text-slate-600 cursor-not-allowed opacity-50'
+                            ? 'bg-white/[0.03] border-white/10 text-slate-400 cursor-not-allowed opacity-50'
                             : isSlotSelected
-                            ? 'bg-[#a3e635] text-slate-950 font-black border-[#a3e635] shadow-[0_0_15px_rgba(163,230,53,0.3)]'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-200 hover:bg-slate-700'
+                            ? 'btn-fire font-black border-[#ff2d55]/60 shadow-[0_0_15px_rgba(255,45,85,0.3)]'
+                            : 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/10'
                         }`}
                       >
                         <div className="flex items-center justify-center gap-1.5 text-xs font-bold">
@@ -416,7 +443,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                           ) : slot.isPeak ? (
                             <span
                               className={`text-[10px] font-bold px-1.5 rounded ${
-                                isSlotSelected ? 'bg-black text-[#a3e635]' : 'bg-amber-500/20 text-amber-400'
+                                isSlotSelected ? 'bg-black text-[#ff6b81]' : 'bg-amber-500/20 text-amber-400'
                               }`}
                             >
                               ساعات پیک
@@ -424,7 +451,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                           ) : (
                             <span
                               className={`text-[10px] font-bold px-1.5 rounded ${
-                                isSlotSelected ? 'bg-black text-[#a3e635]' : 'bg-emerald-500/20 text-emerald-400'
+                                isSlotSelected ? 'bg-black text-[#ff6b81]' : 'bg-emerald-500/20 text-emerald-300'
                               }`}
                             >
                               سانس عادی
@@ -438,13 +465,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
 
               {/* Free Agent / Need Player Helper Toggle */}
-              <div className="rounded-2xl bg-gradient-to-r from-slate-800/90 to-indigo-950/40 border border-indigo-500/30 p-4 space-y-3">
+              <div className="rounded-2xl bg-gradient-to-r from-[#2f7bff]/15 to-[#ff2d55]/10 border border-[#2f7bff]/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-cyan-400" />
                     <div>
-                      <h4 className="text-sm font-bold text-white">آیا برای این سانس به بازیکن کمکی احتیاج دارید؟</h4>
-                      <p className="text-xs text-slate-400">
+                      <h4 className="text-sm font-bold text-slate-100">آیا برای این سانس به بازیکن کمکی احتیاج دارید؟</h4>
+                      <p className="text-xs text-slate-500">
                         در صورت فعال‌سازی، آگهی «نیاز به بازیکن» خودکار در تابلوی بازیکن‌های آزاد ثبت می‌شود.
                       </p>
                     </div>
@@ -456,21 +483,21 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       onChange={(e) => setNeedsExtraPlayers(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a3e635]"></div>
+                    <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff2d55]"></div>
                   </label>
                 </div>
 
                 {needsExtraPlayers && (
-                  <div className="pt-3 border-t border-slate-700/80 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-300">
-                    <span className="text-slate-400">تعداد بازیکن مورد نیاز:</span>
+                  <div className="pt-3 border-t border-white/10 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-400">
+                    <span className="text-slate-500">تعداد بازیکن مورد نیاز:</span>
                     {[1, 2, 3].map((count) => (
                       <button
                         key={count}
                         onClick={() => setPlayersNeededCount(count)}
                         className={`px-3 py-1 rounded-lg border transition cursor-pointer ${
                           playersNeededCount === count
-                            ? 'bg-cyan-500 text-slate-950 font-bold border-cyan-400'
-                            : 'bg-slate-800 border-slate-700 text-slate-300'
+                            ? 'bg-cyan-500 text-white font-bold border-cyan-400'
+                            : 'bg-white/[0.04] border-white/10 text-slate-400'
                         }`}
                       >
                         {count} بازیکن
@@ -484,18 +511,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
 
               {/* Checkout Calculation & Confirmation */}
-              <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 
                 {/* Payment Breakdown */}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-slate-400">نحوه پرداخت:</span>
+                    <span className="text-xs text-slate-500">نحوه پرداخت:</span>
                     <button
                       onClick={() => setSplitPayment(true)}
                       className={`text-xs px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
                         splitPayment
-                          ? 'bg-[#a3e635]/20 text-[#a3e635] border border-[#a3e635]/40'
-                          : 'bg-slate-800 text-slate-400'
+                          ? 'bg-[#ff2d55]/20 text-[#ff6b81] border border-[#ff2d55]/60/40'
+                          : 'bg-white/[0.04] text-slate-500'
                       }`}
                     >
                       دنگ ۴ نفره (سهم من)
@@ -504,8 +531,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       onClick={() => setSplitPayment(false)}
                       className={`text-xs px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
                         !splitPayment
-                          ? 'bg-[#a3e635]/20 text-[#a3e635] border border-[#a3e635]/40'
-                          : 'bg-slate-800 text-slate-400'
+                          ? 'bg-[#ff2d55]/20 text-[#ff6b81] border border-[#ff2d55]/60/40'
+                          : 'bg-white/[0.04] text-slate-500'
                       }`}
                     >
                       پرداخت کل مبلغ
@@ -513,10 +540,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </div>
 
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-white">
+                    <span className="text-2xl font-black text-slate-100">
                       {(splitPayment ? splitPrice : totalPrice).toLocaleString('fa-IR')}
                     </span>
-                    <span className="text-xs font-semibold text-slate-400">تومان</span>
+                    <span className="text-xs font-semibold text-slate-500">تومان</span>
                     {splitPayment && (
                       <span className="text-xs text-slate-500">
                         (کل مبلغ سانس: {totalPrice.toLocaleString('fa-IR')} تومان)
@@ -528,7 +555,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 {/* Final CTA Button */}
                 <button
                   onClick={handleConfirmBooking}
-                  className="glow-btn-lime flex items-center justify-center gap-2 text-slate-950 font-black text-base px-8 py-3.5 rounded-2xl transition cursor-pointer"
+                  className="btn-fire glow-btn-fire flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 rounded-2xl transition cursor-pointer"
                 >
                   <CreditCard className="w-5 h-5" />
                   <span>تایید و رزرو قطعی زمین</span>
@@ -544,46 +571,46 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
       {/* Booking Confirmation Receipt Modal */}
       {showConfirmationModal && lastBookingInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-[#a3e635]/50 p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white/[0.05] border border-[#ff2d55]/60/50 p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
             
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 rounded-2xl bg-[#a3e635]/20 border border-[#a3e635] text-[#a3e635] flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-[#ff2d55]/20 border border-[#ff2d55]/60 text-[#ff6b81] flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-black text-white">زمین با موفقیت رزرو گردید!</h3>
-              <p className="text-xs text-slate-400">رسید الکترونیکی رزرو کورت پدل شما صادر شد.</p>
+              <h3 className="text-xl font-black text-slate-100">زمین با موفقیت رزرو گردید!</h3>
+              <p className="text-xs text-slate-500">رسید الکترونیکی رزرو کورت پدل شما صادر شد.</p>
             </div>
 
             {/* Receipt Summary Box */}
-            <div className="rounded-2xl bg-slate-950 p-4 border border-slate-800 space-y-3 text-xs">
-              <div className="flex justify-between text-slate-300">
+            <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-3 text-xs">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">کد پیگیری:</span>
                 <span className="font-mono text-cyan-400 font-bold">{lastBookingInfo.id}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">باشگاه:</span>
-                <span className="font-bold text-white">{lastBookingInfo.clubName}</span>
+                <span className="font-bold text-slate-100">{lastBookingInfo.clubName}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">زمین:</span>
-                <span className="font-bold text-[#a3e635]">{lastBookingInfo.courtName}</span>
+                <span className="font-bold text-[#ff6b81]">{lastBookingInfo.courtName}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">تاریخ و ساعت:</span>
-                <span className="font-bold text-white">{lastBookingInfo.date} | {lastBookingInfo.timeSlot}</span>
+                <span className="font-bold text-slate-100">{lastBookingInfo.date} | {lastBookingInfo.timeSlot}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">مدت سانس:</span>
-                <span className="font-bold text-white">{lastBookingInfo.durationMinutes} دقیقه</span>
+                <span className="font-bold text-slate-100">{lastBookingInfo.durationMinutes} دقیقه</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">رزرو کننده:</span>
-                <span className="font-bold text-white">{lastBookingInfo.bookedByPlayerName}</span>
+                <span className="font-bold text-slate-100">{lastBookingInfo.bookedByPlayerName}</span>
               </div>
-              <div className="pt-2 border-t border-slate-800 flex justify-between text-sm">
-                <span className="text-slate-400 font-bold">مبلغ پرداختی:</span>
-                <span className="text-[#a3e635] font-black">
+              <div className="pt-2 border-t border-white/10 flex justify-between text-sm">
+                <span className="text-slate-500 font-bold">مبلغ پرداختی:</span>
+                <span className="text-[#ff6b81] font-black">
                   {(lastBookingInfo.paymentStatus === 'split_active'
                     ? lastBookingInfo.splitPricePerPerson
                     : lastBookingInfo.totalPrice
@@ -604,7 +631,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
             <button
               onClick={() => setShowConfirmationModal(false)}
-              className="w-full py-3 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-sm rounded-xl transition cursor-pointer"
+              className="w-full py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm rounded-xl transition cursor-pointer"
             >
               بستن و بازگشت به سامانه
             </button>

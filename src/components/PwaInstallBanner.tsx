@@ -49,22 +49,22 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({ onOpenManual
   };
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-b border-[#a3e635]/30 px-3 py-2.5 sm:px-4 sm:py-3 transition shadow-lg relative z-30">
+    <div className="w-full bg-gradient-to-l from-[#ff2d55]/15 via-[#0d1526]/90 to-[#2f7bff]/15 border-b border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 transition shadow-lg relative z-30 backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
         
         {/* Banner Info */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="w-9 h-9 rounded-xl bg-[#a3e635]/15 border border-[#a3e635]/40 flex items-center justify-center shrink-0">
-            <Smartphone className="w-5 h-5 text-[#a3e635]" />
+          <div className="w-9 h-9 rounded-xl bg-[#ff2d55]/15 border border-[#ff2d55]/60/40 flex items-center justify-center shrink-0">
+            <Smartphone className="w-5 h-5 text-[#ff6b81]" />
           </div>
           <div className="text-right flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-black text-white">نصب نسخه موبایل اپلیکیشن پدل‌پرو</span>
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#a3e635] text-slate-950">
+              <span className="text-xs font-black text-slate-100">نصب نسخه موبایل اپلیکیشن پدل‌پرو</span>
+              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full btn-fire">
                 PWA بومی
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p className="text-[11px] text-slate-500 truncate">
               اجرای سریع تمام‌صفحه بدون نیاز به گوگل‌پلی یا اپ‌استور با امکان استفاده آفلاین
             </p>
           </div>
@@ -73,7 +73,7 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({ onOpenManual
         {/* Buttons */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {installSuccess ? (
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-800">
+            <div className="flex items-center gap-1 text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-800">
               <CheckCircle className="w-4 h-4" />
               <span>اپلیکیشن با موفقیت نصب شد!</span>
             </div>
@@ -81,7 +81,7 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({ onOpenManual
             <>
               <button
                 onClick={handleInstallClick}
-                className="glow-btn-lime flex items-center justify-center gap-1.5 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition cursor-pointer flex-1 sm:flex-initial"
+                className="btn-fire glow-btn-fire flex items-center justify-center gap-1.5 text-white font-black text-xs px-4 py-2 rounded-xl transition cursor-pointer flex-1 sm:flex-initial"
               >
                 {isIos ? (
                   <>
@@ -98,7 +98,7 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({ onOpenManual
 
               <button
                 onClick={handleDismiss}
-                className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800/80 transition"
+                className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-white/[0.05] transition"
                 title="بستن اعلان"
               >
                 <X className="w-4 h-4" />

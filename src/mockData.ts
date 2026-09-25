@@ -4,7 +4,7 @@ export const initialPlayerProfile: PlayerProfile = {
   id: 'player-me',
   name: 'رضا قاضی',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-  themeColor: '#a3e635', // Electric Lime
+  themeColor: '#ff2d55', // Electric Lime
   level: 3.85,
   levelTitle: 'پیشرفته (Advanced)',
   hand: 'right',

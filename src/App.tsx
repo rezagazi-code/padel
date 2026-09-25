@@ -47,7 +47,7 @@ const MainContent: React.FC = () => {
   };
 
   const appBody = (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-[#a3e635] selection:text-black">
+    <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black">
       {/* Top Mobile Friendly Install Banner */}
       <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />
 
@@ -69,11 +69,11 @@ const MainContent: React.FC = () => {
       <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/60 py-6 px-4 text-center text-xs text-slate-400">
+      <footer className="glass border-t border-white/10 mt-8 py-6 px-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#a3e635] animate-pulse" />
-            <span className="font-bold text-white">پدل‌پرو آرنا (PadelPro Arena)</span>
+            <span className="w-2 h-2 rounded-full bg-[#ff2d55] animate-pulse" />
+            <span className="font-bold text-slate-100">پدل‌پرو آرنا (PadelPro Arena)</span>
             <span className="text-slate-500">| الهام گرفته از استانداردهای برتر جهانی Playtomic</span>
           </div>
 
@@ -88,31 +88,31 @@ const MainContent: React.FC = () => {
   // If mobile simulator device mode is toggled on desktop
   if (isMobileDeviceView) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#060a13] flex flex-col items-center justify-center p-4">
         {/* Device Switcher Bar */}
-        <div className="mb-4 flex items-center justify-between w-full max-w-sm bg-slate-900 border border-slate-800 p-3 rounded-2xl text-xs">
-          <div className="flex items-center gap-2 text-white font-bold">
-            <Smartphone className="w-4 h-4 text-[#a3e635]" />
+        <div className="mb-4 flex items-center justify-between w-full max-w-sm glass p-3 rounded-2xl text-xs">
+          <div className="flex items-center gap-2 text-slate-200 font-bold">
+            <Smartphone className="w-4 h-4 text-[#65a30d]" />
             <span>پیش‌نمایش اپلیکیشن موبایل (PWA)</span>
           </div>
           <button
             onClick={() => setIsMobileDeviceView(false)}
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded-xl cursor-pointer"
+            className="text-xs bg-white/[0.05] hover:bg-white/10 text-slate-300 px-3 py-1 rounded-xl cursor-pointer border border-white/10"
           >
             خروج از نمای موبایل
           </button>
         </div>
 
         {/* Mobile Mockup Device Frame */}
-        <div className="relative w-full max-w-[400px] h-[840px] bg-black rounded-[48px] p-3 ring-1 ring-slate-800 shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+        <div className="relative w-full max-w-[400px] h-[840px] bg-white rounded-[48px] p-3 ring-1 ring-white/70 shadow-[0_25px_60px_rgba(0,0,0,0.65)] flex flex-col overflow-hidden">
           {/* Dynamic Island */}
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800/60">
-            <div className="w-2 h-2 rounded-full bg-slate-800" />
-            <div className="w-2.5 h-2.5 rounded-full bg-[#a3e635]/80" />
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-full z-50 flex items-center justify-between px-3">
+            <div className="w-2 h-2 rounded-full bg-slate-700" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[#ff2d55]/80" />
           </div>
 
           {/* Screen Content */}
-          <div className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden bg-[#090d16] text-slate-100 flex flex-col scrollbar-none pt-4">
+          <div className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden bg-[#060a13] text-slate-200 flex flex-col scrollbar-none pt-4">
             {appBody}
           </div>
         </div>

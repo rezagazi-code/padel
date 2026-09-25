@@ -130,24 +130,24 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-6 my-8 text-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-3xl glass-strong p-6 sm:p-8 shadow-2xl space-y-6 my-8 text-xs">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#a3e635]/20 border border-[#a3e635] text-[#a3e635] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#ff2d55]/20 border border-[#ff2d55]/60 text-[#ff6b81] flex items-center justify-center">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white">ثبت باشگاه و تعریف زمین‌های پدل</h2>
-              <p className="text-[11px] text-slate-400">ویژه مالکان و مدیران مجموعه‌های پدل سراسر کشور</p>
+              <h2 className="text-lg font-black text-slate-100">ثبت باشگاه و تعریف زمین‌های پدل</h2>
+              <p className="text-[11px] text-slate-500">ویژه مالکان و مدیران مجموعه‌های پدل سراسر کشور</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+            className="text-slate-500 hover:text-slate-100 p-1 rounded-lg hover:bg-white/[0.04] cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,44 +156,44 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* General Club Info */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-[#a3e635] flex items-center gap-1">
+            <h4 className="text-xs font-bold text-[#ff6b81] flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               اطلاعات عمومی مجموعه:
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">نام باشگاه / مجموعه ورزشی:</label>
+                <label className="block text-slate-400 font-bold mb-1">نام باشگاه / مجموعه ورزشی:</label>
                 <input
                   type="text"
                   required
                   placeholder="مثال: باشگاه پدل آرنا زعفرانیه"
                   value={clubName}
                   onChange={(e) => setClubName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:border-[#a3e635] focus:outline-none"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">شماره تماس رزرو:</label>
+                <label className="block text-slate-400 font-bold mb-1">شماره تماس رزرو:</label>
                 <input
                   type="text"
                   dir="ltr"
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:border-[#a3e635] focus:outline-none text-right"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none text-right"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">استان:</label>
+                <label className="block text-slate-400 font-bold mb-1">استان:</label>
                 <select
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:border-[#a3e635] focus:outline-none"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
                 >
                   {PROVINCES_LIST.filter((p) => p !== 'همه استان‌ها').map((p) => (
                     <option key={p} value={p}>
@@ -204,59 +204,59 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">شهر:</label>
+                <label className="block text-slate-400 font-bold mb-1">شهر:</label>
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:border-[#a3e635] focus:outline-none"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-bold mb-1">آدرس دقیق مجموعه:</label>
+              <label className="block text-slate-400 font-bold mb-1">آدرس دقیق مجموعه:</label>
               <input
                 type="text"
                 required
                 placeholder="خیابان، پلاک، مجموعه ورزشی..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:border-[#a3e635] focus:outline-none"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">ساعت بازگشایی صبح:</label>
+                <label className="block text-slate-400 font-bold mb-1">ساعت بازگشایی صبح:</label>
                 <input
                   type="text"
                   value={openingHour}
                   onChange={(e) => setOpeningHour(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
               <div>
-                <label className="block text-slate-300 font-bold mb-1">ساعت پایان سانس شب:</label>
+                <label className="block text-slate-400 font-bold mb-1">ساعت پایان سانس شب:</label>
                 <input
                   type="text"
                   value={closingHour}
                   onChange={(e) => setClosingHour(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
             </div>
           </div>
 
           {/* Dynamic Courts Section */}
-          <div className="pt-4 border-t border-slate-800 space-y-3">
+          <div className="pt-4 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xs font-bold text-[#a3e635] flex items-center gap-1">
+                <h4 className="text-xs font-bold text-[#ff6b81] flex items-center gap-1">
                   <Layers className="w-3.5 h-3.5" />
                   تعریف زمین‌ها (تعداد کورت‌های پدل: {courts.length} زمین):
                 </h4>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-slate-500">
                   برای هر زمین می‌توانید نوع سازه، رنگ چمن و نرخ سانس عادی و ساعات پیک را مشخص کنید.
                 </p>
               </div>
@@ -264,7 +264,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
               <button
                 type="button"
                 onClick={handleAddCourtRow}
-                className="flex items-center gap-1 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-[#a3e635] px-3 py-1.5 rounded-xl border border-slate-700 cursor-pointer"
+                className="flex items-center gap-1 text-xs font-bold bg-white/[0.04] hover:bg-white/10 text-[#ff6b81] px-3 py-1.5 rounded-xl border border-white/10 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>افزودن زمین دیگر</span>
@@ -275,10 +275,10 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
               {courts.map((court, index) => (
                 <div
                   key={index}
-                  className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 relative"
+                  className="p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 space-y-3 relative"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-xs">زمین شماره {index + 1}</span>
+                    <span className="font-bold text-slate-100 text-xs">زمین شماره {index + 1}</span>
                     {courts.length > 1 && (
                       <button
                         type="button"
@@ -293,7 +293,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
-                      <span className="text-slate-400 text-[10px] block mb-0.5">نام زمین:</span>
+                      <span className="text-slate-500 text-[10px] block mb-0.5">نام زمین:</span>
                       <input
                         type="text"
                         value={court.name}
@@ -302,12 +302,12 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                           updated[index].name = e.target.value;
                           setCourts(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                        className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-100"
                       />
                     </div>
 
                     <div>
-                      <span className="text-slate-400 text-[10px] block mb-0.5">نوع سازه:</span>
+                      <span className="text-slate-500 text-[10px] block mb-0.5">نوع سازه:</span>
                       <select
                         value={court.type}
                         onChange={(e) => {
@@ -315,7 +315,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                           updated[index].type = e.target.value as CourtType;
                           setCourts(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                        className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-100"
                       >
                         <option value="panoramic">شیشه‌ای پانورامیک</option>
                         <option value="indoor">سالنی سرپوشیده</option>
@@ -324,7 +324,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                     </div>
 
                     <div>
-                      <span className="text-slate-400 text-[10px] block mb-0.5">نرخ عادی (تومان / ساعت):</span>
+                      <span className="text-slate-500 text-[10px] block mb-0.5">نرخ عادی (تومان / ساعت):</span>
                       <input
                         type="number"
                         step="50000"
@@ -334,7 +334,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                           updated[index].hourlyRate = Number(e.target.value);
                           setCourts(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                        className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-100"
                       />
                     </div>
                   </div>
@@ -344,17 +344,17 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-4 border-t border-slate-800 flex gap-3">
+          <div className="pt-4 border-t border-white/10 flex gap-3">
             <button
               type="submit"
-              className="flex-1 py-3.5 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-sm rounded-xl transition active:scale-95 cursor-pointer shadow-lg"
+              className="flex-1 py-3.5 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm rounded-xl transition active:scale-95 cursor-pointer shadow-lg"
             >
               ثبت نهایی باشگاه و قرارگیری در لیست رزرو
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl cursor-pointer"
+              className="px-6 py-3.5 bg-white/[0.04] hover:bg-white/10 text-slate-400 font-bold rounded-xl cursor-pointer"
             >
               انصراف
             </button>

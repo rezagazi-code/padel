@@ -104,7 +104,7 @@ export const FreeAgentsView: React.FC = () => {
     <div className="space-y-6 pb-12">
       
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-teal-950 border border-slate-800 p-6 sm:p-8 relative overflow-hidden">
+      <div className="rounded-3xl bg-gradient-to-r from-[#ff2d55]/15 via-white/[0.03] to-[#2f7bff]/15 border border-white/10 p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -112,10 +112,10 @@ export const FreeAgentsView: React.FC = () => {
               <UserCheck className="w-3.5 h-3.5" />
               سامانه بازیکنان آزاد و تکمیل ظرفیت سانس‌ها
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
               زمین اجاره کرده‌اید و به بازیکن نیاز دارید؟
             </h1>
-            <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
               دیگر هیچ سانسی به خاطر غیبت یا کسری بازیکن کنسل نمی‌شود. درخواست خود را ثبت کنید یا مستقیماً از میان صدها بازیکن آزاد آماده به بازی، هم‌بازی ایده‌آل خود را دعوت نمایید.
             </p>
           </div>
@@ -123,7 +123,7 @@ export const FreeAgentsView: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setShowCreateRequestModal(true)}
-              className="flex items-center gap-2 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-sm px-6 py-3.5 rounded-2xl shadow-[0_4px_20px_rgba(163,230,53,0.3)] transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-[0_4px_20px_rgba(255,45,85,0.3)] transition active:scale-95 cursor-pointer"
             >
               <PlusCircle className="w-5 h-5" />
               <span>ثبت نیاز به بازیکن</span>
@@ -132,20 +132,20 @@ export const FreeAgentsView: React.FC = () => {
         </div>
 
         {/* User Free Agent Status Switch Banner */}
-        <div className="mt-6 pt-6 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+        <div className="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/[0.03] p-4 rounded-2xl border border-white/10">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
               playerProfile.isFreeAgent
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                : 'bg-slate-800 text-slate-500 border-slate-700'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-white/[0.04] text-slate-500 border-white/10'
             }`}>
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">
+              <h4 className="text-sm font-bold text-slate-100">
                 وضعیت شما: {playerProfile.isFreeAgent ? 'بازیکن آزاد فعال (آماده به بازی)' : 'غیرفعال در لیست بازیکنان آزاد'}
               </h4>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 {playerProfile.isFreeAgent
                   ? 'سایر بازیکنان و باشگاه‌ها می‌توانند شما را به سانس‌های خود دعوت کنند.'
                   : 'با فعال کردن این گزینه، در لیست بازیکن‌های آزاد در دسترس قرار می‌گیرید.'}
@@ -159,7 +159,7 @@ export const FreeAgentsView: React.FC = () => {
               className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer border ${
                 playerProfile.isFreeAgent
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
-                  : 'bg-[#a3e635] text-slate-950 border-[#a3e635] hover:bg-[#8fd126]'
+                  : 'btn-fire border-[#ff2d55]/60 hover:bg-[#8fd126]'
               }`}
             >
               {playerProfile.isFreeAgent ? 'غیرفعال‌سازی وضعیت آزاد' : 'من آماده بازی هستم (فعال‌سازی)'}
@@ -173,8 +173,8 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('requests')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'requests'
-                ? 'bg-white text-slate-950 shadow-sm'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'btn-fire shadow-sm'
+                : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -184,8 +184,8 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('market')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'market'
-                ? 'bg-white text-slate-950 shadow-sm'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'btn-fire shadow-sm'
+                : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
             <UserCheck className="w-4 h-4" />
@@ -195,17 +195,17 @@ export const FreeAgentsView: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white/[0.04] p-4 rounded-2xl border border-white/10">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <span className="text-xs font-bold text-slate-400 shrink-0">استان:</span>
+          <span className="text-xs font-bold text-slate-500 shrink-0">استان:</span>
           {PROVINCES_LIST.slice(0, 6).map((prov) => (
             <button
               key={prov}
               onClick={() => setSelectedProvinceFilter(prov)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${
                 selectedProvinceFilter === prov
-                  ? 'bg-[#a3e635] text-slate-950 font-black'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'btn-fire font-black'
+                  : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >
               {prov}
@@ -215,7 +215,7 @@ export const FreeAgentsView: React.FC = () => {
 
         {activeSubTab === 'market' && (
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">سمت بازی:</span>
+            <span className="text-xs font-bold text-slate-500">سمت بازی:</span>
             {[
               { id: 'all', label: 'همه' },
               { id: 'left', label: 'سمت چپ (Reves)' },
@@ -226,8 +226,8 @@ export const FreeAgentsView: React.FC = () => {
                 onClick={() => setSelectedSideFilter(side.id as any)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   selectedSideFilter === side.id
-                    ? 'bg-cyan-500 text-slate-950 font-bold'
-                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-cyan-500 text-white font-bold'
+                    : 'bg-white/[0.04] text-slate-500 hover:text-slate-100'
                 }`}
               >
                 {side.label}
@@ -248,32 +248,32 @@ export const FreeAgentsView: React.FC = () => {
             return (
               <div
                 key={post.id}
-                className="rounded-3xl bg-slate-900/90 border border-slate-800 p-5 space-y-4 hover:border-slate-700 transition relative flex flex-col justify-between"
+                className="rounded-3xl bg-white/[0.06] border border-white/10 p-5 space-y-4 hover:border-white/10 transition relative flex flex-col justify-between"
               >
                 <div>
                   {/* Host info & Status */}
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
                     <div className="flex items-center gap-2.5">
                       <img
                         src={post.hostAvatar}
                         alt={post.hostName}
-                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-700"
+                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-200/60"
                       />
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="text-xs font-bold text-white">{post.hostName}</h4>
-                          <span className="text-[10px] bg-[#a3e635] text-slate-950 font-black px-1.5 rounded">
+                          <h4 className="text-xs font-bold text-slate-100">{post.hostName}</h4>
+                          <span className="text-[10px] btn-fire font-black px-1.5 rounded">
                             {post.hostLevel.toFixed(2)}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400">میزبان سانس</p>
+                        <p className="text-[10px] text-slate-500">میزبان سانس</p>
                       </div>
                     </div>
 
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                         isFilled
-                          ? 'bg-slate-800 text-slate-400 border-slate-700'
+                          ? 'bg-white/[0.04] text-slate-500 border-white/10'
                           : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
                       }`}
                     >
@@ -283,12 +283,12 @@ export const FreeAgentsView: React.FC = () => {
 
                   {/* Match specifics */}
                   <div className="mt-3 space-y-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-white font-bold">
-                      <MapPin className="w-3.5 h-3.5 text-[#a3e635]" />
+                    <div className="flex items-center gap-1.5 text-slate-100 font-bold">
+                      <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
                       <span>{post.clubName}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-slate-300">
+                    <div className="flex items-center gap-3 text-slate-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                         {post.date}
@@ -299,18 +299,18 @@ export const FreeAgentsView: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-[11px] text-slate-300 leading-relaxed italic">
+                    <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] text-slate-400 leading-relaxed italic">
                       "{post.note}"
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                      <div className="bg-slate-800/60 p-2 rounded-xl">
-                        <span className="text-slate-400 block text-[10px]">محدوده سطح بازی:</span>
-                        <span className="font-bold text-white">{post.minLevel} الی {post.maxLevel}</span>
+                      <div className="bg-white/[0.04] p-2 rounded-xl">
+                        <span className="text-slate-500 block text-[10px]">محدوده سطح بازی:</span>
+                        <span className="font-bold text-slate-100">{post.minLevel} الی {post.maxLevel}</span>
                       </div>
-                      <div className="bg-slate-800/60 p-2 rounded-xl">
-                        <span className="text-slate-400 block text-[10px]">پست مورد نیاز:</span>
-                        <span className="font-bold text-[#a3e635]">
+                      <div className="bg-white/[0.04] p-2 rounded-xl">
+                        <span className="text-slate-500 block text-[10px]">پست مورد نیاز:</span>
+                        <span className="font-bold text-[#ff6b81]">
                           {post.preferredSide === 'left'
                             ? 'سمت چپ (Reves)'
                             : post.preferredSide === 'right'
@@ -323,19 +323,19 @@ export const FreeAgentsView: React.FC = () => {
                 </div>
 
                 {/* Bottom Action & Cost */}
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+                <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
                   <div>
-                    <span className="text-slate-400 text-[10px] block">سهم پرداختی:</span>
-                    <span className="text-sm font-black text-white">
+                    <span className="text-slate-500 text-[10px] block">سهم پرداختی:</span>
+                    <span className="text-sm font-black text-slate-100">
                       {post.costPerPerson.toLocaleString('fa-IR')}{' '}
-                      <span className="text-[10px] text-slate-400">تومان</span>
+                      <span className="text-[10px] text-slate-500">تومان</span>
                     </span>
                   </div>
 
                   {isHost ? (
                     <span className="text-xs text-slate-500 font-bold">آگهی شما</span>
                   ) : isJoined ? (
-                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-xs text-emerald-300 font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" />
                       شما ملحق شده‌اید
                     </span>
@@ -344,7 +344,7 @@ export const FreeAgentsView: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => joinNeedPlayerPost(post.id)}
-                      className="px-4 py-2 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                      className="px-4 py-2 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                     >
                       <UserCheck className="w-4 h-4" />
                       <span>اعلام آمادگی و پیوستن</span>
@@ -366,7 +366,7 @@ export const FreeAgentsView: React.FC = () => {
             return (
               <div
                 key={agent.id}
-                className="rounded-3xl bg-slate-900/90 border border-slate-800 p-5 space-y-4 hover:border-slate-700 transition relative flex flex-col justify-between shadow-md"
+                className="rounded-3xl bg-white/[0.06] border border-white/10 p-5 space-y-4 hover:border-white/10 transition relative flex flex-col justify-between shadow-md"
                 style={{
                   borderTop: `4px solid ${agent.themeColor}`,
                 }}
@@ -381,7 +381,7 @@ export const FreeAgentsView: React.FC = () => {
                         className="w-16 h-16 rounded-2xl object-cover ring-2"
                         style={{ borderColor: agent.themeColor }}
                       />
-                      <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full ring-2 ring-[#090d16]" />
+                      <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full ring-2 ring-black" />
                     </div>
 
                     <div className="text-left space-y-1">
@@ -391,24 +391,24 @@ export const FreeAgentsView: React.FC = () => {
                       >
                         سطح {agent.level.toFixed(2)}
                       </span>
-                      <p className="text-[10px] text-slate-400 font-semibold">رنک #{agent.rankingPosition}</p>
+                      <p className="text-[10px] text-slate-500 font-semibold">رنک #{agent.rankingPosition}</p>
                     </div>
                   </div>
 
                   {/* Name & Title */}
                   <div className="mt-3">
-                    <h3 className="text-base font-black text-white">{agent.name}</h3>
-                    <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                    <h3 className="text-base font-black text-slate-100">{agent.name}</h3>
+                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3.5 h-3.5 text-slate-500" />
                       {agent.city} ({agent.province})
                     </p>
                   </div>
 
                   {/* Player Specifications */}
-                  <div className="mt-3 pt-3 border-t border-slate-800 space-y-2 text-xs">
+                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-slate-400">سمت ترجیحی:</span>
-                      <span className="font-bold text-[#a3e635]">
+                      <span className="text-slate-500">سمت ترجیحی:</span>
+                      <span className="font-bold text-[#ff6b81]">
                         {agent.preferredSide === 'left'
                           ? 'Reves (سمت چپ)'
                           : agent.preferredSide === 'right'
@@ -418,26 +418,26 @@ export const FreeAgentsView: React.FC = () => {
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-slate-400">دست غالب:</span>
-                      <span className="font-bold text-slate-200">
+                      <span className="text-slate-500">دست غالب:</span>
+                      <span className="font-bold text-slate-300">
                         {agent.hand === 'right' ? 'راست‌دست' : 'چپ‌دست (گوهر پدل)'}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-slate-400">راکت:</span>
-                      <span className="font-bold text-slate-300 truncate max-w-[130px]">
+                      <span className="text-slate-500">راکت:</span>
+                      <span className="font-bold text-slate-400 truncate max-w-[130px]">
                         {agent.racketBrand} {agent.racketModel}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-slate-400">اطمینان حضور:</span>
+                      <span className="text-slate-500">اطمینان حضور:</span>
                       <span className="font-bold text-cyan-400">{agent.reliabilityScore}٪</span>
                     </div>
 
                     {agent.freeAgentNote && (
-                      <p className="p-2.5 rounded-xl bg-slate-950 text-[11px] text-slate-300 border border-slate-800 mt-2 leading-relaxed">
+                      <p className="p-2.5 rounded-xl bg-white/[0.05] text-[11px] text-slate-400 border border-white/10 mt-2 leading-relaxed">
                         {agent.freeAgentNote}
                       </p>
                     )}
@@ -445,15 +445,15 @@ export const FreeAgentsView: React.FC = () => {
                 </div>
 
                 {/* Invite CTA Button */}
-                <div className="pt-4 border-t border-slate-800">
+                <div className="pt-4 border-t border-white/10">
                   {isMe ? (
-                    <span className="block text-center text-xs font-bold text-slate-400 py-1">
+                    <span className="block text-center text-xs font-bold text-slate-500 py-1">
                       پروفایل شما
                     </span>
                   ) : (
                     <button
                       onClick={() => setShowInviteModal(agent)}
-                      className="w-full py-2.5 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black text-xs rounded-xl transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-xs rounded-xl transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>دعوت فوری به مسابقه / سانس</span>
@@ -469,16 +469,16 @@ export const FreeAgentsView: React.FC = () => {
 
       {/* Modal: Create Need Player Request */}
       {showCreateRequestModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 my-8 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-4 my-8 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-[#a3e635]" />
-                <h3 className="text-base font-black text-white">ثبت آگهی نیاز به بازیکن آزاد</h3>
+                <PlusCircle className="w-5 h-5 text-[#ff6b81]" />
+                <h3 className="text-base font-black text-slate-100">ثبت آگهی نیاز به بازیکن آزاد</h3>
               </div>
               <button
                 onClick={() => setShowCreateRequestModal(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-500 hover:text-slate-100 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -486,44 +486,44 @@ export const FreeAgentsView: React.FC = () => {
 
             <form onSubmit={handleCreateRequest} className="space-y-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">باشگاهی که زمین را رزرو کرده‌اید:</label>
+                <label className="block text-slate-400 font-bold mb-1">باشگاهی که زمین را رزرو کرده‌اید:</label>
                 <input
                   type="text"
                   required
                   value={reqClubName}
                   onChange={(e) => setReqClubName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">تاریخ سانس:</label>
+                  <label className="block text-slate-400 font-bold mb-1">تاریخ سانس:</label>
                   <input
                     type="text"
                     value={reqDate}
                     onChange={(e) => setReqDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">ساعت سانس:</label>
+                  <label className="block text-slate-400 font-bold mb-1">ساعت سانس:</label>
                   <input
                     type="text"
                     value={reqTime}
                     onChange={(e) => setReqTime(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">تعداد بازیکن مورد نیاز:</label>
+                  <label className="block text-slate-400 font-bold mb-1">تعداد بازیکن مورد نیاز:</label>
                   <select
                     value={reqSpots}
                     onChange={(e) => setReqSpots(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     <option value={1}>۱ نفر</option>
                     <option value={2}>۲ نفر</option>
@@ -532,11 +532,11 @@ export const FreeAgentsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">پست مورد نیاز:</label>
+                  <label className="block text-slate-400 font-bold mb-1">پست مورد نیاز:</label>
                   <select
                     value={reqSide}
                     onChange={(e) => setReqSide(e.target.value as PlayingSide)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
                     <option value="left">سمت چپ (Reves)</option>
                     <option value="right">سمت راست (Drive)</option>
@@ -546,38 +546,38 @@ export const FreeAgentsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">سهم هزینه هر نفر (تومان):</label>
+                <label className="block text-slate-400 font-bold mb-1">سهم هزینه هر نفر (تومان):</label>
                 <input
                   type="number"
                   step="10000"
                   value={reqCost}
                   onChange={(e) => setReqCost(Number(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">توضیحات و هماهنگی:</label>
+                <label className="block text-slate-400 font-bold mb-1">توضیحات و هماهنگی:</label>
                 <textarea
                   rows={2}
                   value={reqNote}
                   onChange={(e) => setReqNote(e.target.value)}
                   placeholder="مثال: بازی سطح متوسط، دوستانه و پرانرژی..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex gap-3">
+              <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black rounded-xl cursor-pointer"
+                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
                 >
                   ثبت در تابلوی بازیکنان آزاد
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateRequestModal(false)}
-                  className="px-4 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-3 bg-white/[0.04] text-slate-400 font-bold rounded-xl cursor-pointer"
                 >
                   انصراف
                 </button>
@@ -589,8 +589,8 @@ export const FreeAgentsView: React.FC = () => {
 
       {/* Modal: Invite Free Agent */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl glass-strong p-6 shadow-2xl space-y-4 text-xs">
             <div className="text-center space-y-2">
               <img
                 src={showInviteModal.avatar}
@@ -598,18 +598,18 @@ export const FreeAgentsView: React.FC = () => {
                 className="w-16 h-16 rounded-2xl mx-auto object-cover ring-2"
                 style={{ borderColor: showInviteModal.themeColor }}
               />
-              <h3 className="text-base font-black text-white">دعوت از {showInviteModal.name}</h3>
-              <p className="text-slate-400">
+              <h3 className="text-base font-black text-slate-100">دعوت از {showInviteModal.name}</h3>
+              <p className="text-slate-500">
                 سطح بازی: {showInviteModal.level.toFixed(2)} | پست: {showInviteModal.preferredSide === 'left' ? 'چپ' : 'راست'}
               </p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-slate-300 font-bold">انتخاب مسابقه یا سانس برای ارسال دعوت‌نامه:</label>
+              <label className="block text-slate-400 font-bold">انتخاب مسابقه یا سانس برای ارسال دعوت‌نامه:</label>
               <select
                 value={selectedMatchToInvite}
                 onChange={(e) => setSelectedMatchToInvite(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
               >
                 <option value="">یک مسابقه انتخاب کنید...</option>
                 {openMatches.map((m) => (
@@ -623,13 +623,13 @@ export const FreeAgentsView: React.FC = () => {
             <div className="pt-2 flex gap-2">
               <button
                 onClick={handleSendInvite}
-                className="flex-1 py-2.5 bg-[#a3e635] hover:bg-[#8fd126] text-slate-950 font-black rounded-xl cursor-pointer"
+                className="flex-1 py-2.5 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
               >
                 ارسال دعوت‌نامه پیامکی و نوتیفیکیشن
               </button>
               <button
                 onClick={() => setShowInviteModal(null)}
-                className="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl cursor-pointer"
+                className="px-4 py-2.5 bg-white/[0.04] text-slate-400 rounded-xl cursor-pointer"
               >
                 بستن
               </button>
