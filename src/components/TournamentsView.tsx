@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Tournament, TournamentCategory, TournamentFormat, UserRole } from '../types';
 import GradeBadge from './GradeBadge';
-import { levelToGrade } from '../utils/skillGrades';
+import { levelToGrade, SKILL_GRADES, GRADE_MIDPOINT, gradeBandFa, type SkillGrade } from '../utils/skillGrades';
 import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
 import {
@@ -58,7 +58,7 @@ export const TournamentsView: React.FC = () => {
   const [showRegisterModal, setShowRegisterModal] = useState<Tournament | null>(null);
   const [teamNameInput, setTeamNameInput] = useState('');
   const [partnerNameInput, setPartnerNameInput] = useState('');
-  const [partnerLevelInput, setPartnerLevelInput] = useState<number>(3.6);
+  const [partnerGradeInput, setPartnerGradeInput] = useState<SkillGrade>('C');
 
   const [showCreateTournModal, setShowCreateTournModal] = useState(false);
   const [showFinalizeModal, setShowFinalizeModal] = useState<Tournament | null>(null);
@@ -109,13 +109,14 @@ export const TournamentsView: React.FC = () => {
       showRegisterModal.id,
       teamNameInput || `تیم ${playerProfile.name}`,
       partnerNameInput || 'هم‌تیمی انتخابی',
-      partnerLevelInput
+      GRADE_MIDPOINT[partnerGradeInput]
     );
 
     if (success) {
       setShowRegisterModal(null);
       setTeamNameInput('');
       setPartnerNameInput('');
+      setPartnerGradeInput('C');
       try {
         confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
       } catch {}
@@ -680,17 +681,31 @@ export const TournamentsView: React.FC = () => {
                     className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-slate-400 font-bold mb-1">سطح پارتنر:</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="1.0"
-                    max="7.0"
-                    value={partnerLevelInput}
-                    onChange={(e) => setPartnerLevelInput(Number(e.target.value))}
-                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
-                  />
+                  <div className="grid grid-cols-6 gap-1.5" dir="ltr">
+                    {SKILL_GRADES.map((g) => {
+                      const active = partnerGradeInput === g;
+                      return (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => setPartnerGradeInput(g)}
+                          className={`py-2 rounded-xl text-sm font-black transition cursor-pointer border ${
+                            active
+                              ? 'bg-gradient-to-br from-[#ff2d55] to-[#2f7bff] text-white border-white/30 shadow-[0_2px_12px_rgba(255,45,85,0.4)]'
+                              : 'bg-white/[0.04] text-slate-400 border-white/10 hover:bg-white/10 hover:text-slate-200'
+                          }`}
+                          title={gradeBandFa(g)}
+                        >
+                          {g}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium text-center mt-1">
+                    {gradeBandFa(partnerGradeInput)}
+                  </p>
                 </div>
               </div>
 
