@@ -5,7 +5,9 @@
 
 import React, { useState } from 'react';
 import { PadelProvider, usePadel } from './context/PadelContext';
+import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
+import { AuthModal } from './components/AuthModal';
 import { CourtBookingView } from './components/CourtBookingView';
 import { MatchmakingView } from './components/MatchmakingView';
 import { FreeAgentsView } from './components/FreeAgentsView';
@@ -26,6 +28,7 @@ const MainContent: React.FC = () => {
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [pwaModalOpen, setPwaModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const renderCurrentView = () => {
     switch (activeTab) {
@@ -56,6 +59,7 @@ const MainContent: React.FC = () => {
         onOpenCloudModal={() => setCloudModalOpen(true)}
         onOpenPwaModal={() => setPwaModalOpen(true)}
         onOpenExportModal={() => setExportModalOpen(true)}
+        onOpenAuthModal={() => setAuthModalOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-20 lg:pb-6">
@@ -67,6 +71,7 @@ const MainContent: React.FC = () => {
       <SupabaseModal isOpen={cloudModalOpen} onClose={() => setCloudModalOpen(false)} />
       <PwaInstallModal isOpen={pwaModalOpen} onClose={() => setPwaModalOpen(false)} />
       <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       {/* Footer */}
       <footer className="glass border-t border-white/10 mt-8 py-6 px-4 text-center text-xs text-slate-500">
@@ -125,8 +130,10 @@ const MainContent: React.FC = () => {
 
 export default function App() {
   return (
-    <PadelProvider>
-      <MainContent />
-    </PadelProvider>
+    <AuthProvider>
+      <PadelProvider>
+        <MainContent />
+      </PadelProvider>
+    </AuthProvider>
   );
 }

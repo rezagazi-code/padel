@@ -106,10 +106,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const totalPrice = Math.round((baseRate * duration) / 60);
   const splitPrice = Math.round(totalPrice / 4);
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!currentClub || !currentCourt) return;
 
-    const newBooking = createBooking({
+    const newBooking = await createBooking({
       clubId: currentClub.id,
       clubName: currentClub.name,
       courtId: currentCourt.id,
@@ -124,6 +124,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       bookedByPlayerName: playerProfile.name,
       playersNeeded: needsExtraPlayers ? playersNeededCount : 0,
     });
+
+    if (!newBooking) return; // e.g. slot was just taken by someone else
 
     setLastBookingInfo(newBooking);
     setShowConfirmationModal(true);

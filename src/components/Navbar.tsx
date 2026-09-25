@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
 import {
@@ -15,7 +16,8 @@ import {
   Download,
   Bell,
   Sparkles,
-  MapPin
+  MapPin,
+  LogIn
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -23,13 +25,15 @@ interface NavbarProps {
   onOpenCloudModal: () => void;
   onOpenPwaModal: () => void;
   onOpenExportModal?: () => void;
+  onOpenAuthModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenClubOwnerModal,
   onOpenCloudModal,
   onOpenPwaModal,
-  onOpenExportModal
+  onOpenExportModal,
+  onOpenAuthModal
 }) => {
   const {
     activeTab,
@@ -41,6 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     selectedProvince,
     setSelectedProvince
   } = usePadel();
+  const { user, profile, ready } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -178,6 +183,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Cloud className="w-4 h-4 text-cyan-400" />
               <span className="hidden md:inline">اتصال ابری</span>
+            </button>
+
+            {/* Auth: login / account */}
+            <button
+              onClick={onOpenAuthModal}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer border ${
+                user
+                  ? 'bg-[#ff2d55]/10 text-[#ff2d55] border-[#ff2d55]/30'
+                  : 'btn-fire text-white'
+              }`}
+              title={user ? 'حساب کاربری' : 'ورود / ثبت‌نام با ایمیل'}
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden md:inline max-w-[110px] truncate">
+                {ready ? (user ? (profile?.name || 'حساب من') : 'ورود / ثبت‌نام') : '...'}
+              </span>
             </button>
 
             {/* Quick Profile Level Badge */}

@@ -24,6 +24,9 @@ import {
   initialTournaments
 } from '../mockData';
 import { levelToGrade } from '../utils/skillGrades';
+import { getSupabase } from '../lib/supabase';
+import { fetchClubs, fetchTournaments, insertBooking, DOUBLE_BOOKED } from '../lib/db';
+import { useAuthOptional } from './AuthContext';
 
 export type ActiveTab =
   | 'booking'
@@ -45,7 +48,7 @@ interface PadelContextType {
   addClub: (club: Omit<Club, 'id' | 'rating' | 'reviewCount'>) => Club;
   addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => void;
   bookings: Booking[];
-  createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Booking;
+  createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Promise<Booking | null>;
   cancelBooking: (bookingId: string) => void;
   openMatches: OpenMatch[];
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
@@ -167,6 +170,35 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
   const [syncNotification, setSyncNotification] = useState<string | null>(null);
 
+  // Optional auth (AuthProvider wraps the app in App.tsx). When the user is
+  // signed in, role + admin club come from their server profile, not the
+  // local demo switcher.
+  const auth = useAuthOptional();
+
+  // Load shared catalog data from Supabase when configured; fall back to
+  // local mock data otherwise (or on error).
+  useEffect(() => {
+    if (!getSupabase()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [remoteClubs, remoteTournaments] = await Promise.all([
+          fetchClubs(),
+          fetchTournaments(),
+        ]);
+        if (!cancelled) {
+          if (remoteClubs.length > 0) setClubs(remoteClubs);
+          if (remoteTournaments.length > 0) setTournaments(remoteTournaments);
+        }
+      } catch (err) {
+        console.warn('Supabase catalog load failed, using local data:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Sync state to local storage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'user_role', currentUserRole);
@@ -272,7 +304,46 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSyncNotification(`زمین جدید به باشگاه اضافه شد.`);
   };
 
-  const createBooking = (bookingData: Omit<Booking, 'id' | 'createdAt'>): Booking => {
+  const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking | null> => {
+    const authUserId = auth?.user?.id ?? null;
+
+    // Real backend path: insert into Supabase first so the UNIQUE(court_id, date,
+    // time_slot) constraint atomically blocks double booking.
+    if (getSupabase() && authUserId) {
+      try {
+        const remote = await insertBooking(
+          {
+            clubId: bookingData.clubId,
+            courtId: bookingData.courtId,
+            date: bookingData.date,
+            timeSlot: bookingData.timeSlot,
+            durationMinutes: bookingData.durationMinutes,
+            totalPrice: bookingData.totalPrice,
+            paymentStatus: bookingData.paymentStatus,
+            playersNeeded: bookingData.playersNeeded,
+          },
+          authUserId
+        );
+        const newBooking: Booking = {
+          ...remote,
+          bookedByPlayerName: bookingData.bookedByPlayerName,
+          splitPricePerPerson: bookingData.splitPricePerPerson,
+        };
+        setBookings((prev) => [newBooking, ...prev]);
+        if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
+        setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
+        return newBooking;
+      } catch (err) {
+        if (err instanceof Error && err.message === DOUBLE_BOOKED) {
+          setSyncNotification('این سانس همین حالا توسط شخص دیگری رزرو شد. لطفاً سانس دیگری انتخاب کنید.');
+          return null;
+        }
+        setSyncNotification('خطا در ثبت رزرو روی سرور. دوباره تلاش کنید.');
+        return null;
+      }
+    }
+
+    // Local fallback (offline / not signed in)
     const newBooking: Booking = {
       ...bookingData,
       id: `booking-${Date.now()}`,
@@ -281,32 +352,34 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBookings((prev) => [newBooking, ...prev]);
 
     // If host needs players, automatically create a NeedPlayerPost!
-    if (newBooking.playersNeeded > 0) {
-      const needPost: NeedPlayerPost = {
-        id: `np-${Date.now()}`,
-        bookingId: newBooking.id,
-        clubName: newBooking.clubName,
-        province: playerProfile.province,
-        date: newBooking.date,
-        time: newBooking.timeSlot,
-        spotsNeeded: newBooking.playersNeeded,
-        preferredSide: 'both',
-        minLevel: Math.max(1, playerProfile.level - 0.7),
-        maxLevel: Math.min(7, playerProfile.level + 0.8),
-        costPerPerson: newBooking.splitPricePerPerson,
-        hostPlayerId: playerProfile.id,
-        hostName: playerProfile.name,
-        hostAvatar: playerProfile.avatar,
-        hostLevel: playerProfile.level,
-        note: `زمین توسط ${playerProfile.name} رزرو شده و به ${newBooking.playersNeeded} بازیکن هم‌سطح احتیاج داریم.`,
-        joinedPlayers: [],
-        status: 'active',
-      };
-      setNeedPlayerPosts((prev) => [needPost, ...prev]);
-    }
+    if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
 
     setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
     return newBooking;
+  };
+
+  const createNeedPostForBooking = (newBooking: Booking) => {
+    const needPost: NeedPlayerPost = {
+      id: `np-${Date.now()}`,
+      bookingId: newBooking.id,
+      clubName: newBooking.clubName,
+      province: playerProfile.province,
+      date: newBooking.date,
+      time: newBooking.timeSlot,
+      spotsNeeded: newBooking.playersNeeded,
+      preferredSide: 'both',
+      minLevel: Math.max(1, playerProfile.level - 0.7),
+      maxLevel: Math.min(7, playerProfile.level + 0.8),
+      costPerPerson: newBooking.splitPricePerPerson,
+      hostPlayerId: playerProfile.id,
+      hostName: playerProfile.name,
+      hostAvatar: playerProfile.avatar,
+      hostLevel: playerProfile.level,
+      note: `زمین توسط ${playerProfile.name} رزرو شده و به ${newBooking.playersNeeded} بازیکن هم‌سطح احتیاج داریم.`,
+      joinedPlayers: [],
+      status: 'active',
+    };
+    setNeedPlayerPosts((prev) => [needPost, ...prev]);
   };
 
   const cancelBooking = (bookingId: string) => {
@@ -739,9 +812,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         registerTournamentTeam,
         finalizeTournamentResults,
         updateTournamentBracketMatch,
-        currentUserRole,
+        currentUserRole: auth?.profile ? auth.profile.role : currentUserRole,
         setCurrentUserRole,
-        adminClubId,
+        adminClubId: auth?.profile ? auth.profile.adminClubId ?? '' : adminClubId,
         setAdminClubId,
         adminProvince,
         setAdminProvince,
