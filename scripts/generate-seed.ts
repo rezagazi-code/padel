@@ -16,6 +16,38 @@ const arr = (xs: string[] | undefined): string =>
 const json = (v: unknown): string =>
   v == null ? 'NULL' : lit(JSON.stringify(v));
 
+// --- Jalali (Persian-digit) -> Gregorian YYYY-MM-DD ---
+// Mock data stores tournament dates as Jalali strings like '۱۴۰۳/۰۷/۱۰',
+// but Postgres `date` columns need Gregorian 'YYYY-MM-DD'.
+const FA_DIGITS: Record<string, string> = { '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9' };
+const toEnDigits = (s: string): string => s.replace(/[۰-۹]/g, (d) => FA_DIGITS[d]);
+
+// Anchor: 1403/01/01 (Nowruz) = 2024-03-20 (Gregorian).
+const ANCHOR_GREGORIAN_MS = Date.UTC(2024, 2, 20);
+const jalaliLeap = (jy: number): boolean => [1, 5, 9, 13, 17, 22, 26, 30].includes(jy % 33);
+const jalaliMonthLen = (jy: number, jm: number): number =>
+  jm <= 6 ? 31 : jm <= 11 ? 30 : jalaliLeap(jy) ? 30 : 29;
+
+const jalaliToGregorian = (s: string | null | undefined): string | null => {
+  if (!s) return null;
+  const m = toEnDigits(s).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!m) return null;
+  const jy = +m[1], jm = +m[2], jd = +m[3];
+  if (jy < 1403 || jm < 1 || jm > 12 || jd < 1 || jd > jalaliMonthLen(jy, jm)) return null;
+  let days = 0;
+  for (let y = 1403; y < jy; y++) days += jalaliLeap(y) ? 366 : 365;
+  for (let mo = 1; mo < jm; mo++) days += jalaliMonthLen(jy, mo);
+  days += jd - 1;
+  const d = new Date(ANCHOR_GREGORIAN_MS + days * 86400000);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+};
+
+const dateLit = (v: string | null | undefined): string => {
+  const g = jalaliToGregorian(v);
+  return g == null ? 'NULL' : lit(g);
+};
+
 const out: string[] = [];
 out.push('-- PadelPro seed data (generated from src/mockData.ts). Idempotent-ish: run once on a fresh DB.');
 out.push('-- bun scripts/generate-seed.ts');
@@ -41,7 +73,7 @@ for (const t of initialTournaments) {
   const tid = randomUUID();
   const clubId = t.clubId && clubIds.get(t.clubId) ? lit(clubIds.get(t.clubId)) : 'NULL';
   const organizerType = t.organizerType === 'club' ? 'official' : 'friendly';
-  out.push(`insert into tournaments (id, title, club_id, club_name, province, category, format, start_date, end_date, registration_deadline, entry_fee, prize_pool, max_teams, level_range, status, banner_image, rules, organizer_type, winner_team, runner_up_team, bracket) values (${lit(tid)}, ${lit(t.title)}, ${clubId}, ${lit(t.clubName)}, ${lit(t.province)}, ${lit(t.category)}, ${lit(t.format)}, ${lit(t.startDate)}, ${lit(t.endDate)}, ${lit(t.registrationDeadline)}, ${num(t.entryFee)}, ${lit(t.prizePool)}, ${num(t.maxTeams, 16)}, ${lit(t.levelRange)}, ${lit(t.status)}, ${lit(t.bannerImage)}, ${arr(t.rules)}, '${organizerType}'::organizer_type, ${lit(t.winnerTeam ?? '')}, ${lit(t.runnerUpTeam ?? '')}, ${json(t.bracket ?? null)});`);
+  out.push(`insert into tournaments (id, title, club_id, club_name, province, category, format, start_date, end_date, registration_deadline, entry_fee, prize_pool, max_teams, level_range, status, banner_image, rules, organizer_type, winner_team, runner_up_team, bracket) values (${lit(tid)}, ${lit(t.title)}, ${clubId}, ${lit(t.clubName)}, ${lit(t.province)}, ${lit(t.category)}, ${lit(t.format)}, ${dateLit(t.startDate)}, ${dateLit(t.endDate)}, ${dateLit(t.registrationDeadline)}, ${num(t.entryFee)}, ${lit(t.prizePool)}, ${num(t.maxTeams, 16)}, ${lit(t.levelRange)}, ${lit(t.status)}, ${lit(t.bannerImage)}, ${arr(t.rules)}, '${organizerType}'::organizer_type, ${lit(t.winnerTeam ?? '')}, ${lit(t.runnerUpTeam ?? '')}, ${json(t.bracket ?? null)});`);
   for (const team of t.registeredTeams ?? []) {
     out.push(`insert into tournament_teams (id, tournament_id, team_name, player1_name, player1_level, player2_name, player2_level, points_won) values (${lit(randomUUID())}, ${lit(tid)}, ${lit(team.teamName)}, ${lit(team.player1Name)}, ${num(team.player1Level, 3)}, ${lit(team.player2Name)}, ${num(team.player2Level, 3)}, ${num(team.pointsWon ?? 0)});`);
   }
