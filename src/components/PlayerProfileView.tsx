@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { PlayingHand, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
+import GradeBadge from './GradeBadge';
+import { levelToGrade, gradeBandFa, SKILL_GRADES, GRADE_MIDPOINT } from '../utils/skillGrades';
 import {
   User,
   Shield,
@@ -122,7 +124,7 @@ export const PlayerProfileView: React.FC = () => {
               className="absolute -bottom-2 -left-2 px-3 py-1 rounded-xl text-xs font-black shadow-md"
               style={{ backgroundColor: themeColor, color: '#000' }}
             >
-              سطح {playerProfile.level.toFixed(2)}
+              سطح {levelToGrade(playerProfile.level)} · {gradeBandFa(levelToGrade(playerProfile.level))}
             </span>
           </div>
 
@@ -310,37 +312,38 @@ export const PlayerProfileView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-xs font-bold text-slate-100 block">
-                  سطح پدل شما بر اساس استانداردهای جهانی Playtomic (۱.۰۰ تا ۷.۰۰):
+                  سطح بازی شما (از D- مبتدی تا A+ حرفه‌ای):
                 </label>
                 <p className="text-[11px] text-slate-500">
-                  این عدد در مچ‌میکینگ مسابقات و تورنومنت‌ها تعیین‌کننده رده شماست.
+                  گرید شما در مچ‌میکینگ و تورنومنت‌ها تعیین‌کننده رده شماست.
                 </p>
               </div>
-              <span
-                className="text-xl font-black px-3 py-1 rounded-xl"
-                style={{ backgroundColor: themeColor, color: '#000' }}
-              >
-                {level.toFixed(2)}
-              </span>
+              <GradeBadge grade={levelToGrade(level)} className="text-base px-3 py-1.5" />
             </div>
 
-            <input
-              type="range"
-              min="1.0"
-              max="6.5"
-              step="0.05"
-              value={level}
-              onChange={(e) => setLevel(Number(e.target.value))}
-              className="w-full accent-[#ff2d55]"
-            />
-
-            <div className="flex justify-between text-[10px] text-slate-500 font-medium">
-              <span>۱.۰ (مبتدی تازه وارد)</span>
-              <span>۲.۵ (آشنایی با شیشه و سرویس)</span>
-              <span>۳.۵ (متوسط مسابقه‌ای)</span>
-              <span>۴.۵ (پیشرفته کشوری)</span>
-              <span>۶.۰+ (حرفه‌ای بین‌المللی)</span>
+            <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5" dir="ltr">
+              {SKILL_GRADES.map((g) => {
+                const active = levelToGrade(level) === g;
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setLevel(GRADE_MIDPOINT[g])}
+                    className={`py-2 rounded-xl text-sm font-black transition cursor-pointer border ${
+                      active
+                        ? 'bg-gradient-to-br from-[#ff2d55] to-[#2f7bff] text-white border-white/30 shadow-[0_2px_12px_rgba(255,45,85,0.4)]'
+                        : 'bg-white/[0.04] text-slate-400 border-white/10 hover:bg-white/10 hover:text-slate-200'
+                    }`}
+                    title={gradeBandFa(g)}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
             </div>
+            <p className="text-[11px] text-slate-500 font-medium text-center">
+              {gradeBandFa(levelToGrade(level))} — برای تغییر گرید، یکی را انتخاب کنید
+            </p>
           </div>
 
           {/* Technical Specs: Side, Hand, Racket */}

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { NeedPlayerPost, PlayerProfile, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
+import GradeBadge from './GradeBadge';
+import { levelToGrade, gradeBandFa } from '../utils/skillGrades';
 import {
   UserCheck,
   Users,
@@ -262,9 +264,7 @@ export const FreeAgentsView: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-1.5">
                           <h4 className="text-xs font-bold text-slate-100">{post.hostName}</h4>
-                          <span className="text-[10px] btn-fire font-black px-1.5 rounded">
-                            {post.hostLevel.toFixed(2)}
-                          </span>
+                          <GradeBadge grade={levelToGrade(post.hostLevel)} className="text-[10px] min-w-[1.8rem]" />
                         </div>
                         <p className="text-[10px] text-slate-500">میزبان سانس</p>
                       </div>
@@ -389,7 +389,7 @@ export const FreeAgentsView: React.FC = () => {
                         className="text-xs font-black px-2 py-0.5 rounded-md"
                         style={{ backgroundColor: agent.themeColor, color: '#000' }}
                       >
-                        سطح {agent.level.toFixed(2)}
+                        سطح {levelToGrade(agent.level)} · {gradeBandFa(levelToGrade(agent.level))}
                       </span>
                       <p className="text-[10px] text-slate-500 font-semibold">رنک #{agent.rankingPosition}</p>
                     </div>
@@ -599,8 +599,8 @@ export const FreeAgentsView: React.FC = () => {
                 style={{ borderColor: showInviteModal.themeColor }}
               />
               <h3 className="text-base font-black text-slate-100">دعوت از {showInviteModal.name}</h3>
-              <p className="text-slate-500">
-                سطح بازی: {showInviteModal.level.toFixed(2)} | پست: {showInviteModal.preferredSide === 'left' ? 'چپ' : 'راست'}
+              <p className="text-slate-500 flex items-center justify-center gap-1.5">
+                سطح بازی: <GradeBadge grade={levelToGrade(showInviteModal.level)} className="text-[10px] min-w-[1.8rem]" /> | پست: {showInviteModal.preferredSide === 'left' ? 'چپ' : 'راست'}
               </p>
             </div>
 

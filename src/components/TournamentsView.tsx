@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Tournament, TournamentCategory, TournamentFormat, UserRole } from '../types';
+import GradeBadge from './GradeBadge';
+import { levelToGrade } from '../utils/skillGrades';
 import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
 import {
@@ -579,9 +581,7 @@ export const TournamentsView: React.FC = () => {
 
                       {/* Level */}
                       <td className="py-4 px-4">
-                        <span className="font-black text-[#ff6b81]">
-                          {player.level.toFixed(2)}
-                        </span>
+                        <GradeBadge grade={levelToGrade(player.level)} />
                       </td>
 
                       {/* Points */}
@@ -664,7 +664,7 @@ export const TournamentsView: React.FC = () => {
                 <span className="font-bold text-slate-500 block text-[11px]">بازیکن شماره ۱ (کاپیتان):</span>
                 <div className="flex items-center justify-between text-slate-100 font-bold">
                   <span>{playerProfile.name}</span>
-                  <span className="text-[#ff6b81]">سطح {playerProfile.level.toFixed(2)}</span>
+                  <span className="text-[#ff6b81]">سطح {levelToGrade(playerProfile.level)}</span>
                 </div>
               </div>
 

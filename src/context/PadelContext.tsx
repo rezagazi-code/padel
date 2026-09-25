@@ -23,6 +23,7 @@ import {
   initialRankings,
   initialTournaments
 } from '../mockData';
+import { levelToGrade } from '../utils/skillGrades';
 
 export type ActiveTab =
   | 'booking'
@@ -351,7 +352,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
           // Check level
           if (playerProfile.level < m.minLevel - 0.2 || playerProfile.level > m.maxLevel + 0.2) {
-            setSyncNotification(`سطح شما (${playerProfile.level}) با محدوده این مسابقه (${m.minLevel} - ${m.maxLevel}) منطبق نیست.`);
+            setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این مسابقه (${levelToGrade(m.minLevel)} - ${levelToGrade(m.maxLevel)}) منطبق نیست.`);
           }
 
           const updatedSlots = m.slots.map((slot) => {

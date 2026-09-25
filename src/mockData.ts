@@ -6,7 +6,7 @@ export const initialPlayerProfile: PlayerProfile = {
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
   themeColor: '#ff2d55', // Electric Lime
   level: 3.85,
-  levelTitle: 'پیشرفته (Advanced)',
+  levelTitle: 'متوسط (C+)',
   hand: 'right',
   preferredSide: 'left', // Reves player
   racketBrand: 'Babolat',
@@ -65,10 +65,10 @@ export const initialClubs: Club[] = [
     city: 'تهران - ونک',
     address: 'خیابان سئول، جنب درب جنوبی مجموعه ورزشی انقلاب',
     phone: '۰۲۱-۲۶۲۱۶۰۰۱',
-    coverImage: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=80',
+    coverImage: '/covers/club-1.jpg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=800&auto=format&fit=crop&q=80'
+      '/covers/club-1.jpg',
+      '/covers/profile-cover.jpg'
     ],
     rating: 4.9,
     reviewCount: 142,
@@ -144,9 +144,9 @@ export const initialClubs: Club[] = [
     city: 'تهران - پاسداران',
     address: 'پاسداران، انتهای خیابان گلستان پنجم، مجتمع ورزشی شاهین',
     phone: '۰۲۱-۲۲۵۵۳۳۴۴',
-    coverImage: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop&q=80',
+    coverImage: '/covers/club-2.jpg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop&q=80'
+      '/covers/club-2.jpg'
     ],
     rating: 4.8,
     reviewCount: 98,
@@ -208,9 +208,9 @@ export const initialClubs: Club[] = [
     city: 'جزیره کیش',
     address: 'بلوار مرجان، مارینا پارک هتل، کلاب اختصاصی پدل ساحلی',
     phone: '۰۷۶-۴۴۴۶۵۰۰۰',
-    coverImage: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80',
+    coverImage: '/covers/club-3.jpg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80'
+      '/covers/club-3.jpg'
     ],
     rating: 4.95,
     reviewCount: 210,
@@ -260,9 +260,9 @@ export const initialClubs: Club[] = [
     city: 'اصفهان - مرداویج',
     address: 'بلوار شیخ کلینی، مجتمع تنیس و پدل پرواز',
     phone: '۰۳۱-۳۶۶۸۹۰۰۲',
-    coverImage: 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=800&auto=format&fit=crop&q=80',
+    coverImage: '/covers/club-4.jpg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=800&auto=format&fit=crop&q=80'
+      '/covers/club-4.jpg'
     ],
     rating: 4.85,
     reviewCount: 88,
@@ -523,7 +523,7 @@ export const initialFreeAgents: PlayerProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     themeColor: '#38bdf8',
     level: 4.15,
-    levelTitle: 'پیشرفته (Cat 1)',
+    levelTitle: 'نیمه‌حرفه‌ای (B-)',
     hand: 'right',
     preferredSide: 'left', // Reves
     racketBrand: 'Bullpadel',
@@ -550,7 +550,7 @@ export const initialFreeAgents: PlayerProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     themeColor: '#f43f5e',
     level: 3.6,
-    levelTitle: 'متوسط پیشرفته (Cat 2)',
+    levelTitle: 'متوسط (C+)',
     hand: 'right',
     preferredSide: 'right', // Drive
     racketBrand: 'Nox',
@@ -577,7 +577,7 @@ export const initialFreeAgents: PlayerProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
     themeColor: '#a855f7',
     level: 4.6,
-    levelTitle: 'نخبه و قهرمان استانی (Pro)',
+    levelTitle: 'نیمه‌حرفه‌ای (B)',
     hand: 'left', // Left-handed jewel for right side!
     preferredSide: 'right',
     racketBrand: 'Wilson',
@@ -604,7 +604,7 @@ export const initialFreeAgents: PlayerProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     themeColor: '#eab308',
     level: 3.3,
-    levelTitle: 'متوسط (Cat 3)',
+    levelTitle: 'متوسط (C)',
     hand: 'right',
     preferredSide: 'both',
     racketBrand: 'Head',
@@ -718,7 +718,7 @@ export const initialTournaments: Tournament[] = [
     status: 'ongoing',
     organizerType: 'club',
     organizerName: 'مدیریت باشگاه انقلاب تهران',
-    bannerImage: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=900&auto=format&fit=crop&q=80',
+    bannerImage: '/covers/club-1.jpg',
     rules: [
       'مسابقات زیر نظر فدراسیون و طبق قوانین رسمی FIP برگزار می‌شود.',
       'هر تیم شامل دو بازیکن ثابت و یک بازیکن ذخیره مجاز است.',
@@ -819,7 +819,7 @@ export const initialTournaments: Tournament[] = [
     status: 'registration',
     organizerType: 'province',
     organizerName: 'هیات پدل استان تهران',
-    bannerImage: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=900&auto=format&fit=crop&q=80',
+    bannerImage: '/covers/club-3.jpg',
     rules: [
       'برگزارکننده رسمی: هیات پدل و اسکواش استان تهران.',
       'تنها بازیکنان دارای بیمه ورزشی و کارت عضویت استانی مجاز به حضور هستند.',
@@ -882,7 +882,7 @@ export const initialTournaments: Tournament[] = [
     status: 'registration',
     organizerType: 'club',
     organizerName: 'مدیریت باشگاه شاهین پاسداران',
-    bannerImage: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=900&auto=format&fit=crop&q=80',
+    bannerImage: '/covers/club-2.jpg',
     rules: [
       'فرمت آمریکانو: هر بازیکن با پارتنرهای مختلف ۳۲ امتیاز بازی می‌کند.',
       'مجموع امتیازات هر شخص ثبت و رتبه نهایی محاسبه می‌شود.',
@@ -909,7 +909,7 @@ export const initialTournaments: Tournament[] = [
     status: 'registration',
     organizerType: 'province',
     organizerName: 'هیات ورزش‌های راکتی استان هرمزگان و کیش',
-    bannerImage: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=900&auto=format&fit=crop&q=80',
+    bannerImage: '/covers/club-3.jpg',
     rules: [
       'بالاترین ضریب امتیاز رنکینگ در تقویم مسابقاتی کشور.',
       'پخش زنده اینترنتی مراحل نیمه‌نهایی و فینال.',
@@ -936,7 +936,7 @@ export const initialTournaments: Tournament[] = [
     status: 'completed',
     organizerType: 'club',
     organizerName: 'باشگاه اسپادانا اصفهان',
-    bannerImage: 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=900&auto=format&fit=crop&q=80',
+    bannerImage: '/covers/club-4.jpg',
     winnerTeam: 'بردیا کیانی & سامان یزدانی',
     runnerUpTeam: 'فرشاد حسینی & نیما ارجمند',
     rules: ['پایان یافته با ثبت نتایج رسمی و آپدیت رنکینگ استان اصفهان.'],

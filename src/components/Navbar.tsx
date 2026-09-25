@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import GradeBadge from './GradeBadge';
+import { levelToGrade } from '../utils/skillGrades';
 import {
   CalendarDays,
   Users,
@@ -195,12 +197,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="text-right hidden sm:block">
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-bold text-slate-100 max-w-[90px] truncate">{playerProfile.name}</span>
-                  <span
-                    className="text-[10px] font-black px-1 rounded"
-                    style={{ backgroundColor: playerProfile.themeColor, color: '#000' }}
-                  >
-                    {playerProfile.level.toFixed(2)}
-                  </span>
+                  <GradeBadge grade={levelToGrade(playerProfile.level)} className="text-[10px] min-w-[1.8rem]" />
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium">رنک #{playerProfile.rankingPosition}</p>
               </div>

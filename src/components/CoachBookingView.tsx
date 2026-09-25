@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Coach } from '../types';
+import GradeBadge from './GradeBadge';
+import { levelToGrade } from '../utils/skillGrades';
 import {
   GraduationCap,
   Star,
@@ -284,7 +286,7 @@ export const CoachBookingView: React.FC = () => {
               <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1">
                 <span className="text-slate-500 text-[10px]">مشخصات ورزشکار:</span>
                 <p className="text-slate-100 font-bold">{playerProfile.name} ({playerProfile.phone})</p>
-                <p className="text-[#ff6b81] text-[11px]">سطح فعلی: {playerProfile.level.toFixed(2)}</p>
+                <p className="text-[#ff6b81] text-[11px] flex items-center gap-1.5">سطح فعلی: <GradeBadge grade={levelToGrade(playerProfile.level)} className="text-[10px] min-w-[1.8rem]" /></p>
               </div>
 
               <div className="pt-2 flex gap-3">

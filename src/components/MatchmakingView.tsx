@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { MatchType, OpenMatch, PlayingSide } from '../types';
+import GradeBadge from './GradeBadge';
+import { levelToGrade } from '../utils/skillGrades';
 import {
   Users,
   Plus,
@@ -161,9 +163,8 @@ export const MatchmakingView: React.FC = () => {
 
           <div className="text-xs text-slate-500 flex items-center gap-2">
             <span>سطح شما:</span>
-            <span className="btn-fire font-black px-2 py-0.5 rounded">
-              {playerProfile.level.toFixed(2)} ({playerProfile.preferredSide === 'left' ? 'سمت چپ Reves' : 'سمت راست Drive'})
-            </span>
+            <GradeBadge grade={levelToGrade(playerProfile.level)} />
+            <span className="text-slate-400">({playerProfile.preferredSide === 'left' ? 'سمت چپ Reves' : 'سمت راست Drive'})</span>
           </div>
         </div>
       </div>
@@ -198,8 +199,11 @@ export const MatchmakingView: React.FC = () => {
                       </span>
                     )}
 
-                    <span className="text-xs text-slate-500 font-medium">
-                      سطح: {match.minLevel.toFixed(1)} تا {match.maxLevel.toFixed(1)}
+                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                      سطح:
+                      <GradeBadge grade={levelToGrade(match.minLevel)} className="text-[10px] min-w-[1.8rem]" />
+                      تا
+                      <GradeBadge grade={levelToGrade(match.maxLevel)} className="text-[10px] min-w-[1.8rem]" />
                     </span>
                   </div>
 
@@ -271,9 +275,7 @@ export const MatchmakingView: React.FC = () => {
                                   className="w-8 h-8 rounded-full mx-auto object-cover ring-1 ring-slate-600"
                                 />
                                 <p className="text-[11px] font-bold text-slate-100 truncate">{slot.playerName}</p>
-                                <span className="text-[9px] bg-white/[0.05] text-[#ff6b81] px-1 rounded font-black">
-                                  {slot.playerLevel?.toFixed(2)}
-                                </span>
+                                <GradeBadge grade={slot.playerLevel != null ? levelToGrade(slot.playerLevel) : '?'} className="text-[9px] min-w-[1.6rem]" />
                                 {isMe && (
                                   <button
                                     onClick={() => leaveMatchSlot(match.id, slot.slotNumber)}
@@ -328,9 +330,7 @@ export const MatchmakingView: React.FC = () => {
                                   className="w-8 h-8 rounded-full mx-auto object-cover ring-1 ring-slate-600"
                                 />
                                 <p className="text-[11px] font-bold text-slate-100 truncate">{slot.playerName}</p>
-                                <span className="text-[9px] bg-white/[0.05] text-[#ff6b81] px-1 rounded font-black">
-                                  {slot.playerLevel?.toFixed(2)}
-                                </span>
+                                <GradeBadge grade={slot.playerLevel != null ? levelToGrade(slot.playerLevel) : '?'} className="text-[9px] min-w-[1.6rem]" />
                                 {isMe && (
                                   <button
                                     onClick={() => leaveMatchSlot(match.id, slot.slotNumber)}
@@ -373,7 +373,7 @@ export const MatchmakingView: React.FC = () => {
                 ) : !isLevelCompatible ? (
                   <span className="text-amber-400/90 flex items-center gap-1 text-[11px]">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
-                    اختلاف سطح بازی (سطح شما: {playerProfile.level})
+                    اختلاف سطح بازی (سطح شما: {levelToGrade(playerProfile.level)})
                   </span>
                 ) : (
                   <span className="text-slate-500 text-[11px]">
@@ -521,11 +521,15 @@ export const MatchmakingView: React.FC = () => {
 
               <div>
                 <label className="block text-slate-400 font-bold mb-1">
-                  محدوده مجاز سطح بازیکنان ({newMinLevel.toFixed(1)} تا {newMaxLevel.toFixed(1)}):
+                  محدوده مجاز سطح بازیکنان (
+                  <GradeBadge grade={levelToGrade(newMinLevel)} className="text-[10px] min-w-[1.8rem] mx-0.5" />
+                  تا
+                  <GradeBadge grade={levelToGrade(newMaxLevel)} className="text-[10px] min-w-[1.8rem] mx-0.5" />
+                  ):
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-slate-500 text-[10px] block mb-0.5">حداقل سطح:</span>
+                    <span className="text-slate-500 text-[10px] mb-0.5 flex items-center gap-1.5">حداقل سطح: <GradeBadge grade={levelToGrade(newMinLevel)} className="text-[10px] min-w-[1.8rem]" /></span>
                     <input
                       type="range"
                       min="1.0"
@@ -537,7 +541,7 @@ export const MatchmakingView: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block mb-0.5">حداکثر سطح:</span>
+                    <span className="text-slate-500 text-[10px] mb-0.5 flex items-center gap-1.5">حداکثر سطح: <GradeBadge grade={levelToGrade(newMaxLevel)} className="text-[10px] min-w-[1.8rem]" /></span>
                     <input
                       type="range"
                       min="2.0"
