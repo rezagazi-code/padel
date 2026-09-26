@@ -198,3 +198,140 @@ export async function fetchTournaments(): Promise<Tournament[]> {
   }
   return (tournaments ?? []).map((r) => mapTournament(r, byTournament.get(String(r.id)) ?? []));
 }
+
+// ============ Manager v2: clubs, courts, tournaments, booking admin ============
+// RLS: clubs insert/update/delete = super_admin; courts write = super_admin or
+// the club's own admin; tournaments insert/update/delete = super_admin (or the
+// organizer); bookings delete = owner, super_admin or the club's admin.
+
+export interface ClubInput {
+  name: string;
+  province: string;
+  city: string;
+  address: string;
+  phone: string;
+  coverImage: string;
+  galleryImages: string[];
+  amenities: string[];
+  openingHour: string;
+  closingHour: string;
+  ownerName: string;
+  ownerPhone: string;
+}
+
+export async function insertClub(input: ClubInput, userId: string): Promise<Club> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('clubs')
+    .insert({
+      name: input.name,
+      province: input.province,
+      city: input.city,
+      address: input.address,
+      phone: input.phone,
+      cover_image: input.coverImage,
+      gallery_images: input.galleryImages,
+      amenities: input.amenities,
+      opening_hour: input.openingHour,
+      closing_hour: input.closingHour,
+      owner_name: input.ownerName,
+      owner_phone: input.ownerPhone,
+      created_by: userId,
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapClub(data, []);
+}
+
+export interface CourtInput {
+  name: string;
+  courtNumber: number;
+  type: string;
+  surface: string;
+  turfColor: string;
+  hourlyRate: number;
+  peakHourlyRate: number;
+  hasLighting: boolean;
+  hasCameras: boolean;
+}
+
+export async function insertCourt(clubId: string, input: CourtInput): Promise<Court> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('courts')
+    .insert({
+      club_id: clubId,
+      name: input.name,
+      court_number: input.courtNumber,
+      type: input.type,
+      surface: input.surface,
+      turf_color: input.turfColor,
+      hourly_rate: input.hourlyRate,
+      peak_hourly_rate: input.peakHourlyRate,
+      has_lighting: input.hasLighting,
+      has_cameras: input.hasCameras,
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapCourt(data);
+}
+
+export interface TournamentInput {
+  title: string;
+  clubId: string;
+  clubName: string;
+  province: string;
+  category: string;
+  format: string;
+  startDate: string; // ISO YYYY-MM-DD
+  endDate: string; // ISO YYYY-MM-DD
+  registrationDeadline: string; // ISO YYYY-MM-DD
+  entryFee: number;
+  prizePool: string;
+  maxTeams: number;
+  levelRange: string;
+  bannerImage: string;
+  rules: string[];
+  official: boolean;
+}
+
+export async function insertTournament(input: TournamentInput, userId: string): Promise<Tournament> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('tournaments')
+    .insert({
+      title: input.title,
+      club_id: input.clubId || null,
+      club_name: input.clubName,
+      province: input.province,
+      category: input.category,
+      format: input.format,
+      start_date: input.startDate || null,
+      end_date: input.endDate || null,
+      registration_deadline: input.registrationDeadline || null,
+      entry_fee: input.entryFee,
+      prize_pool: input.prizePool,
+      max_teams: input.maxTeams,
+      level_range: input.levelRange,
+      banner_image: input.bannerImage,
+      rules: input.rules,
+      organizer_type: input.official ? 'official' : 'friendly',
+      organizer_id: userId,
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapTournament(data, []);
+}
+
+export async function deleteBookingById(bookingId: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { error } = await sb.from('bookings').delete().eq('id', bookingId);
+  if (error) throw error;
+}

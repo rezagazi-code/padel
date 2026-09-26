@@ -5,6 +5,7 @@ import GradeBadge from './GradeBadge';
 import { levelToGrade, SKILL_GRADES, GRADE_MIDPOINT, gradeBandFa, type SkillGrade } from '../utils/skillGrades';
 import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
+import { toJalaliDisplay } from '../utils/dates';
 import {
   Trophy,
   Award,
@@ -29,6 +30,14 @@ import {
   ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+
+/** ISO date (YYYY-MM-DD) N days from today — for native date inputs, which the
+ *  Supabase `date` columns require. Displayed to users via toJalaliDisplay. */
+function isoPlusDays(days: number): string {
+  const t = new Date();
+  t.setDate(t.getDate() + days);
+  return t.toISOString().slice(0, 10);
+}
 
 export const TournamentsView: React.FC = () => {
   const {
@@ -71,12 +80,14 @@ export const TournamentsView: React.FC = () => {
   const [newOrganizerType, setNewOrganizerType] = useState<'club' | 'province'>('club');
   const [newCategory, setNewCategory] = useState<TournamentCategory>('Cat 1 (پیشرفته)');
   const [newFormat, setNewFormat] = useState<TournamentFormat>('Group + Knockout (گروهی و حذفی)');
-  const [newStartDate, setNewStartDate] = useState('۱۴۰۳/۰۷/۱۵');
-  const [newEndDate, setNewEndDate] = useState('۱۴۰۳/۰۷/۱۷');
-  const [newDeadline, setNewDeadline] = useState('۱۴۰۳/۰۷/۱۲');
+  const [newStartDate, setNewStartDate] = useState(isoPlusDays(14));
+  const [newEndDate, setNewEndDate] = useState(isoPlusDays(16));
+  const [newDeadline, setNewDeadline] = useState(isoPlusDays(10));
   const [newEntryFee, setNewEntryFee] = useState<number>(1500000);
   const [newPrizePool, setNewPrizePool] = useState('۵۰,۰۰۰,۰۰۰ تومان وجه نقد + مدال');
   const [newMaxTeams, setNewMaxTeams] = useState<number>(16);
+  const [tournSubmitting, setTournSubmitting] = useState(false);
+  const [tournSubmitError, setTournSubmitError] = useState('');
 
   // Check RBAC permission for tournament creation
   const canCreateTournament =
@@ -123,35 +134,44 @@ export const TournamentsView: React.FC = () => {
     }
   };
 
-  const handleCreateTournament = (e: React.FormEvent) => {
+  const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tournSubmitting) return;
     const club = clubs.find((c) => c.id === newClubId) || clubs[0];
 
-    createTournament({
-      title: newTitle || `جام پدل ${club.name}`,
-      clubId: club.id,
-      clubName: club.name,
-      province: club.province,
-      category: newCategory,
-      format: newFormat,
-      startDate: newStartDate,
-      endDate: newEndDate,
-      registrationDeadline: newDeadline,
-      entryFee: Number(newEntryFee),
-      prizePool: newPrizePool,
-      maxTeams: Number(newMaxTeams),
-      levelRange: '۳.۰۰+',
-      bannerImage: club.coverImage,
-      rules: [
-        'مسابقات تحت استانداردهای فدراسیون بین‌المللی پدل FIP برگزار می‌شود.',
-        'نتایج مستقیماً در رنکینگ رسمی استانی اعمال می‌گردد.',
-      ],
-    });
-
-    setShowCreateTournModal(false);
+    setTournSubmitting(true);
+    setTournSubmitError('');
     try {
-      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
-    } catch {}
+      await createTournament({
+        title: newTitle || `جام پدل ${club.name}`,
+        clubId: club.id,
+        clubName: club.name,
+        province: club.province,
+        category: newCategory,
+        format: newFormat,
+        startDate: newStartDate,
+        endDate: newEndDate,
+        registrationDeadline: newDeadline,
+        entryFee: Number(newEntryFee),
+        prizePool: newPrizePool,
+        maxTeams: Number(newMaxTeams),
+        levelRange: '۳.۰۰+',
+        bannerImage: club.coverImage,
+        rules: [
+          'مسابقات تحت استانداردهای فدراسیون بین‌المللی پدل FIP برگزار می‌شود.',
+          'نتایج مستقیماً در رنکینگ رسمی استانی اعمال می‌گردد.',
+        ],
+      });
+
+      setShowCreateTournModal(false);
+      try {
+        confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+      } catch {}
+    } catch {
+      setTournSubmitError('ثبت تورنمنت روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
+    } finally {
+      setTournSubmitting(false);
+    }
   };
 
   const handleFinalize = (e: React.FormEvent) => {
@@ -362,7 +382,7 @@ export const TournamentsView: React.FC = () => {
                     <div className="flex items-center justify-between text-slate-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                        تاریخ برگزاری: {tourn.startDate} الی {tourn.endDate}
+                        تاریخ برگزاری: {toJalaliDisplay(tourn.startDate)} الی {toJalaliDisplay(tourn.endDate)}
                       </span>
 
                       <span className="text-slate-500 font-bold">
@@ -932,12 +952,51 @@ export const TournamentsView: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">تاریخ شروع:</label>
+                  <input
+                    type="date"
+                    required
+                    value={newStartDate}
+                    onChange={(e) => setNewStartDate(e.target.value)}
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">تاریخ پایان:</label>
+                  <input
+                    type="date"
+                    required
+                    value={newEndDate}
+                    onChange={(e) => setNewEndDate(e.target.value)}
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">مهلت ثبت‌نام:</label>
+                  <input
+                    type="date"
+                    required
+                    value={newDeadline}
+                    onChange={(e) => setNewDeadline(e.target.value)}
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
+                  />
+                </div>
+              </div>
+
+              {tournSubmitError && (
+                <div className="p-3 rounded-xl bg-[#ff2d55]/10 border border-[#ff2d55]/40 text-[#ff6b81] text-xs font-bold leading-6">
+                  {tournSubmitError}
+                </div>
+              )}
               <div className="pt-3 border-t border-white/10 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
+                  disabled={tournSubmitting}
+                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] disabled:opacity-50 text-white font-black rounded-xl cursor-pointer"
                 >
-                  ثبت رسمی تورنومنت در تقویم
+                  {tournSubmitting ? 'در حال ثبت روی سرور…' : 'ثبت رسمی تورنومنت در تقویم'}
                 </button>
                 <button
                   type="button"

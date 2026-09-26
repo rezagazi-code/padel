@@ -45,7 +45,8 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
     'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1000&q=80'
   );
 
-  // Dynamic Courts List
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [courts, setCourts] = useState<CourtDraft[]>([
     {
       name: 'کورت پانورامیک ۱ (سنترال)',
@@ -89,44 +90,51 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
     setCourts(courts.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clubName) return;
-
-    addClub({
-      name: clubName,
-      province,
-      city,
-      address,
-      phone,
-      openingHour,
-      closingHour,
-      coverImage,
-      galleryImages: [coverImage],
-      ownerName: 'مدیر مجموعه پدل',
-      ownerPhone: phone,
-      courtsCount: courts.length,
-      courts: courts.map((c, i) => ({
-        ...c,
-        id: `c-${Date.now()}-${i}`,
-        clubId: '',
-        courtNumber: i + 1,
-        surface: 'Mondo Supercourt 4NX' as const,
-        isAvailable: true,
-      })),
-      amenities: [
-        'کافه تریا اختصاصی',
-        'رختکن و دوش آب گرم',
-        'سیستم فیلمبرداری اتوماتیک',
-        'پارکینگ اختصاصی',
-        'فروشگاه تجهیزات پدل',
-      ],
-    });
-
-    onClose();
+    if (!clubName || submitting) return;
+    setSubmitting(true);
+    setSubmitError('');
     try {
-      confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } });
-    } catch {}
+      await addClub({
+        name: clubName,
+        province,
+        city,
+        address,
+        phone,
+        openingHour,
+        closingHour,
+        coverImage,
+        galleryImages: [coverImage],
+        ownerName: 'مدیر مجموعه پدل',
+        ownerPhone: phone,
+        courtsCount: courts.length,
+        courts: courts.map((c, i) => ({
+          ...c,
+          id: `c-${Date.now()}-${i}`,
+          clubId: '',
+          courtNumber: i + 1,
+          surface: 'Mondo Supercourt 4NX' as const,
+          isAvailable: true,
+        })),
+        amenities: [
+          'کافه تریا اختصاصی',
+          'رختکن و دوش آب گرم',
+          'سیستم فیلمبرداری اتوماتیک',
+          'پارکینگ اختصاصی',
+          'فروشگاه تجهیزات پدل',
+        ],
+      });
+
+      onClose();
+      try {
+        confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } });
+      } catch {}
+    } catch {
+      setSubmitError('ثبت باشگاه روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -344,12 +352,18 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
           </div>
 
           {/* Submit Actions */}
+          {submitError && (
+            <div className="p-3 rounded-xl bg-[#ff2d55]/10 border border-[#ff2d55]/40 text-[#ff6b81] text-xs font-bold leading-6">
+              {submitError}
+            </div>
+          )}
           <div className="pt-4 border-t border-white/10 flex gap-3">
             <button
               type="submit"
-              className="flex-1 py-3.5 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm rounded-xl transition active:scale-95 cursor-pointer shadow-lg"
+              disabled={submitting}
+              className="flex-1 py-3.5 bg-[#ff2d55] hover:bg-[#8fd126] disabled:opacity-50 text-white font-black text-sm rounded-xl transition active:scale-95 cursor-pointer shadow-lg"
             >
-              ثبت نهایی باشگاه و قرارگیری در لیست رزرو
+              {submitting ? 'در حال ثبت روی سرور…' : 'ثبت نهایی باشگاه و قرارگیری در لیست رزرو'}
             </button>
             <button
               type="button"

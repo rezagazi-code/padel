@@ -480,7 +480,7 @@ export const PlayerProfileView: React.FC = () => {
                     <div className="flex items-center justify-between text-slate-500 pt-2 border-t border-white/10">
                       <span>{toJalaliDisplay(b.date)} | {b.timeSlot}</span>
                       <button
-                        onClick={() => cancelBooking(b.id)}
+                        onClick={() => void cancelBooking(b.id)}
                         className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

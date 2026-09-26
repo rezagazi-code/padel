@@ -25,7 +25,16 @@ import {
 } from '../mockData';
 import { levelToGrade } from '../utils/skillGrades';
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
-import { fetchClubs, fetchTournaments, insertBooking, DOUBLE_BOOKED } from '../lib/db';
+import {
+  fetchClubs,
+  fetchTournaments,
+  insertBooking,
+  insertClub,
+  insertCourt,
+  insertTournament,
+  deleteBookingById,
+  DOUBLE_BOOKED,
+} from '../lib/db';
 import { useAuthOptional } from './AuthContext';
 
 export type ActiveTab =
@@ -45,11 +54,11 @@ interface PadelContextType {
   playerProfile: PlayerProfile;
   updatePlayerProfile: (updates: Partial<PlayerProfile>) => void;
   clubs: Club[];
-  addClub: (club: Omit<Club, 'id' | 'rating' | 'reviewCount'>) => Club;
-  addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => void;
+  addClub: (club: Omit<Club, 'id' | 'rating' | 'reviewCount'>) => Promise<Club>;
+  addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => Promise<void>;
   bookings: Booking[];
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Promise<Booking | null>;
-  cancelBooking: (bookingId: string) => void;
+  cancelBooking: (bookingId: string) => Promise<void>;
   openMatches: OpenMatch[];
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
   joinMatchSlot: (matchId: string, slotNumber: number) => boolean;
@@ -64,7 +73,7 @@ interface PadelContextType {
   coachBookings: CoachBooking[];
   bookCoach: (booking: Omit<CoachBooking, 'id' | 'status'>) => CoachBooking;
   tournaments: Tournament[];
-  createTournament: (tourn: Omit<Tournament, 'id' | 'registeredTeamsCount' | 'registeredTeams' | 'status'>) => Tournament;
+  createTournament: (tourn: Omit<Tournament, 'id' | 'registeredTeamsCount' | 'registeredTeams' | 'status'>) => Promise<Tournament>;
   registerTournamentTeam: (tournId: string, teamName: string, partnerName: string, partnerLevel: number) => boolean;
   finalizeTournamentResults: (tournId: string, winnerTeamId: string, runnerUpTeamId: string) => void;
   updateTournamentBracketMatch: (tournId: string, matchId: string, winnerId: string, score: number[]) => void;
@@ -273,7 +282,59 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const addClub = (clubData: Omit<Club, 'id' | 'rating' | 'reviewCount'>): Club => {
+  const addClub = async (clubData: Omit<Club, 'id' | 'rating' | 'reviewCount'>): Promise<Club> => {
+    const authUserId = auth?.user?.id ?? null;
+
+    // Real backend path: insert the club, then its courts, into Supabase so
+    // every user sees the new club. Throws on failure so the UI can show an
+    // error instead of silently keeping a local-only club.
+    if (getSupabase() && authUserId) {
+      try {
+        const remote = await insertClub(
+          {
+            name: clubData.name,
+            province: clubData.province,
+            city: clubData.city,
+            address: clubData.address,
+            phone: clubData.phone,
+            coverImage: clubData.coverImage,
+            galleryImages: clubData.galleryImages,
+            amenities: clubData.amenities,
+            openingHour: clubData.openingHour,
+            closingHour: clubData.closingHour,
+            ownerName: clubData.ownerName,
+            ownerPhone: clubData.ownerPhone,
+          },
+          authUserId
+        );
+        const courts: Court[] = [];
+        for (let i = 0; i < clubData.courts.length; i++) {
+          const c = clubData.courts[i];
+          const rc = await insertCourt(remote.id, {
+            name: c.name,
+            courtNumber: c.courtNumber || i + 1,
+            type: c.type,
+            surface: c.surface,
+            turfColor: c.turfColor,
+            hourlyRate: c.hourlyRate,
+            peakHourlyRate: c.peakHourlyRate,
+            hasLighting: !!c.hasLighting,
+            hasCameras: !!c.hasCameras,
+          });
+          courts.push(rc);
+        }
+        const fullClub: Club = { ...remote, courts, courtsCount: courts.length };
+        setClubs((prev) => [fullClub, ...prev]);
+        setSyncNotification(`باشگاه «${fullClub.name}» با موفقیت افزوده شد!`);
+        return fullClub;
+      } catch (err) {
+        console.error('addClub remote failed', err);
+        setSyncNotification('خطا در ثبت باشگاه روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+
+    // Local fallback (offline / not signed in)
     const newClub: Club = {
       ...clubData,
       id: `club-${Date.now()}`,
@@ -285,7 +346,44 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newClub;
   };
 
-  const addCourtToClub = (clubId: string, courtData: Omit<Court, 'id' | 'clubId'>) => {
+  const addCourtToClub = async (clubId: string, courtData: Omit<Court, 'id' | 'clubId'>): Promise<void> => {
+    // Real backend path for clubs that already live on Supabase (UUID ids).
+    if (getSupabase() && clubId && !clubId.startsWith('club-')) {
+      try {
+        const remote = await insertCourt(clubId, {
+          name: courtData.name,
+          courtNumber: courtData.courtNumber,
+          type: courtData.type,
+          surface: courtData.surface,
+          turfColor: courtData.turfColor,
+          hourlyRate: courtData.hourlyRate,
+          peakHourlyRate: courtData.peakHourlyRate,
+          hasLighting: !!courtData.hasLighting,
+          hasCameras: !!courtData.hasCameras,
+        });
+        setClubs((prev) =>
+          prev.map((c) => {
+            if (c.id === clubId) {
+              const updatedCourts = [...c.courts, remote];
+              return {
+                ...c,
+                courtsCount: updatedCourts.length,
+                courts: updatedCourts,
+              };
+            }
+            return c;
+          })
+        );
+        setSyncNotification(`زمین جدید به باشگاه اضافه شد.`);
+        return;
+      } catch (err) {
+        console.error('addCourtToClub remote failed', err);
+        setSyncNotification('خطا در ثبت زمین روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+
+    // Local fallback
     const newCourt: Court = {
       ...courtData,
       id: `court-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -386,7 +484,19 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setNeedPlayerPosts((prev) => [needPost, ...prev]);
   };
 
-  const cancelBooking = (bookingId: string) => {
+  const cancelBooking = async (bookingId: string): Promise<void> => {
+    // Real backend path: delete from Supabase first (server booking ids are
+    // UUIDs; local-only ids start with 'booking-'). RLS allows the owner, a
+    // super_admin, or the club's admin to delete.
+    if (getSupabase() && bookingId && !bookingId.startsWith('booking-')) {
+      try {
+        await deleteBookingById(bookingId);
+      } catch (err) {
+        console.error('cancelBooking remote failed', err);
+        setSyncNotification('خطا در لغو رزرو روی سرور. دوباره تلاش کنید.');
+        return;
+      }
+    }
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
     setSyncNotification('رزرو سانس با موفقیت لغو گردید.');
   };
@@ -576,9 +686,52 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newBooking;
   };
 
-  const createTournament = (
+  const createTournament = async (
     tournData: Omit<Tournament, 'id' | 'registeredTeamsCount' | 'registeredTeams' | 'status'>
-  ): Tournament => {
+  ): Promise<Tournament> => {
+    const authUserId = auth?.user?.id ?? null;
+    const role = auth?.profile?.role ?? null;
+    // Official tournaments are reserved for admins; everyone else creates
+    // friendly ones. RLS enforces this server-side too.
+    const official = role === 'super_admin' || role === 'province_admin' || role === 'club_admin';
+
+    // Real backend path: insert into Supabase so every user sees it. Dates
+    // must be ISO (YYYY-MM-DD) for the `date` columns — the form now collects
+    // them with native date inputs.
+    if (getSupabase() && authUserId) {
+      try {
+        const remote = await insertTournament(
+          {
+            title: tournData.title,
+            clubId: tournData.clubId,
+            clubName: tournData.clubName,
+            province: tournData.province,
+            category: tournData.category,
+            format: tournData.format,
+            startDate: tournData.startDate,
+            endDate: tournData.endDate,
+            registrationDeadline: tournData.registrationDeadline,
+            entryFee: tournData.entryFee,
+            prizePool: tournData.prizePool,
+            maxTeams: tournData.maxTeams,
+            levelRange: tournData.levelRange,
+            bannerImage: tournData.bannerImage,
+            rules: tournData.rules,
+            official,
+          },
+          authUserId
+        );
+        setTournaments((prev) => [remote, ...prev]);
+        setSyncNotification(`تورنومنت «${remote.title}» با موفقیت ثبت شد!`);
+        return remote;
+      } catch (err) {
+        console.error('createTournament remote failed', err);
+        setSyncNotification('خطا در ثبت تورنمنت روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+
+    // Local fallback (offline / not signed in)
     const newTourn: Tournament = {
       ...tournData,
       id: `tourn-${Date.now()}`,
