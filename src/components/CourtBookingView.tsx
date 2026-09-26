@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Club, Court } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -76,7 +76,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   }, []);
 
   const [selectedDate, setSelectedDate] = useState(daysList[0]);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('۱۹:۳۰ - ۲۱:۰۰');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [duration, setDuration] = useState<number>(90); // 60, 90, 120
   const [splitPayment, setSplitPayment] = useState<boolean>(true);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -95,20 +95,41 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     currentClub?.courts.find((ct) => ct.id === selectedCourtId) ||
     currentClub?.courts[0];
 
-  // Standard time slots with peak indicator
-  const timeSlots = [
-    { time: '۰۸:۰۰ - ۰۹:۳۰', isPeak: false, isBooked: false, period: 'morning' },
-    { time: '۰۹:۳۰ - ۱۱:۰۰', isPeak: false, isBooked: true, period: 'morning' },
-    { time: '۱۱:۰۰ - ۱۲:۳۰', isPeak: false, isBooked: false, period: 'morning' },
-    { time: '۱۵:۰۰ - ۱۶:۳۰', isPeak: false, isBooked: false, period: 'afternoon' },
-    { time: '۱۶:۳۰ - ۱۸:۰۰', isPeak: false, isBooked: false, period: 'afternoon' },
-    { time: '۱۸:۰۰ - ۱۹:۳۰', isPeak: true, isBooked: true, period: 'night' },
-    { time: '۱۹:۳۰ - ۲۱:۰۰', isPeak: true, isBooked: false, period: 'night' },
-    { time: '۲۱:۰۰ - ۲۲:۳۰', isPeak: true, isBooked: false, period: 'night' },
-    { time: '۲۲:۳۰ - ۲۴:۰۰', isPeak: true, isBooked: false, period: 'night' },
-  ];
+  // Time slots generated from the club's working hours (90-min slots).
+  // Persian-digit display, e.g. '۱۸:۰۰ - ۱۹:۳۰'.
+  const timeSlots = useMemo(() => {
+    const faDigits = (s: string) => s.replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+    const toMinutes = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + (m || 0);
+    };
+    const toHHMM = (mins: number) =>
+      `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+    const open = toMinutes(currentClub?.openingHour || '08:00');
+    const close = toMinutes(currentClub?.closingHour || '24:00');
+    const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
+    for (let start = open; start + 90 <= close; start += 90) {
+      const h = Math.floor(start / 60);
+      const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + 90))}`;
+      slots.push({
+        time,
+        isPeak: h >= 18,
+        // Demo flags until real availability feeds from bookings
+        isBooked: time === '۰۹:۳۰ - ۱۱:۰۰' || time === '۱۸:۰۰ - ۱۹:۳۰',
+        period: h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night',
+      });
+    }
+    return slots;
+  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour]);
 
-  const isCurrentSlotPeak = selectedTimeSlot.includes('۱۸:') || selectedTimeSlot.includes('۱۹:') || selectedTimeSlot.includes('۲۱:') || selectedTimeSlot.includes('۲۲:');
+  // Auto-select the first free slot whenever the club (or its hours) change
+  useEffect(() => {
+    const first = timeSlots.find((s) => !s.isBooked) || timeSlots[0];
+    setSelectedTimeSlot(first ? first.time : '');
+  }, [timeSlots]);
+
+  const selectedSlot = timeSlots.find((s) => s.time === selectedTimeSlot);
+  const isCurrentSlotPeak = selectedSlot ? selectedSlot.isPeak : false;
   const baseRate = currentCourt ? (isCurrentSlotPeak ? currentCourt.peakHourlyRate : currentCourt.hourlyRate) : 700000;
   const totalPrice = Math.round((baseRate * duration) / 60);
   const splitPrice = Math.round(totalPrice / 4);
