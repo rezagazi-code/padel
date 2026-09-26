@@ -24,7 +24,7 @@ import {
   initialTournaments
 } from '../mockData';
 import { levelToGrade } from '../utils/skillGrades';
-import { getSupabase } from '../lib/supabase';
+import { getSupabase, getSupabaseConfig } from '../lib/supabase';
 import { fetchClubs, fetchTournaments, insertBooking, DOUBLE_BOOKED } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
 
@@ -162,12 +162,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'admin_province') || 'تهران'
   );
 
-  const [supabaseUrl, setSupabaseUrl] = useState<string>(() =>
-    localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'sb_url') || ''
-  );
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState<string>(() =>
-    localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'sb_key') || ''
-  );
+  // Manual config (localStorage) overrides env vars; env vars (Render) are the
+  // default so the modal truthfully reports the connection in production.
+  const [supabaseUrl, setSupabaseUrl] = useState<string>(() => {
+    const env = getSupabaseConfig();
+    return localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'sb_url') || env?.url || '';
+  });
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState<string>(() => {
+    const env = getSupabaseConfig();
+    return localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'sb_key') || env?.anonKey || '';
+  });
   const [syncNotification, setSyncNotification] = useState<string | null>(null);
 
   // Optional auth (AuthProvider wraps the app in App.tsx). When the user is

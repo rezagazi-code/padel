@@ -22,6 +22,7 @@ import {
   Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { toJalaliDisplay } from '../utils/dates';
 
 interface CourtBookingViewProps {
   onOpenClubOwnerModal: () => void;
@@ -73,6 +74,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('۱۹:۳۰ - ۲۱:۰۰');
   const [duration, setDuration] = useState<number>(90); // 60, 90, 120
   const [splitPayment, setSplitPayment] = useState<boolean>(true);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [needsExtraPlayers, setNeedsExtraPlayers] = useState<boolean>(false);
   const [playersNeededCount, setPlayersNeededCount] = useState<number>(1);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
@@ -108,13 +110,16 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
   const handleConfirmBooking = async () => {
     if (!currentClub || !currentCourt) return;
+    setBookingError(null);
 
     const newBooking = await createBooking({
       clubId: currentClub.id,
       clubName: currentClub.name,
       courtId: currentCourt.id,
       courtName: currentCourt.name,
-      date: selectedDate.dateStr,
+      // DB `date` columns need Gregorian ISO; `raw` is YYYY-MM-DD.
+      // (dateStr is the Jalali display string shown in the UI.)
+      date: selectedDate.raw,
       timeSlot: selectedTimeSlot,
       durationMinutes: duration,
       totalPrice,
@@ -125,7 +130,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       playersNeeded: needsExtraPlayers ? playersNeededCount : 0,
     });
 
-    if (!newBooking) return; // e.g. slot was just taken by someone else
+    if (!newBooking) {
+      // Never fail silently: the button must always give feedback.
+      setBookingError('رزرو ثبت نشد. لطفاً اتصال اینترنت را بررسی کنید و دوباره تلاش کنید. اگر سانس توسط شخص دیگری رزرو شده باشد، سانس دیگری انتخاب کنید.');
+      return;
+    }
 
     setLastBookingInfo(newBooking);
     setShowConfirmationModal(true);
@@ -554,6 +563,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </div>
                 </div>
 
+                {/* Booking error feedback — never leave the user guessing */}
+                {bookingError && (
+                  <div className="rounded-2xl bg-[#ff2d55]/10 border border-[#ff2d55]/50 px-4 py-3 text-xs font-bold text-[#ff8ba0] leading-relaxed">
+                    {bookingError}
+                  </div>
+                )}
+
                 {/* Final CTA Button */}
                 <button
                   onClick={handleConfirmBooking}
@@ -600,7 +616,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">تاریخ و ساعت:</span>
-                <span className="font-bold text-slate-100">{lastBookingInfo.date} | {lastBookingInfo.timeSlot}</span>
+                <span className="font-bold text-slate-100">{toJalaliDisplay(lastBookingInfo.date)} | {lastBookingInfo.timeSlot}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">مدت سانس:</span>

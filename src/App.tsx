@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PadelProvider, usePadel } from './context/PadelContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
@@ -22,13 +22,28 @@ import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { activeTab, isMobileDeviceView, setIsMobileDeviceView } = usePadel();
+  const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification } = usePadel();
 
   const [clubModalOpen, setClubModalOpen] = useState(false);
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [pwaModalOpen, setPwaModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Global toast for sync/notification messages (booking results, errors, …)
+  const [toastVisible, setToastVisible] = useState(false);
+  useEffect(() => {
+    if (!syncNotification) {
+      setToastVisible(false);
+      return;
+    }
+    setToastVisible(true);
+    const t = setTimeout(() => {
+      setToastVisible(false);
+      setSyncNotification(null);
+    }, 4200);
+    return () => clearTimeout(t);
+  }, [syncNotification, setSyncNotification]);
 
   const renderCurrentView = () => {
     switch (activeTab) {
@@ -72,6 +87,16 @@ const MainContent: React.FC = () => {
       <PwaInstallModal isOpen={pwaModalOpen} onClose={() => setPwaModalOpen(false)} />
       <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+
+      {/* Global sync toast */}
+      {toastVisible && syncNotification && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] max-w-[92vw]">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-[#0b1220]/95 border border-[#ff2d55]/40 px-4 py-3 shadow-[0_8px_30px_rgba(255,45,85,0.25)] backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
+            <span className="w-2 h-2 rounded-full bg-[#ff2d55] animate-pulse shrink-0" />
+            <span className="text-xs font-bold text-slate-100 leading-relaxed">{syncNotification}</span>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="glass border-t border-white/10 mt-8 py-6 px-4 text-center text-xs text-slate-500">

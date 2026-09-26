@@ -24,6 +24,7 @@ import {
   History
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { toJalaliDisplay } from '../utils/dates';
 
 const PALETTE_COLORS = [
   { name: 'قرمز ولت', hex: '#ff2d55' },
@@ -477,7 +478,7 @@ export const PlayerProfileView: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between text-slate-500 pt-2 border-t border-white/10">
-                      <span>{b.date} | {b.timeSlot}</span>
+                      <span>{toJalaliDisplay(b.date)} | {b.timeSlot}</span>
                       <button
                         onClick={() => cancelBooking(b.id)}
                         className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
