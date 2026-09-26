@@ -335,3 +335,19 @@ export async function deleteBookingById(bookingId: string): Promise<void> {
   const { error } = await sb.from('bookings').delete().eq('id', bookingId);
   if (error) throw error;
 }
+
+export async function deleteClubById(clubId: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  // Cascades to courts and bookings (on delete cascade). RLS: super_admin only.
+  const { error } = await sb.from('clubs').delete().eq('id', clubId);
+  if (error) throw error;
+}
+
+export async function deleteTournamentById(tournamentId: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  // Cascades to tournament_teams. RLS: organizer or super_admin.
+  const { error } = await sb.from('tournaments').delete().eq('id', tournamentId);
+  if (error) throw error;
+}

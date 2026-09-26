@@ -33,6 +33,8 @@ import {
   insertCourt,
   insertTournament,
   deleteBookingById,
+  deleteClubById,
+  deleteTournamentById,
   DOUBLE_BOOKED,
 } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
@@ -56,6 +58,8 @@ interface PadelContextType {
   clubs: Club[];
   addClub: (club: Omit<Club, 'id' | 'rating' | 'reviewCount'>) => Promise<Club>;
   addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => Promise<void>;
+  deleteClub: (clubId: string) => Promise<void>;
+  deleteTournament: (tournamentId: string) => Promise<void>;
   bookings: Booking[];
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Promise<Booking | null>;
   cancelBooking: (bookingId: string) => Promise<void>;
@@ -404,6 +408,38 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
     setSyncNotification(`زمین جدید به باشگاه اضافه شد.`);
+  };
+
+  const deleteClub = async (clubId: string): Promise<void> => {
+    // Real backend path for clubs that live on Supabase (UUID ids). The DB
+    // cascades the delete to courts and bookings. RLS: super_admin only.
+    if (getSupabase() && clubId && !clubId.startsWith('club-')) {
+      try {
+        await deleteClubById(clubId);
+      } catch (err) {
+        console.error('deleteClub remote failed', err);
+        setSyncNotification('خطا در حذف باشگاه روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+    setClubs((prev) => prev.filter((c) => c.id !== clubId));
+    setSyncNotification('باشگاه با موفقیت حذف شد.');
+  };
+
+  const deleteTournament = async (tournamentId: string): Promise<void> => {
+    // Real backend path for tournaments that live on Supabase (UUID ids).
+    // RLS: the organizer or a super_admin.
+    if (getSupabase() && tournamentId && !tournamentId.startsWith('tourn-')) {
+      try {
+        await deleteTournamentById(tournamentId);
+      } catch (err) {
+        console.error('deleteTournament remote failed', err);
+        setSyncNotification('خطا در حذف تورنمنت روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+    setTournaments((prev) => prev.filter((t) => t.id !== tournamentId));
+    setSyncNotification('تورنمنت با موفقیت حذف شد.');
   };
 
   const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking | null> => {
@@ -948,6 +984,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         clubs,
         addClub,
         addCourtToClub,
+        deleteClub,
+        deleteTournament,
         bookings,
         createBooking,
         cancelBooking,

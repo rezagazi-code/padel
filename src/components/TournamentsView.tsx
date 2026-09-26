@@ -27,7 +27,8 @@ import {
   Landmark,
   Eye,
   Info,
-  ChevronDown
+  ChevronDown,
+  Trash2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -43,6 +44,7 @@ export const TournamentsView: React.FC = () => {
   const {
     tournaments,
     createTournament,
+    deleteTournament,
     registerTournamentTeam,
     finalizeTournamentResults,
     updateTournamentBracketMatch,
@@ -453,6 +455,27 @@ export const TournamentsView: React.FC = () => {
                             title="ثبت نتایج توسط مسئول باشگاه و افزایش امتیازات رنکینگ بازیکنان"
                           >
                             ثبت نتایج و آپدیت رنک
+                          </button>
+                        )}
+                        {/* RBAC Protected Delete: organizer or super_admin */}
+                        {canManageTournament(tourn) && (
+                          <button
+                            onClick={async () => {
+                              const ok = window.confirm(
+                                `تورنمنت «${tourn.title}» حذف شود؟\nتمام تیم‌های ثبت‌نام‌شده هم پاک می‌شوند.`
+                              );
+                              if (!ok) return;
+                              try {
+                                await deleteTournament(tourn.id);
+                              } catch {
+                                /* error toast is set by the context */
+                              }
+                            }}
+                            className="px-3.5 py-3 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                            title="حذف تورنمنت"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>حذف</span>
                           </button>
                         )}
                       </>

@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   Sun,
   Moon,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toJalaliDisplay } from '../utils/dates';
@@ -32,6 +33,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const {
     clubs,
     createBooking,
+    deleteClub,
+    currentUserRole,
     playerProfile,
     selectedProvince,
     setSelectedProvince
@@ -299,6 +302,27 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       <ShieldCheck className="w-3 h-3" />
                       تایید رسمی
                     </span>
+                    {currentUserRole === 'super_admin' && (
+                      <button
+                        onClick={async () => {
+                          const ok = window.confirm(
+                            `باشگاه «${currentClub.name}» حذف شود؟\nتمام زمین‌ها و رزروهای این باشگاه برای همیشه پاک می‌شوند.`
+                          );
+                          if (!ok) return;
+                          try {
+                            await deleteClub(currentClub.id);
+                            setSelectedClubId('');
+                          } catch {
+                            /* error toast is set by the context */
+                          }
+                        }}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 cursor-pointer flex items-center gap-1"
+                        title="حذف باشگاه (مدیر ارشد)"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        حذف باشگاه
+                      </button>
+                    )}
                   </div>
                   <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
