@@ -5,6 +5,7 @@ import GradeBadge from './GradeBadge';
 import { levelToGrade, SKILL_GRADES, GRADE_MIDPOINT, gradeBandFa, type SkillGrade } from '../utils/skillGrades';
 import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
+import { ConfirmDialog } from './ConfirmDialog';
 import { toJalaliDisplay } from '../utils/dates';
 import {
   Trophy,
@@ -73,6 +74,7 @@ export const TournamentsView: React.FC = () => {
 
   const [showCreateTournModal, setShowCreateTournModal] = useState(false);
   const [showFinalizeModal, setShowFinalizeModal] = useState<Tournament | null>(null);
+  const [tournamentToDelete, setTournamentToDelete] = useState<Tournament | null>(null);
   const [winnerTeamInput, setWinnerTeamInput] = useState('');
   const [runnerUpTeamInput, setRunnerUpTeamInput] = useState('');
 
@@ -460,17 +462,7 @@ export const TournamentsView: React.FC = () => {
                         {/* RBAC Protected Delete: organizer or super_admin */}
                         {canManageTournament(tourn) && (
                           <button
-                            onClick={async () => {
-                              const ok = window.confirm(
-                                `تورنمنت «${tourn.title}» حذف شود؟\nتمام تیم‌های ثبت‌نام‌شده هم پاک می‌شوند.`
-                              );
-                              if (!ok) return;
-                              try {
-                                await deleteTournament(tourn.id);
-                              } catch {
-                                /* error toast is set by the context */
-                              }
-                            }}
+                            onClick={() => setTournamentToDelete(tourn)}
                             className="px-3.5 py-3 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
                             title="حذف تورنمنت"
                           >
@@ -1033,6 +1025,24 @@ export const TournamentsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!tournamentToDelete}
+        title="حذف تورنمنت"
+        message={tournamentToDelete ? `تورنمنت «${tournamentToDelete.title}» حذف شود؟\nتمام تیم‌های ثبت‌نام‌شده هم پاک می‌شوند.` : ''}
+        confirmLabel="حذف تورنمنت"
+        onConfirm={async () => {
+          if (!tournamentToDelete) return;
+          try {
+            await deleteTournament(tournamentToDelete.id);
+          } catch {
+            /* error toast is set by the context */
+          } finally {
+            setTournamentToDelete(null);
+          }
+        }}
+        onCancel={() => setTournamentToDelete(null)}
+      />
 
     </div>
   );

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toJalaliDisplay } from '../utils/dates';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface CourtBookingViewProps {
   onOpenClubOwnerModal: () => void;
@@ -41,6 +42,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   } = usePadel();
 
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
+  const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -304,18 +306,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     </span>
                     {currentUserRole === 'super_admin' && (
                       <button
-                        onClick={async () => {
-                          const ok = window.confirm(
-                            `باشگاه «${currentClub.name}» حذف شود؟\nتمام زمین‌ها و رزروهای این باشگاه برای همیشه پاک می‌شوند.`
-                          );
-                          if (!ok) return;
-                          try {
-                            await deleteClub(currentClub.id);
-                            setSelectedClubId('');
-                          } catch {
-                            /* error toast is set by the context */
-                          }
-                        }}
+                        onClick={() => setClubToDelete(currentClub)}
                         className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 cursor-pointer flex items-center gap-1"
                         title="حذف باشگاه (مدیر ارشد)"
                       >
@@ -680,6 +671,25 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!clubToDelete}
+        title="حذف باشگاه"
+        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها و رزروهای این باشگاه برای همیشه پاک می‌شوند.` : ''}
+        confirmLabel="حذف باشگاه"
+        onConfirm={async () => {
+          if (!clubToDelete) return;
+          try {
+            await deleteClub(clubToDelete.id);
+            setSelectedClubId('');
+          } catch {
+            /* error toast is set by the context */
+          } finally {
+            setClubToDelete(null);
+          }
+        }}
+        onCancel={() => setClubToDelete(null)}
+      />
 
     </div>
   );
