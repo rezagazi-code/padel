@@ -101,6 +101,46 @@ export async function fetchMyBookings(userId: string): Promise<Booking[]> {
   }));
 }
 
+// Public availability: time slots already booked for a court on a given date
+// (YYYY-MM-DD). The bookings_select_all RLS policy permits public SELECT,
+// so any visitor can see real availability without signing in.
+export async function fetchBookedTimeSlots(courtId: string, dateISO: string): Promise<string[]> {
+  const sb = getSupabase();
+  if (!sb) return [];
+  const { data, error } = await sb
+    .from('bookings')
+    .select('time_slot')
+    .eq('court_id', courtId)
+    .eq('date', dateISO);
+  if (error) throw error;
+  return (data ?? []).map((r: Row) => String(r.time_slot));
+}
+
+// Patch for the signed-in user's own profiles row. Only non-privileged
+// columns are allowed here (role changes are blocked by DB trigger/RLS).
+export interface ProfilePatch {
+  name?: string;
+  avatar_url?: string;
+  theme_color?: string;
+  level?: number;
+  hand?: string;
+  preferred_side?: string;
+  racket_brand?: string;
+  racket_model?: string;
+  province?: string;
+  city?: string;
+  phone?: string;
+  bio?: string;
+  is_free_agent?: boolean;
+}
+
+export async function updateMyProfile(userId: string, patch: ProfilePatch): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) return;
+  const { error } = await sb.from('profiles').update(patch).eq('id', userId);
+  if (error) throw error;
+}
+
 export interface BookingInput {
   clubId: string;
   courtId: string;

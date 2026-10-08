@@ -25,6 +25,8 @@ import {
 import confetti from 'canvas-confetti';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
+import { fetchBookedTimeSlots } from '../lib/db';
+import { getSupabase } from '../lib/supabase';
 
 interface CourtBookingViewProps {
   onOpenClubOwnerModal: () => void;
@@ -33,6 +35,7 @@ interface CourtBookingViewProps {
 export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOwnerModal }) => {
   const {
     clubs,
+    bookings,
     createBooking,
     deleteClub,
     currentUserRole,
@@ -84,6 +87,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [playersNeededCount, setPlayersNeededCount] = useState<number>(1);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [lastBookingInfo, setLastBookingInfo] = useState<any>(null);
+  // Real availability: time_slot strings already booked for the selected court+date.
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   // Filter clubs by province
   const filteredClubs = clubs.filter(
@@ -94,6 +99,38 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const currentCourt =
     currentClub?.courts.find((ct) => ct.id === selectedCourtId) ||
     currentClub?.courts[0];
+
+  // Real availability: reload booked slots whenever the court or date changes.
+  useEffect(() => {
+    let cancelled = false;
+    const courtId = currentCourt?.id;
+    const dateISO = selectedDate?.raw;
+    if (!courtId || !dateISO) {
+      setBookedSlots([]);
+      return;
+    }
+    (async () => {
+      try {
+        if (getSupabase()) {
+          const slots = await fetchBookedTimeSlots(courtId, dateISO);
+          if (!cancelled) setBookedSlots(slots);
+        } else {
+          // Local mode (no backend): derive from the context's bookings.
+          if (!cancelled)
+            setBookedSlots(
+              bookings
+                .filter((b) => b.courtId === courtId && b.date === dateISO)
+                .map((b) => b.timeSlot)
+            );
+        }
+      } catch {
+        if (!cancelled) setBookedSlots([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentCourt?.id, selectedDate?.raw, bookings]);
 
   // Time slots generated from the club's working hours (90-min slots).
   // Persian-digit display, e.g. '۱۸:۰۰ - ۱۹:۳۰'.
@@ -114,13 +151,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       slots.push({
         time,
         isPeak: h >= 18,
-        // Demo flags until real availability feeds from bookings
-        isBooked: time === '۰۹:۳۰ - ۱۱:۰۰' || time === '۱۸:۰۰ - ۱۹:۳۰',
+        // Real availability from bookings (Supabase or local), no demo flags.
+        isBooked: bookedSlots.includes(time),
         period: h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night',
       });
     }
     return slots;
-  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour]);
+  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour, bookedSlots]);
 
   // Auto-select the first free slot whenever the club (or its hours) change
   useEffect(() => {

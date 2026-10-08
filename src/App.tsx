@@ -64,10 +64,13 @@ const MainContent: React.FC = () => {
     }
   };
 
+  const isNativeApp =
+    typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+
   const appBody = (
     <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black">
-      {/* Top Mobile Friendly Install Banner */}
-      <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />
+      {/* Top Mobile Friendly Install Banner — hidden inside the native app shell */}
+      {!isNativeApp && <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />}
 
       <Navbar
         onOpenClubOwnerModal={() => setClubModalOpen(true)}
@@ -84,7 +87,9 @@ const MainContent: React.FC = () => {
       {/* Modals */}
       <ClubOwnerModal isOpen={clubModalOpen} onClose={() => setClubModalOpen(false)} />
       <SupabaseModal isOpen={cloudModalOpen} onClose={() => setCloudModalOpen(false)} />
-      <PwaInstallModal isOpen={pwaModalOpen} onClose={() => setPwaModalOpen(false)} />
+      {!isNativeApp && (
+        <PwaInstallModal isOpen={pwaModalOpen} onClose={() => setPwaModalOpen(false)} />
+      )}
       <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 

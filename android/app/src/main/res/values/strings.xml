@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">پدل‌پرو</string>
+    <string name="title_activity_main">پدل‌پرو</string>
+    <string name="package_name">ir.padelpro.arena</string>
+    <string name="custom_url_scheme">ir.padelpro.arena</string>
+</resources>

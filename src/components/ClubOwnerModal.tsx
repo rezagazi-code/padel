@@ -41,9 +41,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
   const [phone, setPhone] = useState('۰۲۱-');
   const [openingHour, setOpeningHour] = useState('۰۷:۰۰');
   const [closingHour, setClosingHour] = useState('۲۴:۰۰');
-  const [coverImage, setCoverImage] = useState(
-    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1000&q=80'
-  );
+  const [coverImage, setCoverImage] = useState('/covers/club-2.jpg');
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');

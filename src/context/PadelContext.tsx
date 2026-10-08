@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   Booking,
   BracketMatch,
@@ -35,6 +35,8 @@ import {
   deleteBookingById,
   deleteClubById,
   deleteTournamentById,
+  updateMyProfile,
+  type ProfilePatch,
   DOUBLE_BOOKED,
 } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
@@ -192,6 +194,28 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // local demo switcher.
   const auth = useAuthOptional();
 
+  // ---- «پروفایل من» <-> AuthProfile sync ----
+  // On sign-in, pull the server identity (name/email/avatar/level) into the
+  // local sports profile. Afterwards the local profile is the source of truth
+  // for the UI and edits are pushed back to the server (see updatePlayerProfile).
+  const lastSyncedAuthId = useRef<string | null>(null);
+  useEffect(() => {
+    const p = auth?.profile;
+    if (!p) {
+      lastSyncedAuthId.current = null;
+      return;
+    }
+    if (lastSyncedAuthId.current === p.id) return;
+    lastSyncedAuthId.current = p.id;
+    setPlayerProfile((prev) => ({
+      ...prev,
+      name: p.name || prev.name,
+      email: p.email || prev.email,
+      avatar: p.avatar_url || prev.avatar,
+      level: p.level > 0 ? p.level : prev.level,
+    }));
+  }, [auth?.profile]);
+
   // Load shared catalog data from Supabase when configured; fall back to
   // local mock data otherwise (or on error).
   useEffect(() => {
@@ -284,6 +308,29 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return updated;
     });
+    // Push the editable identity fields back to the server profile so
+    // «پروفایل من» stays connected to AuthProfile (fire-and-forget; the
+    // local profile remains the UI source of truth).
+    const authUserId = auth?.user?.id ?? null;
+    if (getSupabase() && authUserId) {
+      const patch: ProfilePatch = {};
+      if (updates.name !== undefined) patch.name = updates.name;
+      if (updates.avatar !== undefined) patch.avatar_url = updates.avatar;
+      if (updates.themeColor !== undefined) patch.theme_color = updates.themeColor;
+      if (updates.level !== undefined) patch.level = updates.level;
+      if (updates.hand !== undefined) patch.hand = updates.hand;
+      if (updates.preferredSide !== undefined) patch.preferred_side = updates.preferredSide;
+      if (updates.racketBrand !== undefined) patch.racket_brand = updates.racketBrand;
+      if (updates.racketModel !== undefined) patch.racket_model = updates.racketModel;
+      if (updates.province !== undefined) patch.province = updates.province;
+      if (updates.city !== undefined) patch.city = updates.city;
+      if (updates.phone !== undefined) patch.phone = updates.phone;
+      if (updates.bio !== undefined) patch.bio = updates.bio;
+      if (updates.isFreeAgent !== undefined) patch.is_free_agent = updates.isFreeAgent;
+      if (Object.keys(patch).length > 0) {
+        updateMyProfile(authUserId, patch).catch(() => {});
+      }
+    }
   };
 
   const addClub = async (clubData: Omit<Club, 'id' | 'rating' | 'reviewCount'>): Promise<Club> => {

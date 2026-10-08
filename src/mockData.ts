@@ -3,7 +3,7 @@ import { Club, Coach, NeedPlayerPost, OpenMatch, PlayerProfile, RankingPlayer, T
 export const initialPlayerProfile: PlayerProfile = {
   id: 'player-me',
   name: 'رضا قاضی',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+  avatar: '/avatars/avatar-11.jpg',
   themeColor: '#ff2d55', // Electric Lime
   level: 3.85,
   levelTitle: 'متوسط (C+)',
@@ -310,7 +310,7 @@ export const initialOpenMatches: OpenMatch[] = [
     gender: 'men',
     creatorId: 'p-2',
     creatorName: 'سهراب مرادی',
-    creatorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    creatorAvatar: '/avatars/avatar-6.jpg',
     creatorLevel: 3.9,
     slots: [
       {
@@ -319,7 +319,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'left',
         playerId: 'p-2',
         playerName: 'سهراب مرادی',
-        playerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-6.jpg',
         playerLevel: 3.9
       },
       {
@@ -328,7 +328,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'right',
         playerId: 'p-3',
         playerName: 'مهدی کریمی',
-        playerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-3.jpg',
         playerLevel: 3.7
       },
       {
@@ -337,7 +337,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'right',
         playerId: 'p-4',
         playerName: 'نوید اسدی',
-        playerAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-1.jpg',
         playerLevel: 4.1
       },
       {
@@ -363,7 +363,7 @@ export const initialOpenMatches: OpenMatch[] = [
     gender: 'all',
     creatorId: 'p-5',
     creatorName: 'سپیده دانایی',
-    creatorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    creatorAvatar: '/avatars/avatar-13.jpg',
     creatorLevel: 3.2,
     slots: [
       {
@@ -372,7 +372,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'right',
         playerId: 'p-5',
         playerName: 'سپیده دانایی',
-        playerAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-13.jpg',
         playerLevel: 3.2
       },
       {
@@ -381,7 +381,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'left',
         playerId: 'p-6',
         playerName: 'فرهاد طاهری',
-        playerAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-7.jpg',
         playerLevel: 3.4
       },
       {
@@ -412,7 +412,7 @@ export const initialOpenMatches: OpenMatch[] = [
     gender: 'men',
     creatorId: 'p-7',
     creatorName: 'کیارش آریافر',
-    creatorAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    creatorAvatar: '/avatars/avatar-5.jpg',
     creatorLevel: 4.8,
     slots: [
       {
@@ -421,7 +421,7 @@ export const initialOpenMatches: OpenMatch[] = [
         side: 'left',
         playerId: 'p-7',
         playerName: 'کیارش آریافر',
-        playerAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+        playerAvatar: '/avatars/avatar-5.jpg',
         playerLevel: 4.8
       },
       {
@@ -458,7 +458,7 @@ export const initialNeedPlayerPosts: NeedPlayerPost[] = [
     costPerPerson: 220000,
     hostPlayerId: 'p-host-1',
     hostName: 'فرزین معتمدی',
-    hostAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    hostAvatar: '/avatars/avatar-12.jpg',
     hostLevel: 3.8,
     note: 'زمین رو رزرو کردیم و سه نفریم. به یک بازیکن خوش‌اخلاق برای سمت راست (Drive) احتیاج داریم. لطفا سطح حدود ۳.۵ تا ۴ باشه.',
     joinedPlayers: [],
@@ -477,7 +477,7 @@ export const initialNeedPlayerPosts: NeedPlayerPost[] = [
     costPerPerson: 200000,
     hostPlayerId: 'p-host-2',
     hostName: 'امیررضا صابری',
-    hostAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    hostAvatar: '/avatars/avatar-9.jpg',
     hostLevel: 3.4,
     note: 'دو نفر همراهیم، زمین شماره ۲ شاهین رزروه. دو تا هم‌تیمی پایه و پرانرژی میخوایم برای بازی سرعتی و جذاب.',
     joinedPlayers: [],
@@ -496,7 +496,7 @@ export const initialNeedPlayerPosts: NeedPlayerPost[] = [
     costPerPerson: 175000,
     hostPlayerId: 'p-host-3',
     hostName: 'محمد جواد بهرامی',
-    hostAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    hostAvatar: '/avatars/avatar-6.jpg',
     hostLevel: 3.6,
     note: 'جمعه صبح بعد از قهوه یه مچ عالی و سرعتی میخوایم بزنیم. پارتنر سمت چپ من کنسل کرد، بازیکن آزاد لطفا ملحق بشه.',
     joinedPlayers: [],
@@ -508,7 +508,7 @@ export const initialFreeAgents: PlayerProfile[] = [
   {
     id: 'fa-1',
     name: 'آرمان مهرپویا',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-3.jpg',
     themeColor: '#38bdf8',
     level: 4.15,
     levelTitle: 'نیمه‌حرفه‌ای (B-)',
@@ -535,7 +535,7 @@ export const initialFreeAgents: PlayerProfile[] = [
   {
     id: 'fa-2',
     name: 'سارا نیک‌زاد',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-10.jpg',
     themeColor: '#f43f5e',
     level: 3.6,
     levelTitle: 'متوسط (C+)',
@@ -562,7 +562,7 @@ export const initialFreeAgents: PlayerProfile[] = [
   {
     id: 'fa-3',
     name: 'بردیا کیانی',
-    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-2.jpg',
     themeColor: '#a855f7',
     level: 4.6,
     levelTitle: 'نیمه‌حرفه‌ای (B)',
@@ -589,7 +589,7 @@ export const initialFreeAgents: PlayerProfile[] = [
   {
     id: 'fa-4',
     name: 'شهاب حسامی',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-6.jpg',
     themeColor: '#eab308',
     level: 3.3,
     levelTitle: 'متوسط (C)',
@@ -619,7 +619,7 @@ export const initialCoaches: Coach[] = [
   {
     id: 'coach-1',
     name: 'استاد مازیار فلاحی',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-14.jpg',
     title: 'سرمربی بین‌المللی و مدرس رسمی FIP',
     fipCertification: 'مدرک بین‌المللی FIP Level 2 اسلواکی و اسپانیا',
     experienceYears: 9,
@@ -636,7 +636,7 @@ export const initialCoaches: Coach[] = [
   {
     id: 'coach-2',
     name: 'کاپیتان پریسا شریفی',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-15.jpg',
     title: 'مربی اسبق تیم ملی پدل و قهرمان لیگ برتر',
     fipCertification: 'مدرک مربیگری درجه ۱ فدراسیون و آکادمی مادرید',
     experienceYears: 7,
@@ -653,7 +653,7 @@ export const initialCoaches: Coach[] = [
   {
     id: 'coach-3',
     name: 'سامان یزدانی',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-8.jpg',
     title: 'مربی رسمی و سرپرست آکادمی اسپادانا',
     fipCertification: 'مدرک مربیگری پدل فدراسیون بین‌المللی FIP',
     experienceYears: 5,
@@ -670,7 +670,7 @@ export const initialCoaches: Coach[] = [
   {
     id: 'coach-4',
     name: 'مهرشاد کیان‌پور',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-4.jpg',
     title: 'مربی آکادمی مارینا کیش و متخصص استعدادیابی',
     fipCertification: 'مدرک مربیگری پیشرفته FIP Level 1',
     experienceYears: 6,
@@ -976,7 +976,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 1,
     id: 'rp-1',
     name: 'بردیا کیانی',
-    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-2.jpg',
     province: 'اصفهان',
     level: 4.6,
     points: 2150,
@@ -990,7 +990,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 1,
     id: 'rp-2',
     name: 'آرمان مهرپویا',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-3.jpg',
     province: 'تهران',
     level: 4.15,
     points: 1790,
@@ -1004,7 +1004,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 2,
     id: 'rp-3',
     name: 'کیارش آریافر',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-5.jpg',
     province: 'هرمزگان',
     level: 4.8,
     points: 1720,
@@ -1018,7 +1018,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 2,
     id: 'player-me',
     name: 'رضا قاضی (شما)',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-10.jpg',
     province: 'تهران',
     level: 3.85,
     points: 1640,
@@ -1032,7 +1032,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 3,
     id: 'rp-4',
     name: 'نوید اسدی',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-1.jpg',
     province: 'تهران',
     level: 4.1,
     points: 1580,
@@ -1046,7 +1046,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 1,
     id: 'rp-5',
     name: 'سهراب مرادی',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-6.jpg',
     province: 'البرز',
     level: 3.9,
     points: 1510,
@@ -1060,7 +1060,7 @@ export const initialRankings: RankingPlayer[] = [
     provinceRank: 1,
     id: 'rp-6',
     name: 'سارا نیک‌زاد',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: '/avatars/avatar-10.jpg',
     province: 'فارس',
     level: 3.6,
     points: 1380,
