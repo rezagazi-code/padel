@@ -6,6 +6,9 @@ import {
   Coach,
   CoachBooking,
   Court,
+  FriendlyTournament,
+  FriendlyTeam,
+  FriendlyMatch,
   NeedPlayerPost,
   OpenMatch,
   PlayerProfile,
@@ -72,6 +75,12 @@ interface PadelContextType {
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
   joinMatchSlot: (matchId: string, slotNumber: number) => boolean;
   leaveMatchSlot: (matchId: string, slotNumber: number) => void;
+  friendlyTournaments: FriendlyTournament[];
+  createFriendlyTournament: (data: Omit<FriendlyTournament, 'id' | 'status' | 'teams' | 'bracket' | 'createdAt'>) => FriendlyTournament;
+  addFriendlyTeam: (tournId: string, team: Omit<FriendlyTeam, 'id'>) => void;
+  drawFriendlyBracket: (tournId: string) => void;
+  recordFriendlyScore: (tournId: string, matchId: string, score1: number, score2: number) => void;
+  finalizeFriendlyTournament: (tournId: string) => void;
   needPlayerPosts: NeedPlayerPost[];
   createNeedPlayerPost: (post: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => void;
   joinNeedPlayerPost: (postId: string) => boolean;
@@ -145,6 +154,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [openMatches, setOpenMatches] = useState<OpenMatch[]>(() =>
     getInitialData('open_matches', initialOpenMatches)
+  );
+
+  const [friendlyTournaments, setFriendlyTournaments] = useState<FriendlyTournament[]>(() =>
+    getInitialData('friendly_tournaments', [])
   );
 
   const [needPlayerPosts, setNeedPlayerPosts] = useState<NeedPlayerPost[]>(() =>
@@ -274,6 +287,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'open_matches', JSON.stringify(openMatches));
   }, [openMatches]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'friendly_tournaments', JSON.stringify(friendlyTournaments));
+  }, [friendlyTournaments]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'need_players', JSON.stringify(needPlayerPosts));
@@ -727,6 +744,131 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSyncNotification('شما از این مسابقه انصراف دادید.');
   };
 
+  // ============ Friendly Tournaments (matchmaking) ============
+
+  const createFriendlyTournament = (
+    data: Omit<FriendlyTournament, 'id' | 'status' | 'teams' | 'bracket' | 'createdAt'>
+  ): FriendlyTournament => {
+    const newT: FriendlyTournament = {
+      ...data,
+      id: `ft-${Date.now()}`,
+      status: 'open',
+      teams: [],
+      bracket: [],
+      createdAt: new Date().toISOString(),
+    };
+    setFriendlyTournaments((prev) => [newT, ...prev]);
+    setSyncNotification(`مسابقه دوستانه «${newT.title}» ایجاد شد.`);
+    return newT;
+  };
+
+  const addFriendlyTeam = (tournId: string, team: Omit<FriendlyTeam, 'id'>) => {
+    setFriendlyTournaments((prev) =>
+      prev.map((t) => {
+        if (t.id !== tournId || t.status !== 'open') return t;
+        const newTeam: FriendlyTeam = { ...team, id: `ftm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
+        return { ...t, teams: [...t.teams, newTeam] };
+      })
+    );
+    setSyncNotification(`تیم «${team.teamName}» اضافه شد.`);
+  };
+
+  // Seeded draw: sort by rank (lower = stronger), then snake-seed into bracket
+  const drawFriendlyBracket = (tournId: string) => {
+    setFriendlyTournaments((prev) =>
+      prev.map((t) => {
+        if (t.id !== tournId || t.status !== 'open' || t.teams.length < 2) return t;
+        const sorted = [...t.teams].sort((a, b) => a.rank - b.rank);
+        // Pad to power of 2 with byes
+        const n = sorted.length;
+        const size = Math.pow(2, Math.ceil(Math.log2(n)));
+        const seeded: (FriendlyTeam | null)[] = [...sorted];
+        while (seeded.length < size) seeded.push(null);
+
+        // Standard seeding: 1 vs last, 2 vs second-last, etc.
+        const matches: FriendlyMatch[] = [];
+        const roundName = size === 2 ? 'final' : size === 4 ? 'semifinal' : 'quarterfinal';
+        const roundFa = size === 2 ? 'فینال' : size === 4 ? 'نیمه‌نهایی' : 'یک‌چهارم نهایی';
+        for (let i = 0; i < size / 2; i++) {
+          const t1 = seeded[i];
+          const t2 = seeded[size - 1 - i];
+          matches.push({
+            id: `fm-${Date.now()}-${i}`,
+            round: roundName,
+            roundFa,
+            team1Id: t1?.id ?? null,
+            team2Id: t2?.id ?? null,
+            score1: null,
+            score2: null,
+            winnerId: t1 && !t2 ? t1.id : !t1 && t2 ? t2.id : null, // bye auto-advance
+          });
+        }
+        return { ...t, bracket: matches, status: 'draw_done' as const };
+      })
+    );
+    setSyncNotification('قرعه‌کشی انجام شد!');
+  };
+
+  const recordFriendlyScore = (tournId: string, matchId: string, score1: number, score2: number) => {
+    setFriendlyTournaments((prev) =>
+      prev.map((t) => {
+        if (t.id !== tournId) return t;
+        const bracket = t.bracket.map((m) => {
+          if (m.id !== matchId) return m;
+          const winnerId = score1 > score2 ? m.team1Id : m.team2Id;
+          return { ...m, score1, score2, winnerId };
+        });
+        // Advance winners to next round
+        const winners = bracket.filter((m) => m.winnerId).map((m) => m.winnerId as string);
+        let newBracket = [...bracket];
+        let status = t.status;
+        if (winners.length >= 2 && bracket.every((m) => m.winnerId)) {
+          // Create next round
+          const nextRound = bracket[0].round === 'quarterfinal' ? 'semifinal' : bracket[0].round === 'semifinal' ? 'final' : '';
+          const nextRoundFa = nextRound === 'semifinal' ? 'نیمه‌نهایی' : nextRound === 'final' ? 'فینال' : '';
+          if (nextRound) {
+            const nextMatches: FriendlyMatch[] = [];
+            for (let i = 0; i < winners.length; i += 2) {
+              nextMatches.push({
+                id: `fm-${Date.now()}-r${i}`,
+                round: nextRound,
+                roundFa: nextRoundFa,
+                team1Id: winners[i] ?? null,
+                team2Id: winners[i + 1] ?? null,
+                score1: null,
+                score2: null,
+                winnerId: null,
+              });
+            }
+            newBracket = [...bracket, ...nextMatches];
+            status = 'in_progress';
+          } else if (bracket[0].round === 'final' && bracket.every((m) => m.winnerId)) {
+            status = 'completed';
+          }
+        }
+        // Check if final is done
+        const finalMatch = newBracket.find((m) => m.round === 'final');
+        let winnerTeamId = t.winnerTeamId;
+        let runnerUpTeamId = t.runnerUpTeamId;
+        if (finalMatch?.winnerId && status === 'completed') {
+          winnerTeamId = finalMatch.winnerId;
+          runnerUpTeamId = finalMatch.team1Id === winnerTeamId ? finalMatch.team2Id ?? undefined : finalMatch.team1Id ?? undefined;
+        }
+        return { ...t, bracket: newBracket, status, winnerTeamId, runnerUpTeamId };
+      })
+    );
+  };
+
+  const finalizeFriendlyTournament = (tournId: string) => {
+    setFriendlyTournaments((prev) =>
+      prev.map((t) => {
+        if (t.id !== tournId) return t;
+        return { ...t, status: 'completed' as const };
+      })
+    );
+    setSyncNotification('مسابقه دوستانه به پایان رسید!');
+  };
+
   const createNeedPlayerPost = (postData: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => {
     const newPost: NeedPlayerPost = {
       ...postData,
@@ -1084,6 +1226,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createOpenMatch,
         joinMatchSlot,
         leaveMatchSlot,
+        friendlyTournaments,
+        createFriendlyTournament,
+        addFriendlyTeam,
+        drawFriendlyBracket,
+        recordFriendlyScore,
+        finalizeFriendlyTournament,
         needPlayerPosts,
         createNeedPlayerPost,
         joinNeedPlayerPost,

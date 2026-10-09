@@ -276,3 +276,43 @@ export interface RankingPlayer {
   winRate: number;
   form: ('W' | 'L')[];
 }
+
+// Friendly tournament (matchmaking): no ranking points, prize to 1st/2nd
+export interface FriendlyTeam {
+  id: string;
+  teamName: string;
+  player1Name: string;
+  player2Name: string;
+  rank: number; // for seeding the draw (lower = stronger)
+}
+
+export interface FriendlyMatch {
+  id: string;
+  round: string; // e.g. 'quarterfinal', 'semifinal', 'final'
+  roundFa: string;
+  team1Id: string | null;
+  team2Id: string | null;
+  score1: number | null;
+  score2: number | null;
+  winnerId: string | null;
+}
+
+export interface FriendlyTournament {
+  id: string;
+  title: string;
+  clubId: string;
+  clubName: string;
+  date: string;
+  entryFeePerTeam: number;
+  courtsCount: number;
+  hoursReserved: number;
+  matchDurationMin: number;
+  prizeSplit: '70-30' | '60-40';
+  status: 'open' | 'draw_done' | 'in_progress' | 'completed';
+  teams: FriendlyTeam[];
+  bracket: FriendlyMatch[];
+  winnerTeamId?: string;
+  runnerUpTeamId?: string;
+  createdBy: string;
+  createdAt: string;
+}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, PlayingSide } from '../types';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
@@ -33,6 +34,29 @@ export const MatchmakingView: React.FC = () => {
   } = usePadel();
 
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
+  const [mainTab, setMainTab] = useState<'open' | 'friendly'>('open');
+
+  if (mainTab === 'friendly') {
+    return (
+      <div className="space-y-6 pb-12">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMainTab('open')}
+            className="px-4 py-2 rounded-xl text-sm font-bold bg-white/5 border border-white/10 text-slate-400"
+          >
+            مسابقات باز
+          </button>
+          <button
+            onClick={() => setMainTab('friendly')}
+            className="px-4 py-2 rounded-xl text-sm font-bold bg-[#ff2d55] text-white"
+          >
+            مسابقات دوستانه
+          </button>
+        </div>
+        <FriendlyTournamentView />
+      </div>
+    );
+  }
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
 
   // New Match Form State
@@ -96,6 +120,20 @@ export const MatchmakingView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMainTab('open')}
+          className="px-4 py-2 rounded-xl text-sm font-bold bg-[#ff2d55] text-white"
+        >
+          مسابقات باز
+        </button>
+        <button
+          onClick={() => setMainTab('friendly')}
+          className="px-4 py-2 rounded-xl text-sm font-bold bg-white/5 border border-white/10 text-slate-400"
+        >
+          مسابقات دوستانه
+        </button>
+      </div>
       
       {/* Header Banner */}
       <div className="rounded-3xl bg-gradient-to-r from-[#ff2d55]/12 via-white/[0.03] to-[#2f7bff]/12 border border-white/10 p-6 sm:p-8 relative overflow-hidden">
