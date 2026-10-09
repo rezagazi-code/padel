@@ -22,6 +22,7 @@ import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucide-react';
 
 const MainContent: React.FC = () => {
+  // v1.4 raw app build
   const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification } = usePadel();
   const { ready: authReady, user } = useAuth();
 
