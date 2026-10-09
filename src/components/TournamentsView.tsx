@@ -217,57 +217,23 @@ export const TournamentsView: React.FC = () => {
             ) : (
               <div className="flex items-center gap-2 p-3 rounded-2xl bg-white/[0.05] border border-white/10 text-slate-500 text-xs">
                 <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>ساخت تورنومنت مختص ادمین باشگاه یا استان است (برای تست نقش خود را تغییر دهید)</span>
+                <span>ساخت تورنومنت مختص ادمین باشگاه یا استان است</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* RBAC Role Switcher Bar */}
+        {/* RBAC Role Display Bar */}
         <div className="mt-5 p-3.5 rounded-2xl bg-white/[0.06] border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#ff6b81]" />
-            <span className="text-slate-500 font-bold">نقش فعال کاربری شما (RBAC):</span>
+            <span className="text-slate-500 font-bold">نقش فعال کاربری شما:</span>
             <span className="px-2.5 py-0.5 rounded-lg bg-white/[0.04] text-slate-100 font-black">
-              {currentUserRole === 'player' && '🎾 بازیکن عادی (Player)'}
-              {currentUserRole === 'club_admin' && '🏢 مدیر باشگاه پدل (Club Admin)'}
-              {currentUserRole === 'province_admin' && '🏛️ مدیر و ناظر استان (Provincial Admin)'}
-              {currentUserRole === 'super_admin' && '⚡ ادمین ارشد سراسری (Super Admin)'}
+              {currentUserRole === 'player' && '🎾 بازیکن عادی'}
+              {currentUserRole === 'club_admin' && '🏢 مدیر باشگاه'}
+              {currentUserRole === 'province_admin' && '🏛️ مدیر استان'}
+              {currentUserRole === 'super_admin' && '⚡ مدیر ارشد'}
             </span>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-slate-500 text-[11px]">تغییر نقش برای تست دسترسی‌ها:</span>
-            <button
-              onClick={() => setCurrentUserRole('player')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'player' ? 'btn-fire font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
-              }`}
-            >
-              بازیکن
-            </button>
-            <button
-              onClick={() => {
-                setCurrentUserRole('club_admin');
-                setAdminClubId('club-1');
-              }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'club_admin' ? 'btn-fire font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
-              }`}
-            >
-              ادمین باشگاه انقلاب
-            </button>
-            <button
-              onClick={() => {
-                setCurrentUserRole('province_admin');
-                setAdminProvince('تهران');
-              }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition text-xs cursor-pointer ${
-                currentUserRole === 'province_admin' ? 'bg-cyan-400 text-white font-black' : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.04]'
-              }`}
-            >
-              ادمین استان تهران
-            </button>
           </div>
         </div>
 

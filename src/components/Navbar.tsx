@@ -145,22 +145,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Mobile Device Simulator Switch */}
-            <button
-              onClick={() => setIsMobileDeviceView(!isMobileDeviceView)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition cursor-pointer border ${
-                isMobileDeviceView
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
-                  : 'bg-white/[0.05] text-slate-400 border-white/10 hover:bg-white/10'
-              }`}
-              title="تغییر به نمای گوشی جهت تست نصب موبایل"
-            >
-              <Smartphone className="w-4 h-4 text-amber-400" />
-              <span className="hidden sm:inline">
-                {isMobileDeviceView ? 'نمای عادی وب' : 'پیش‌نمایش موبایل'}
-              </span>
-            </button>
-
             {/* PWA Install */}
             <button
               onClick={onOpenPwaModal}
