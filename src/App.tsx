@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PadelProvider, usePadel } from './context/PadelContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { CourtBookingView } from './components/CourtBookingView';
@@ -23,6 +23,31 @@ import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucid
 
 const MainContent: React.FC = () => {
   const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification } = usePadel();
+  const { ready: authReady, user } = useAuth();
+
+  const isNativeApp =
+    typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+
+  // Native app auth gate: on a fresh install with no session, require
+  // email login/signup before showing the app — no mock profile.
+  if (isNativeApp && authReady && !user) {
+    return (
+      <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col items-center justify-center p-6 selection:bg-[#ff2d55] selection:text-black">
+        <div className="mb-6 flex items-center gap-2">
+          <span className="text-2xl font-black tracking-tight">
+            PADEL<span className="text-[#ff2d55]">PRO</span>
+          </span>
+          <span className="text-[10px] font-bold text-slate-500 border border-white/15 rounded-md px-1.5 py-0.5">ARENA</span>
+        </div>
+        <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
+          برای استفاده از پدل‌پرو وارد شوید
+          <br />
+          <span className="text-xs text-slate-500">رزرو زمین، پروفایل و تاریخچه‌تان روی سرور ذخیره می‌شود</span>
+        </p>
+        <AuthModal isOpen={true} onClose={() => {}} hideClose={true} />
+      </div>
+    );
+  }
 
   const [clubModalOpen, setClubModalOpen] = useState(false);
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
@@ -63,9 +88,6 @@ const MainContent: React.FC = () => {
         return <CourtBookingView onOpenClubOwnerModal={() => setClubModalOpen(true)} />;
     }
   };
-
-  const isNativeApp =
-    typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
 
   const appBody = (
     <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black">

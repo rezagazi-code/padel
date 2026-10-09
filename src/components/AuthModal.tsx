@@ -5,9 +5,11 @@ import { LogIn, UserPlus, X, AlertCircle, CheckCircle2, Loader2, Mail } from 'lu
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** When true, hides the close (X) button — used for the mandatory native-app login gate. */
+  hideClose?: boolean;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose = false }) => {
   const { signIn, signUp, user, profile, signOut } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -61,9 +63,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <p className="text-[11px] text-slate-500">ورود با ایمیل — امن و یکپارچه با سرور</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-100 p-1">
-            <X className="w-5 h-5" />
-          </button>
+          {!hideClose && (
+            <button onClick={onClose} className="text-slate-500 hover:text-slate-100 p-1">
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {user ? (
