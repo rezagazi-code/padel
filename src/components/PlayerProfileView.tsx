@@ -222,6 +222,30 @@ export const PlayerProfileView: React.FC = () => {
             <p className="text-xs text-slate-500 max-w-xl italic">
               "{playerProfile.bio}"
             </p>
+
+            {/* Technical Specs - Chic Display */}
+            {(playerProfile.hand || playerProfile.preferredSide || playerProfile.racketBrand) && (
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3">
+                {playerProfile.hand && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-bold text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor }} />
+                    {playerProfile.hand === 'right' ? 'راست‌دست' : playerProfile.hand === 'left' ? 'چپ‌دست' : 'هر دو دست'}
+                  </span>
+                )}
+                {playerProfile.preferredSide && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-bold text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor }} />
+                    سمت {playerProfile.preferredSide === 'right' ? 'راست' : playerProfile.preferredSide === 'left' ? 'چپ' : 'هر دو'}
+                  </span>
+                )}
+                {playerProfile.racketBrand && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-bold text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor }} />
+                    راکت: {playerProfile.racketBrand} {playerProfile.racketModel}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Quick Stats Bento */}
