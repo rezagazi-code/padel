@@ -31,7 +31,6 @@ import {
   ChevronDown,
   Trash2
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 /** ISO date (YYYY-MM-DD) N days from today — for native date inputs, which the
  *  Supabase `date` columns require. Displayed to users via toJalaliDisplay. */
@@ -132,9 +131,7 @@ export const TournamentsView: React.FC = () => {
       setTeamNameInput('');
       setPartnerNameInput('');
       setPartnerGradeInput('C');
-      try {
-        confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
-      } catch {}
+
     }
   };
 
@@ -168,9 +165,7 @@ export const TournamentsView: React.FC = () => {
       });
 
       setShowCreateTournModal(false);
-      try {
-        confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
-      } catch {}
+
     } catch {
       setTournSubmitError('ثبت تورنمنت روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
     } finally {
@@ -184,9 +179,6 @@ export const TournamentsView: React.FC = () => {
 
     finalizeTournamentResults(showFinalizeModal.id, winnerTeamInput, runnerUpTeamInput);
     setShowFinalizeModal(null);
-    try {
-      confetti({ particleCount: 90, spread: 100, origin: { y: 0.5 } });
-    } catch {}
   };
 
   return (
