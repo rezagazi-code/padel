@@ -207,7 +207,7 @@ export const FriendlyTournamentView: React.FC = () => {
           });
           // If no bracket yet but teams exist, generate preview
           const displayMatches = tvMatches.length > 0 ? tvMatches : 
-            (tourn.teams.length >= 2 ? generateBracket(tourn.teams.map(t => ({ id: t.id, name: t.name, rank: t.rank }))) : []);
+            (tourn.teams.length >= 2 ? generateBracket(tourn.teams.map(t => ({ id: t.id, name: t.teamName, rank: t.rank }))) : []);
           
           if (displayMatches.length === 0) return null;
           return (
