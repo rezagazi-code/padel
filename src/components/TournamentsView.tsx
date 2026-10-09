@@ -285,14 +285,15 @@ export const TournamentsView: React.FC = () => {
       {/* Sub-Tab 1: Tournaments List */}
       {activeTab === 'tournaments' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredTournaments.map((tourn) => {
+          {filteredTournaments.map((tourn, idx) => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
             const isCompleted = tourn.status === 'completed';
+            const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
             return (
               <div
                 key={tourn.id}
-                className="rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden hover:border-white/10 transition space-y-4 shadow-lg flex flex-col justify-between"
+                className={`rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden hover:border-white/10 transition space-y-4 shadow-lg flex flex-col justify-between ${riseClass}`}
               >
                 <div>
                   {/* Tournament Banner Cover */}

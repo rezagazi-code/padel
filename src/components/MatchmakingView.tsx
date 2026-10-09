@@ -206,17 +206,18 @@ export const MatchmakingView: React.FC = () => {
 
       {/* Matches Cards List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredMatches.map((match) => {
+        {filteredMatches.map((match, idx) => {
           const filledSlotsCount = match.slots.filter((s) => s.playerId).length;
           const isUserInMatch = match.slots.some((s) => s.playerId === playerProfile.id);
           const isLevelCompatible =
             playerProfile.level >= match.minLevel - 0.25 &&
             playerProfile.level <= match.maxLevel + 0.25;
+          const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
             <div
               key={match.id}
-              className="rounded-3xl bg-white/[0.06] border border-white/10 p-6 space-y-5 hover:border-white/10 transition relative overflow-hidden shadow-lg"
+              className={`rounded-3xl bg-white/[0.06] border border-white/10 p-6 space-y-5 hover:border-white/10 transition relative overflow-hidden shadow-lg ${riseClass}`}
             >
               {/* Card Header */}
               <div className="flex items-start justify-between gap-3">

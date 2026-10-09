@@ -419,3 +419,37 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
   background: linear-gradient(90deg, transparent, rgba(255, 45, 85, 0.8), rgba(47, 123, 255, 0.8), transparent);
   pointer-events: none;
 }
+
+/* PadelPro signature: press ripple ring in brand colors (not generic Material ripple) */
+.btn-fire, .glow-btn-fire, .glow-btn-cyan, .glow-btn-gold {
+  position: relative;
+}
+.btn-fire:active::before, .glow-btn-fire:active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  animation: pp-ring 0.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes pp-ring {
+  from { transform: scale(1); opacity: 0.8; }
+  to { transform: scale(1.15); opacity: 0; }
+}
+
+/* Staggered card entrance - elegant, not bouncy */
+@keyframes pp-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pp-rise {
+  animation: pp-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pp-rise-1 { animation-delay: 0.03s; }
+.pp-rise-2 { animation-delay: 0.08s; }
+.pp-rise-3 { animation-delay: 0.13s; }
+.pp-rise-4 { animation-delay: 0.18s; }
+.pp-rise-5 { animation-delay: 0.23s; }
+.pp-rise-6 { animation-delay: 0.28s; }
