@@ -25,7 +25,6 @@ import {
   Trophy,
   History
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { toJalaliDisplay } from '../utils/dates';
 
 const PALETTE_COLORS = [
@@ -96,7 +95,6 @@ export const PlayerProfileView: React.FC = () => {
     setTimeout(() => setSaveSuccess(false), 3000);
 
     try {
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
     } catch {}
   };
 

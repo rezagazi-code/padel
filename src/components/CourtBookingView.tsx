@@ -22,7 +22,6 @@ import {
   Info,
   Trash2
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { fetchBookedTimeSlots } from '../lib/db';
@@ -214,12 +213,6 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     setShowConfirmationModal(true);
 
     try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#ff2d55', '#2f7bff', '#ffffff']
-      });
     } catch {
       // safe fallback
     }

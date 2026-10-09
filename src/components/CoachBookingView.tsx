@@ -19,7 +19,6 @@ import {
   X,
   CreditCard
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export const CoachBookingView: React.FC = () => {
   const { coaches, coachBookings, bookCoach, playerProfile, addCoach, deleteCoach } = usePadel();
@@ -115,7 +114,6 @@ export const CoachBookingView: React.FC = () => {
     setShowReceiptModal(newBooking);
 
     try {
-      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
     } catch {}
   };
 

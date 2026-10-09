@@ -14,7 +14,6 @@ import {
   MapPin,
   Sparkles
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 interface ClubOwnerModalProps {
   isOpen: boolean;
@@ -126,7 +125,6 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
 
       onClose();
       try {
-        confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } });
       } catch {}
     } catch {
       setSubmitError('ثبت باشگاه روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');

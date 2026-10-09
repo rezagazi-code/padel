@@ -23,7 +23,6 @@ import {
   Award,
   X
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export const FreeAgentsView: React.FC = () => {
   const {
@@ -92,7 +91,6 @@ export const FreeAgentsView: React.FC = () => {
     });
     setShowCreateRequestModal(false);
     try {
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     } catch {}
   };
 

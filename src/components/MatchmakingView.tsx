@@ -21,7 +21,6 @@ import {
   HelpCircle,
   Shield
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export const MatchmakingView: React.FC = () => {
   const {
@@ -79,9 +78,7 @@ export const MatchmakingView: React.FC = () => {
   const handleJoinSlot = (matchId: string, slotNumber: number) => {
     const success = joinMatchSlot(matchId, slotNumber);
     if (success) {
-      try {
-        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
-      } catch {
+      try {} catch {
         // safe
       }
     }
@@ -111,9 +108,7 @@ export const MatchmakingView: React.FC = () => {
 
     setShowCreateModal(false);
     setNewTitle('');
-    try {
-      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
-    } catch {
+    try {} catch {
       // safe
     }
   };
