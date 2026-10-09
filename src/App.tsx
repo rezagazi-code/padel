@@ -57,7 +57,16 @@ const MainContent: React.FC = () => {
 
   // Native app auth gate: on a fresh install with no session, require
   // email login/signup before showing the app — no mock profile.
-  if (isNativeApp && authReady && !user) {
+  // NOTE: all hooks are above; the conditional return is after them.
+  const showAuthGate = isNativeApp && authReady && !user;
+
+  const [clubModalOpen, setClubModalOpen] = useState(false);
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
+  const [pwaModalOpen, setPwaModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  if (showAuthGate) {
     return (
       <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col items-center justify-center p-6 selection:bg-[#ff2d55] selection:text-black">
         <div className="mb-6 flex items-center gap-2">
@@ -75,12 +84,6 @@ const MainContent: React.FC = () => {
       </div>
     );
   }
-
-  const [clubModalOpen, setClubModalOpen] = useState(false);
-  const [cloudModalOpen, setCloudModalOpen] = useState(false);
-  const [pwaModalOpen, setPwaModalOpen] = useState(false);
-  const [exportModalOpen, setExportModalOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Global toast for sync/notification messages (booking results, errors, …)
   const [toastVisible, setToastVisible] = useState(false);
