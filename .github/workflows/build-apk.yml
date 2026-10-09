@@ -51,7 +51,11 @@ jobs:
           JS=$(curl -s "$SITE/" | grep -o '/assets/index-[^"]*\.js' | head -1)
           if [ -n "$JS" ]; then
             curl -s "$SITE$JS" -o /tmp/bundle.js
-            KEY=$(grep -o 'eyJ[A-Za-z0-9_.-]\{100,\}' /tmp/bundle.js | head -1 || true)
+            # New Supabase publishable key format (sb_publishable_...) or legacy JWT
+            KEY=$(grep -o 'sb_publishable_[A-Za-z0-9_\-]\+' /tmp/bundle.js | head -1 || true)
+            if [ -z "$KEY" ]; then
+              KEY=$(grep -o 'eyJ[A-Za-z0-9_.-]\{100,\}' /tmp/bundle.js | head -1 || true)
+            fi
             if [ -n "$KEY" ]; then
               echo "VITE_SUPABASE_URL=https://psgzisrzgddcvfkdlpyd.supabase.co" >> $GITHUB_ENV
               echo "VITE_SUPABASE_ANON_KEY=$KEY" >> $GITHUB_ENV
