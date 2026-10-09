@@ -141,15 +141,46 @@ export const PlayerProfileView: React.FC = () => {
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) {
+                  // Reset so the same file can be picked again
+                  e.target.value = '';
+                  if (!file) return;
+                  // Downscale to a max-512px JPEG before storing: a full-res phone
+                  // photo as a data URL is several MB and would blow the ~5MB
+                  // localStorage quota, so the avatar would silently not persist.
+                  // createImageBitmap with imageOrientation:'from-image' also
+                  // honors the photo's EXIF rotation.
+                  const storeDataUrl = (dataUrl: string) => {
+                    if (dataUrl) updatePlayerProfile({ avatar: dataUrl });
+                  };
+                  const fallbackToOriginal = () => {
                     const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const dataUrl = ev.target?.result as string;
-                      if (dataUrl) {
-                        updatePlayerProfile({ avatar: dataUrl });
-                      }
-                    };
+                    reader.onload = (ev) => storeDataUrl(ev.target?.result as string);
                     reader.readAsDataURL(file);
+                  };
+                  if (typeof createImageBitmap === 'function') {
+                    createImageBitmap(file, { imageOrientation: 'from-image' })
+                      .then((bmp) => {
+                        try {
+                          const MAX = 512;
+                          const scale = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+                          const w = Math.max(1, Math.round(bmp.width * scale));
+                          const h = Math.max(1, Math.round(bmp.height * scale));
+                          const canvas = document.createElement('canvas');
+                          canvas.width = w;
+                          canvas.height = h;
+                          const ctx = canvas.getContext('2d');
+                          if (!ctx) throw new Error('no 2d context');
+                          ctx.drawImage(bmp, 0, 0, w, h);
+                          storeDataUrl(canvas.toDataURL('image/jpeg', 0.82));
+                        } catch {
+                          fallbackToOriginal();
+                        } finally {
+                          bmp.close();
+                        }
+                      })
+                      .catch(fallbackToOriginal);
+                  } else {
+                    fallbackToOriginal();
                   }
                 }}
               />

@@ -287,7 +287,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Sync state to local storage
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'profile', JSON.stringify(playerProfile));
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'profile', JSON.stringify(playerProfile));
+    } catch {
+      // Quota exceeded (e.g. an oversized avatar data URL) — keep the
+      // in-memory profile as the source of truth rather than crashing.
+    }
   }, [playerProfile]);
 
   useEffect(() => {
