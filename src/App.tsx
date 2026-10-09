@@ -20,6 +20,7 @@ import { PwaInstallModal } from './components/PwaInstallModal';
 import { CloudExportModal } from './components/CloudExportModal';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucide-react';
+import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from './lib/appUpdate';
 
 const MainContent: React.FC = () => {
   // v1.4 raw app build
@@ -66,6 +67,12 @@ const MainContent: React.FC = () => {
   const [pwaModalOpen, setPwaModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [appUpdate, setAppUpdate] = useState<AppUpdateInfo | null>(null);
+
+  // Check for app updates on startup (native app only)
+  useEffect(() => {
+    checkForAppUpdate().then(setAppUpdate);
+  }, []);
 
   // Global toast for sync/notification messages (booking results, errors, …)
   // NOTE: kept above the conditional return to preserve hook order.
@@ -147,6 +154,40 @@ const MainContent: React.FC = () => {
       )}
       <CloudExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+
+      {/* App update available dialog */}
+      {appUpdate && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0d1420] border border-white/10 p-6 text-center space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#ff2d55]/15 border border-[#ff2d55]/30 flex items-center justify-center">
+              <Smartphone className="w-7 h-7 text-[#ff2d55]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-100">نسخه جدید موجوده! 🎉</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                نسخه {appUpdate.versionName} منتشر شده (شما روی {CURRENT_VERSION_NAME} هستید)
+              </p>
+              {appUpdate.changelog && (
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{appUpdate.changelog}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAppUpdate(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-slate-300 text-sm font-bold"
+              >
+                بعداً
+              </button>
+              <button
+                onClick={() => openApkDownload(appUpdate.apkUrl)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#ff2d55] text-white text-sm font-black"
+              >
+                دانلود و نصب
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Global sync toast */}
       {toastVisible && syncNotification && (
