@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAllProfiles, updateUserRole, UserProfile } from '../lib/db';
+import { usePadel } from '../context/PadelContext';
 import { X, Shield, User, Crown } from 'lucide-react';
 
 interface UserManagementModalProps {
@@ -20,10 +21,12 @@ const roleIcons: Record<string, React.ReactNode> = {
 };
 
 export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen, onClose }) => {
+  const { clubs } = usePadel();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
+  const [clubSelect, setClubSelect] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,11 +44,22 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
   const handleRoleChange = async (userId: string, newRole: 'player' | 'club_admin' | 'super_admin') => {
     const target = users.find((u) => u.id === userId);
     if (!target) return;
-    if (!window.confirm(`نقش «${target.name || target.email}» به «${roleLabels[newRole]}» تغییر کند؟`)) return;
+    let managedClubId: string | null = null;
+    if (newRole === 'club_admin') {
+      managedClubId = clubSelect[userId] || target.managedClubId || clubs[0]?.id || null;
+      if (!managedClubId) {
+        alert('اول یک باشگاه انتخاب کنید.');
+        return;
+      }
+      const clubName = clubs.find((c) => c.id === managedClubId)?.name || '';
+      if (!window.confirm(`«${target.name || target.email}» مدیر باشگاه «${clubName}» شود؟`)) return;
+    } else {
+      if (!window.confirm(`نقش «${target.name || target.email}» به «${roleLabels[newRole]}» تغییر کند؟`)) return;
+    }
     setUpdating(userId);
     try {
-      await updateUserRole(userId, newRole);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      await updateUserRole(userId, newRole, managedClubId);
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole, managedClubId } : u)));
     } catch (e) {
       console.error(e);
       alert('خطا در تغییر نقش. دوباره تلاش کنید.');
@@ -86,11 +100,27 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
                     <p className="text-xs text-slate-600">{[u.province, u.city].filter(Boolean).join('، ')}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                   <span className="flex items-center gap-1 text-xs text-slate-400">
                     {roleIcons[u.role]}
                     {roleLabels[u.role] || u.role}
                   </span>
+                  {u.role === 'club_admin' && (
+                    <span className="text-xs text-cyan-400">
+                      {clubs.find((c) => c.id === u.managedClubId)?.name || 'بدون باشگاه'}
+                    </span>
+                  )}
+                  <select
+                    value={clubSelect[u.id] ?? u.managedClubId ?? ''}
+                    onChange={(e) => setClubSelect((p) => ({ ...p, [u.id]: e.target.value }))}
+                    className="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-slate-200"
+                    title="باشگاه تحت مدیریت"
+                  >
+                    <option value="">انتخاب باشگاه...</option>
+                    {clubs.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
+                    ))}
+                  </select>
                   <select
                     value={u.role}
                     disabled={updating === u.id}

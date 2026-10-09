@@ -474,6 +474,7 @@ export interface UserProfile {
   role: string;
   province: string;
   city: string;
+  managedClubId: string | null;
 }
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {
@@ -481,7 +482,7 @@ export async function fetchAllProfiles(): Promise<UserProfile[]> {
   if (!sb) throw new Error('supabase not configured');
   const { data, error } = await sb
     .from('profiles')
-    .select('id, email, name, role, province, city')
+    .select('id, email, name, role, province, city, managed_club_id')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data || []).map((r: any) => ({
@@ -491,12 +492,19 @@ export async function fetchAllProfiles(): Promise<UserProfile[]> {
     role: r.role || 'player',
     province: r.province || '',
     city: r.city || '',
+    managedClubId: r.managed_club_id || null,
   }));
 }
 
-export async function updateUserRole(userId: string, role: 'player' | 'club_admin' | 'super_admin'): Promise<void> {
+export async function updateUserRole(userId: string, role: 'player' | 'club_admin' | 'super_admin', managedClubId?: string | null): Promise<void> {
   const sb = getSupabase();
   if (!sb) throw new Error('supabase not configured');
-  const { error } = await sb.from('profiles').update({ role }).eq('id', userId);
+  const update: any = { role };
+  if (role === 'club_admin') {
+    update.managed_club_id = managedClubId || null;
+  } else {
+    update.managed_club_id = null;
+  }
+  const { error } = await sb.from('profiles').update(update).eq('id', userId);
   if (error) throw error;
 }

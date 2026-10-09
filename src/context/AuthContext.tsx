@@ -34,8 +34,7 @@ async function loadProfile(userId: string): Promise<AuthProfile | null> {
   if (error || !data) return null;
   let adminClubId: string | null = null;
   if (data.role === 'club_admin') {
-    const { data: club } = await sb.from('clubs').select('id').eq('admin_id', userId).limit(1).single();
-    adminClubId = club?.id ?? null;
+    adminClubId = (data as any).managed_club_id ?? null;
   }
   return {
     id: data.id,

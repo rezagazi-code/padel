@@ -95,10 +95,21 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     (c) => selectedProvince === 'همه استان‌ها' || c.province === selectedProvince
   );
 
-  const currentClub = clubs.find((c) => c.id === selectedClubId) || clubs[0];
+  const currentClub = filteredClubs.find((c) => c.id === selectedClubId) || filteredClubs[0];
   const currentCourt =
     currentClub?.courts.find((ct) => ct.id === selectedCourtId) ||
     currentClub?.courts[0];
+
+  // Reset selected club when province changes
+  useEffect(() => {
+    const firstInFilter = clubs.filter(
+      (c) => selectedProvince === 'همه استان‌ها' || c.province === selectedProvince
+    )[0];
+    if (firstInFilter && firstInFilter.id !== selectedClubId) {
+      setSelectedClubId(firstInFilter.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProvince]);
 
   // Real availability: reload booked slots whenever the court or date changes.
   useEffect(() => {

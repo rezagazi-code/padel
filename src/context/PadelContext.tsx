@@ -212,6 +212,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // local demo switcher.
   const auth = useAuthOptional();
 
+  // Sync the local test role with the real authenticated user role.
+  // When a user logs in, their actual Supabase role takes precedence.
+  useEffect(() => {
+    const realRole = auth?.user?.role;
+    if (realRole && ['player', 'club_admin', 'super_admin', 'province_admin'].includes(realRole)) {
+      setCurrentUserRole(realRole as UserRole);
+    }
+    const realClubId = (auth?.profile as any)?.adminClubId;
+    if (realClubId) {
+      setAdminClubId(realClubId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth?.user?.role, (auth?.profile as any)?.adminClubId]);
+
   // ---- «پروفایل من» <-> AuthProfile sync ----
   // On sign-in, pull the server identity (name/email/avatar/level) into the
   // local sports profile. Afterwards the local profile is the source of truth
