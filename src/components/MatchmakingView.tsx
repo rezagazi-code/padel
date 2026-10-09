@@ -34,6 +34,19 @@ export const MatchmakingView: React.FC = () => {
 
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
   const [mainTab, setMainTab] = useState<'open' | 'friendly'>('open');
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+
+  // New Match Form State
+  const [newTitle, setNewTitle] = useState('');
+  const [newClubId, setNewClubId] = useState(clubs[0]?.id || '');
+  const [newCourtName, setNewCourtName] = useState('زمین سنترال ۱');
+  const [newDate, setNewDate] = useState('فردا - ۱۹:۰۰');
+  const [newTime, setNewTime] = useState('۱۹:۰۰ - ۲۰:۳۰');
+  const [newType, setNewType] = useState<MatchType>('competitive');
+  const [newMinLevel, setNewMinLevel] = useState<number>(3.0);
+  const [newMaxLevel, setNewMaxLevel] = useState<number>(4.2);
+  const [newPrice, setNewPrice] = useState<number>(220000);
+  const [newGender, setNewGender] = useState<'all' | 'men' | 'women' | 'mixed'>('all');
 
   if (mainTab === 'friendly') {
     return (
@@ -56,19 +69,6 @@ export const MatchmakingView: React.FC = () => {
       </div>
     );
   }
-  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
-
-  // New Match Form State
-  const [newTitle, setNewTitle] = useState('');
-  const [newClubId, setNewClubId] = useState(clubs[0]?.id || '');
-  const [newCourtName, setNewCourtName] = useState('زمین سنترال ۱');
-  const [newDate, setNewDate] = useState('فردا - ۱۹:۰۰');
-  const [newTime, setNewTime] = useState('۱۹:۰۰ - ۲۰:۳۰');
-  const [newType, setNewType] = useState<MatchType>('competitive');
-  const [newMinLevel, setNewMinLevel] = useState<number>(3.0);
-  const [newMaxLevel, setNewMaxLevel] = useState<number>(4.2);
-  const [newPrice, setNewPrice] = useState<number>(220000);
-  const [newGender, setNewGender] = useState<'all' | 'men' | 'women' | 'mixed'>('all');
 
   const filteredMatches = openMatches.filter((m) => {
     if (filterType === 'all') return true;
