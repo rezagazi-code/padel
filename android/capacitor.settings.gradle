@@ -2,5 +2,8 @@
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/android/capacitor')
 
+include ':capacitor-preferences'
+project(':capacitor-preferences').projectDir = new File('../node_modules/@capacitor/preferences/android')
+
 include ':salarizadi-capacitor-cafebazaar-poolakey'
 project(':salarizadi-capacitor-cafebazaar-poolakey').projectDir = new File('../node_modules/@salarizadi/capacitor-cafebazaar-poolakey/android')
