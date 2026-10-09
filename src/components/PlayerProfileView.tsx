@@ -77,8 +77,13 @@ export const PlayerProfileView: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    // Persian validation: name is required
+    if (!name.trim()) {
+      alert('لطفاً نام و نام خانوادگی را وارد کنید.');
+      return;
+    }
     updatePlayerProfile({
-      name,
+      name: name.trim(),
       phone,
       city,
       province,
@@ -356,7 +361,6 @@ export const PlayerProfileView: React.FC = () => {
               <label className="block text-slate-400 font-bold mb-1">نام و نام خانوادگی:</label>
               <input
                 type="text"
-                required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
@@ -368,7 +372,6 @@ export const PlayerProfileView: React.FC = () => {
               <input
                 type="text"
                 dir="ltr"
-                required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none text-right"
