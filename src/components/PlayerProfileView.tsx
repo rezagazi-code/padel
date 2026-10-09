@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { UserManagementModal } from './UserManagementModal';
 import { PlayingHand, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
@@ -46,6 +48,9 @@ export const PlayerProfileView: React.FC = () => {
   } = usePadel();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history'>('profile');
+  const [showUserMgmt, setShowUserMgmt] = useState(false);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Form State
@@ -97,6 +102,16 @@ export const PlayerProfileView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {isSuperAdmin && (
+        <button
+          onClick={() => setShowUserMgmt(true)}
+          className="w-full py-3 rounded-2xl bg-white/[0.05] border border-white/10 text-sm font-bold text-slate-300 hover:bg-white/[0.08] transition flex items-center justify-center gap-2"
+        >
+          <span>👥</span>
+          مدیریت کاربران و نقش‌ها
+        </button>
+      )}
+      <UserManagementModal isOpen={showUserMgmt} onClose={() => setShowUserMgmt(false)} />
       
       {/* Player Identity Showcase Hero Card */}
       <div

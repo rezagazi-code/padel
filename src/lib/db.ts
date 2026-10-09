@@ -466,3 +466,37 @@ export async function fetchCoaches(): Promise<Coach[]> {
   if (error) throw error;
   return (data || []).map(mapCoach);
 }
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  province: string;
+  city: string;
+}
+
+export async function fetchAllProfiles(): Promise<UserProfile[]> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('profiles')
+    .select('id, email, name, role, province, city')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    email: r.email,
+    name: r.name || '',
+    role: r.role || 'player',
+    province: r.province || '',
+    city: r.city || '',
+  }));
+}
+
+export async function updateUserRole(userId: string, role: 'player' | 'club_admin' | 'super_admin'): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { error } = await sb.from('profiles').update({ role }).eq('id', userId);
+  if (error) throw error;
+}

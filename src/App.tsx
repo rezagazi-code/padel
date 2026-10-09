@@ -131,7 +131,7 @@ const MainContent: React.FC = () => {
         onOpenClubOwnerModal={() => setClubModalOpen(true)}
         onOpenCloudModal={() => setCloudModalOpen(true)}
         onOpenPwaModal={() => setPwaModalOpen(true)}
-        onOpenExportModal={() => setExportModalOpen(true)}
+        onOpenExportModal={isNativeApp ? undefined : () => setExportModalOpen(true)}
         onOpenAuthModal={() => setAuthModalOpen(true)}
       />
 
