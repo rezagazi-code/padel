@@ -71,8 +71,11 @@ export function generateBracket(
   });
 
   // Generate subsequent rounds (placeholders - winners TBD)
+  // NOTE: Only generate next round, not all future rounds, to avoid clutter
+  // The bracket will expand as winners are determined
   let prevRoundCount = firstRoundMatches.length;
-  for (let r = 1; r < totalRounds; r++) {
+  if (prevRoundCount > 1) {
+    const r = 1;
     const roundMatchCount = Math.ceil(prevRoundCount / 2);
     const rName = getRoundName(r, totalRounds);
     for (let i = 0; i < roundMatchCount; i++) {
@@ -80,12 +83,10 @@ export function generateBracket(
         id: `br-${matchId++}`,
         round: r,
         roundName: rName,
-        team1: 'برنده',
-        team2: 'برنده',
+        team1: '؟',
+        team2: '؟',
       });
     }
-    prevRoundCount = roundMatchCount;
-    if (prevRoundCount <= 1) break;
   }
 
   return matches;

@@ -55,12 +55,16 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
       </div>
 
       {/* Bracket */}
-      <div className="p-6 overflow-x-auto">
-        <div className="flex gap-8 min-w-max">
-          {sortedRounds.map(([roundNum, roundMatches]) => (
-            <div key={roundNum} className="flex flex-col gap-6 min-w-[220px]">
+      <div className="p-6 overflow-x-auto bg-[radial-gradient(ellipse_at_center,rgba(255,45,85,0.03)_0%,transparent_70%)]">
+        <div className="flex gap-6 min-w-max">
+          {sortedRounds.map(([roundNum, roundMatches], roundIdx) => (
+            <div key={roundNum} className="flex flex-col gap-6 min-w-[240px]">
               <div className="text-center">
-                <span className="inline-block px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs font-black text-slate-300">
+                <span className={`inline-block px-5 py-2 rounded-full text-xs font-black border ${
+                  roundIdx === sortedRounds.length - 1
+                    ? 'bg-gradient-to-l from-amber-500/20 to-amber-500/10 border-amber-500/30 text-amber-300 shadow-lg shadow-amber-500/10'
+                    : 'bg-gradient-to-l from-[#ff2d55]/15 to-[#ff2d55]/5 border-[#ff2d55]/25 text-slate-200'
+                }`}>
                   {roundMatches[0]?.roundName || `دور ${roundNum}`}
                 </span>
               </div>
@@ -68,34 +72,46 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                 {roundMatches.map((m) => (
                   <div
                     key={m.id}
-                    className="rounded-2xl bg-white/[0.05] border border-white/10 overflow-hidden hover:border-[#ff2d55]/30 transition"
+                    className="rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.03] border border-white/15 overflow-hidden hover:border-[#ff2d55]/40 hover:shadow-lg hover:shadow-[#ff2d55]/10 transition-all duration-300"
                   >
                     {/* Team 1 */}
                     <div
-                      className={`px-4 py-2.5 flex items-center justify-between border-b border-white/[0.07] ${
-                        m.winner === m.team1 ? 'bg-emerald-500/[0.08]' : ''
+                      className={`px-4 py-3 flex items-center justify-between border-b border-white/[0.08] ${
+                        m.winner === m.team1 
+                          ? 'bg-gradient-to-l from-emerald-500/20 to-emerald-500/5 border-r-2 border-r-emerald-400' 
+                          : ''
                       }`}
                     >
-                      <span className={`text-sm font-bold ${m.winner === m.team1 ? 'text-emerald-300' : 'text-slate-200'}`}>
-                        {m.team1}
+                      <span className={`text-sm font-black ${m.winner === m.team1 ? 'text-emerald-300' : 'text-slate-100'}`}>
+                        {m.winner === m.team1 && '🏆 '}{m.team1}
                       </span>
                       {m.score1 !== undefined && (
-                        <span className={`text-sm font-black ${m.winner === m.team1 ? 'text-emerald-300' : 'text-slate-400'}`}>
+                        <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${
+                          m.winner === m.team1 
+                            ? 'text-emerald-300 bg-emerald-500/15' 
+                            : 'text-slate-300 bg-white/[0.06]'
+                        }`}>
                           {m.score1}
                         </span>
                       )}
                     </div>
                     {/* Team 2 */}
                     <div
-                      className={`px-4 py-2.5 flex items-center justify-between ${
-                        m.winner === m.team2 ? 'bg-emerald-500/[0.08]' : ''
+                      className={`px-4 py-3 flex items-center justify-between ${
+                        m.winner === m.team2 
+                          ? 'bg-gradient-to-l from-emerald-500/20 to-emerald-500/5 border-r-2 border-r-emerald-400' 
+                          : ''
                       }`}
                     >
-                      <span className={`text-sm font-bold ${m.winner === m.team2 ? 'text-emerald-300' : 'text-slate-200'}`}>
-                        {m.team2}
+                      <span className={`text-sm font-black ${m.winner === m.team2 ? 'text-emerald-300' : 'text-slate-100'}`}>
+                        {m.winner === m.team2 && '🏆 '}{m.team2}
                       </span>
                       {m.score2 !== undefined && (
-                        <span className={`text-sm font-black ${m.winner === m.team2 ? 'text-emerald-300' : 'text-slate-400'}`}>
+                        <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${
+                          m.winner === m.team2 
+                            ? 'text-emerald-300 bg-emerald-500/15' 
+                            : 'text-slate-300 bg-white/[0.06]'
+                        }`}>
                           {m.score2}
                         </span>
                       )}
