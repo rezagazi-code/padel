@@ -66,6 +66,22 @@ const MainContent: React.FC = () => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
+  // Global toast for sync/notification messages (booking results, errors, …)
+  // NOTE: kept above the conditional return to preserve hook order.
+  const [toastVisible, setToastVisible] = useState(false);
+  useEffect(() => {
+    if (!syncNotification) {
+      setToastVisible(false);
+      return;
+    }
+    setToastVisible(true);
+    const t = setTimeout(() => {
+      setToastVisible(false);
+      setSyncNotification(null);
+    }, 4200);
+    return () => clearTimeout(t);
+  }, [syncNotification, setSyncNotification]);
+
   if (showAuthGate) {
     return (
       <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col items-center justify-center p-6 selection:bg-[#ff2d55] selection:text-black">
@@ -86,20 +102,6 @@ const MainContent: React.FC = () => {
   }
 
   // Global toast for sync/notification messages (booking results, errors, …)
-  const [toastVisible, setToastVisible] = useState(false);
-  useEffect(() => {
-    if (!syncNotification) {
-      setToastVisible(false);
-      return;
-    }
-    setToastVisible(true);
-    const t = setTimeout(() => {
-      setToastVisible(false);
-      setSyncNotification(null);
-    }, 4200);
-    return () => clearTimeout(t);
-  }, [syncNotification, setSyncNotification]);
-
   const renderCurrentView = () => {
     switch (activeTab) {
       case 'booking':
