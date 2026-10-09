@@ -24,8 +24,10 @@ import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME
 
 const MainContent: React.FC = () => {
   // v1.4 raw app build
-  const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification } = usePadel();
+  const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification, currentUserRole } = usePadel();
   const { ready: authReady, user } = useAuth();
+  // Dev tools only visible to admins (not regular users)
+  const isAdmin = currentUserRole === 'super_admin' || currentUserRole === 'province_admin' || currentUserRole === 'club_admin';
 
   // Robust native-app detection: Capacitor bridge may not be ready on first
   // render, so poll briefly. Fallback: Android WebView user agent ("wv").
@@ -130,19 +132,32 @@ const MainContent: React.FC = () => {
   };
 
   const appBody = (
-    <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black">
+    <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black relative overflow-hidden">
+      {/* Animated ambient background - chic floating orbs */}
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#ff2d55]/[0.07] blur-3xl animate-[float_12s_ease-in-out_infinite]" />
+        <div className="absolute top-1/3 -left-40 w-80 h-80 rounded-full bg-[#2563eb]/[0.08] blur-3xl animate-[float_15s_ease-in-out_infinite_reverse]" />
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full bg-[#ff2d55]/[0.05] blur-3xl animate-[float_18s_ease-in-out_infinite]" />
+      </div>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -30px) scale(1.05); }
+          66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+      `}</style>
       {/* Top Mobile Friendly Install Banner — hidden inside the native app shell */}
       {!isNativeApp && <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />}
 
       <Navbar
         onOpenClubOwnerModal={() => setClubModalOpen(true)}
-        onOpenCloudModal={isNativeApp ? undefined : () => setCloudModalOpen(true)}
+        onOpenCloudModal={isNativeApp || !isAdmin ? undefined : () => setCloudModalOpen(true)}
         onOpenPwaModal={isNativeApp ? undefined : () => setPwaModalOpen(true)}
-        onOpenExportModal={isNativeApp ? undefined : () => setExportModalOpen(true)}
+        onOpenExportModal={isNativeApp || !isAdmin ? undefined : () => setExportModalOpen(true)}
         onOpenAuthModal={() => setAuthModalOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-20 lg:pb-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-20 lg:pb-6 relative z-10">
         {renderCurrentView()}
       </main>
 
