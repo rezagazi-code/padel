@@ -9,8 +9,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 15;
-export const CURRENT_VERSION_NAME = '2.5';
+export const CURRENT_VERSION_CODE = 16;
+export const CURRENT_VERSION_NAME = '2.6';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   // Only check in native app

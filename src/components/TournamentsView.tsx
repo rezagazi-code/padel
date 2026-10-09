@@ -382,7 +382,7 @@ export const TournamentsView: React.FC = () => {
 
                 {/* Card Actions */}
                 <div className="p-5 pt-0 border-t border-white/10 space-y-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
                     {isCompleted ? (
                       <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4 text-emerald-300" />
@@ -417,18 +417,18 @@ export const TournamentsView: React.FC = () => {
                             ثبت نتایج و آپدیت رنک
                           </button>
                         )}
-                        {/* RBAC Protected Delete: organizer or super_admin */}
-                        {canManageTournament(tourn) && (
-                          <button
-                            onClick={() => setTournamentToDelete(tourn)}
-                            className="px-3.5 py-3 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
-                            title="حذف تورنمنت"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span>حذف</span>
-                          </button>
-                        )}
                       </>
+                    )}
+                    {/* RBAC Protected Delete: organizer or super_admin - shown for all tournaments */}
+                    {canManageTournament(tourn) && (
+                      <button
+                        onClick={() => setTournamentToDelete(tourn)}
+                        className="px-3.5 py-3 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                        title="حذف تورنمنت"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>حذف</span>
+                      </button>
                     )}
                   </div>
 
