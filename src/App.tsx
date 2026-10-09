@@ -129,8 +129,8 @@ const MainContent: React.FC = () => {
 
       <Navbar
         onOpenClubOwnerModal={() => setClubModalOpen(true)}
-        onOpenCloudModal={() => setCloudModalOpen(true)}
-        onOpenPwaModal={() => setPwaModalOpen(true)}
+        onOpenCloudModal={isNativeApp ? undefined : () => setCloudModalOpen(true)}
+        onOpenPwaModal={isNativeApp ? undefined : () => setPwaModalOpen(true)}
         onOpenExportModal={isNativeApp ? undefined : () => setExportModalOpen(true)}
         onOpenAuthModal={() => setAuthModalOpen(true)}
       />

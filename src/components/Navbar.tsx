@@ -22,8 +22,8 @@ import {
 
 interface NavbarProps {
   onOpenClubOwnerModal: () => void;
-  onOpenCloudModal: () => void;
-  onOpenPwaModal: () => void;
+  onOpenCloudModal?: () => void;
+  onOpenPwaModal?: () => void;
   onOpenExportModal?: () => void;
   onOpenAuthModal: () => void;
 }
@@ -145,19 +145,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* PWA Install */}
-            <button
-              onClick={onOpenPwaModal}
-              className="btn-fire glow-btn-fire flex items-center gap-1.5 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer"
-              title="نصب اپلیکیشن روی گوشی (PWA)"
-            >
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">نصب اپ</span>
-            </button>
+            {/* PWA Install - hidden in native app */}
+            {onOpenPwaModal && (
+              <button
+                onClick={onOpenPwaModal}
+                className="btn-fire glow-btn-fire flex items-center gap-1.5 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer"
+                title="نصب اپلیکیشن روی گوشی (PWA)"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">نصب اپ</span>
+              </button>
+            )}
 
-            {/* Supabase & Cloud status */}
-            <button
-              onClick={onOpenCloudModal}
+            {/* Supabase & Cloud status - hidden in native app */}
+            {onOpenCloudModal && (
+              <button
+                onClick={onOpenCloudModal}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition cursor-pointer border ${
                 isSupabaseConfigured
                   ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
@@ -168,6 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Cloud className="w-4 h-4 text-cyan-400" />
               <span className="hidden md:inline">اتصال ابری</span>
             </button>
+            )}
 
             {/* Auth: login / account */}
             <button

@@ -126,14 +126,37 @@ export const PlayerProfileView: React.FC = () => {
         />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-          {/* Avatar with customized player color frame */}
+          {/* Avatar with customized player color frame - bigger for half-body photos */}
           <div className="relative">
-            <img
-              src={playerProfile.avatar}
-              alt={playerProfile.name}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 shadow-2xl"
-              style={{ borderColor: themeColor }}
-            />
+            <label className="cursor-pointer block">
+              <img
+                src={playerProfile.avatar}
+                alt={playerProfile.name}
+                className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl object-cover ring-4 shadow-2xl hover:opacity-90 transition"
+                style={{ borderColor: themeColor }}
+              />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const dataUrl = ev.target?.result as string;
+                      if (dataUrl) {
+                        updatePlayerProfile({ avatar: dataUrl });
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                تغییر عکس
+              </span>
+            </label>
             <span
               className="absolute -bottom-2 -left-2 px-3 py-1 rounded-xl text-xs font-black shadow-md"
               style={{ backgroundColor: themeColor, color: '#000' }}
