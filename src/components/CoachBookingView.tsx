@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
 import { Coach } from '../types';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
@@ -21,7 +22,59 @@ import {
 import confetti from 'canvas-confetti';
 
 export const CoachBookingView: React.FC = () => {
-  const { coaches, coachBookings, bookCoach, playerProfile } = usePadel();
+  const { coaches, coachBookings, bookCoach, playerProfile, addCoach, deleteCoach } = usePadel();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'club_admin';
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formTitle, setFormTitle] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formBio, setFormBio] = useState('');
+  const [formRate, setFormRate] = useState('');
+  const [formError, setFormError] = useState('');
+  const [formSaving, setFormSaving] = useState(false);
+
+  const handleAddCoach = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    if (!formName.trim()) {
+      setFormError('نام مربی الزامی است.');
+      return;
+    }
+    setFormSaving(true);
+    try {
+      await addCoach({
+        name: formName.trim(),
+        avatar: '',
+        title: formTitle.trim(),
+        fipCertification: '',
+        experienceYears: 0,
+        province: '',
+        clubs: [],
+        hourlyRate: parseInt(formRate) || 0,
+        bio: formBio.trim(),
+        specialties: [],
+        availableDays: [],
+        availableHours: [],
+      });
+      setShowAddModal(false);
+      setFormName(''); setFormTitle(''); setFormPhone(''); setFormBio(''); setFormRate('');
+    } catch {
+      setFormError('خطا در ذخیره مربی. دوباره تلاش کنید.');
+    } finally {
+      setFormSaving(false);
+    }
+  };
+
+  const handleDeleteCoach = async (coachId: string, coachName: string) => {
+    if (!window.confirm(`مربی «${coachName}» حذف شود؟`)) return;
+    try {
+      await deleteCoach(coachId);
+    } catch {
+      // error toast already shown by context
+    }
+  };
 
   const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
   const [selectedClub, setSelectedClub] = useState<string>('');
@@ -91,9 +144,28 @@ export const CoachBookingView: React.FC = () => {
             <span className="text-xl font-black text-[#ff6b81]">{coachBookings.length} جلسه</span>
           </div>
         </div>
+        {isAdmin && (
+          <div className="relative z-10 mt-4">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 rounded-xl bg-[#ff2d55] text-white text-sm font-bold hover:bg-[#e0264b] transition"
+            >
+              + افزودن مربی جدید
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Coaches Grid */}
+      {coaches.length === 0 ? (
+        <div className="rounded-3xl bg-white/[0.03] border border-white/10 p-12 text-center">
+          <GraduationCap className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+          <p className="text-slate-400 font-bold mb-2">هنوز مربی‌ای ثبت نشده است</p>
+          <p className="text-sm text-slate-500">
+            {isAdmin ? 'از دکمه بالا اولین مربی را اضافه کنید.' : 'به‌زودی مربیان این‌جا معرفی می‌شوند.'}
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {coaches.map((coach) => (
           <div
@@ -112,10 +184,20 @@ export const CoachBookingView: React.FC = () => {
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-base font-black text-slate-100 truncate">{coach.name}</h3>
-                    <div className="flex items-center gap-1 text-[#facc15] text-xs font-black shrink-0">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      <span>{coach.rating}</span>
-                      <span className="text-slate-500 font-normal">({coach.reviewsCount})</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteCoach(coach.id, coach.name)}
+                          className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 rounded-lg px-2 py-1"
+                        >
+                          حذف
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1 text-[#facc15] text-xs font-black">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span>{coach.rating}</span>
+                        <span className="text-slate-500 font-normal">({coach.reviewsCount})</span>
+                      </div>
                     </div>
                   </div>
 
@@ -187,6 +269,7 @@ export const CoachBookingView: React.FC = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Booking Modal */}
       {selectedCoach && (
@@ -347,6 +430,56 @@ export const CoachBookingView: React.FC = () => {
             >
               متشکرم، بستن
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Coach Modal (admin) */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="glass-strong rounded-3xl border border-white/10 p-6 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-100">افزودن مربی جدید</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddCoach} className="space-y-3">
+              <input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="نام مربی *"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
+              />
+              <input
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="عنوان (مثلاً مربی ارشد)"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
+              />
+              <input
+                value={formRate}
+                onChange={(e) => setFormRate(e.target.value)}
+                placeholder="نرخ ساعتی (تومان)"
+                inputMode="numeric"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
+              />
+              <textarea
+                value={formBio}
+                onChange={(e) => setFormBio(e.target.value)}
+                placeholder="بیوگرافی کوتاه"
+                rows={3}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
+              />
+              {formError && <p className="text-sm text-red-400">{formError}</p>}
+              <button
+                type="submit"
+                disabled={formSaving}
+                className="w-full py-2.5 bg-[#ff2d55] hover:bg-[#e0264b] disabled:opacity-50 text-white font-black rounded-xl"
+              >
+                {formSaving ? 'در حال ذخیره...' : 'ثبت مربی'}
+              </button>
+            </form>
           </div>
         </div>
       )}

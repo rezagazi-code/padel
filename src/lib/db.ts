@@ -3,7 +3,7 @@
 // working on local mock data when Supabase is not configured.
 import { getSupabase } from './supabase';
 import type {
-  Booking, Club, Court, Tournament, TournamentCategory, TournamentFormat,
+  Booking, Club, Coach, Court, Tournament, TournamentCategory, TournamentFormat,
 } from '../types';
 
 type Row = Record<string, any>;
@@ -390,4 +390,79 @@ export async function deleteTournamentById(tournamentId: string): Promise<void> 
   // Cascades to tournament_teams. RLS: organizer or super_admin.
   const { error } = await sb.from('tournaments').delete().eq('id', tournamentId);
   if (error) throw error;
+}
+
+export interface CoachInput {
+  name: string;
+  avatar: string;
+  title: string;
+  fipCertification: string;
+  experienceYears: number;
+  province: string;
+  clubs: string[];
+  hourlyRate: number;
+  bio: string;
+  specialties: string[];
+  availableDays: string[];
+  availableHours: string[];
+}
+
+function mapCoach(data: any): Coach {
+  return {
+    id: data.id,
+    name: data.name,
+    avatar: data.avatar_url || '',
+    title: data.title || '',
+    fipCertification: data.fip_certification || '',
+    experienceYears: data.experience_years || 0,
+    rating: Number(data.rating) || 5.0,
+    reviewsCount: data.reviews_count || 0,
+    province: data.province || '',
+    clubs: data.club_names || [],
+    hourlyRate: Number(data.hourly_rate) || 0,
+    bio: data.bio || '',
+    specialties: data.specialties || [],
+    availableDays: data.available_days || [],
+    availableHours: data.available_hours || [],
+  };
+}
+
+export async function insertCoach(input: CoachInput): Promise<Coach> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('coaches')
+    .insert({
+      name: input.name,
+      avatar_url: input.avatar,
+      title: input.title,
+      fip_certification: input.fipCertification,
+      experience_years: input.experienceYears,
+      province: input.province,
+      club_names: input.clubs,
+      hourly_rate: input.hourlyRate,
+      bio: input.bio,
+      specialties: input.specialties,
+      available_days: input.availableDays,
+      available_hours: input.availableHours,
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapCoach(data);
+}
+
+export async function deleteCoachById(coachId: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { error } = await sb.from('coaches').delete().eq('id', coachId);
+  if (error) throw error;
+}
+
+export async function fetchCoaches(): Promise<Coach[]> {
+  const sb = getSupabase();
+  if (!sb) return [];
+  const { data, error } = await sb.from('coaches').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(mapCoach);
 }

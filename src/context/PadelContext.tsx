@@ -30,11 +30,14 @@ import {
   fetchTournaments,
   insertBooking,
   insertClub,
+  insertCoach,
   insertCourt,
   insertTournament,
   deleteBookingById,
   deleteClubById,
+  deleteCoachById,
   deleteTournamentById,
+  fetchCoaches,
   updateMyProfile,
   type ProfilePatch,
   DOUBLE_BOOKED,
@@ -76,6 +79,8 @@ interface PadelContextType {
   toggleFreeAgentStatus: (available: boolean, note?: string) => void;
   inviteFreeAgent: (agentId: string, matchTitle: string) => void;
   coaches: Coach[];
+  addCoach: (coach: Omit<Coach, 'id' | 'rating' | 'reviewsCount'>) => Promise<Coach>;
+  deleteCoach: (coachId: string) => Promise<void>;
   coachBookings: CoachBooking[];
   bookCoach: (booking: Omit<CoachBooking, 'id' | 'status'>) => CoachBooking;
   tournaments: Tournament[];
@@ -150,7 +155,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     getInitialData('free_agents', initialFreeAgents)
   );
 
-  const [coaches] = useState<Coach[]>(() =>
+  const [coaches, setCoaches] = useState<Coach[]>(() =>
     getInitialData('coaches', initialCoaches)
   );
 
@@ -487,6 +492,45 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setTournaments((prev) => prev.filter((t) => t.id !== tournamentId));
     setSyncNotification('تورنمنت با موفقیت حذف شد.');
+  };
+
+  const addCoach = async (coachData: Omit<Coach, 'id' | 'rating' | 'reviewsCount'>): Promise<Coach> => {
+    if (getSupabase()) {
+      try {
+        const remote = await insertCoach(coachData);
+        setCoaches((prev) => [remote, ...prev]);
+        setSyncNotification(`مربی «${remote.name}» با موفقیت افزوده شد!`);
+        return remote;
+      } catch (err) {
+        console.error('addCoach remote failed', err);
+        setSyncNotification('خطا در ثبت مربی روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+    // Local fallback
+    const newCoach: Coach = {
+      ...coachData,
+      id: `coach-${Date.now()}`,
+      rating: 5.0,
+      reviewsCount: 0,
+    };
+    setCoaches((prev) => [newCoach, ...prev]);
+    setSyncNotification(`مربی «${newCoach.name}» با موفقیت افزوده شد!`);
+    return newCoach;
+  };
+
+  const deleteCoach = async (coachId: string): Promise<void> => {
+    if (getSupabase() && coachId && !coachId.startsWith('coach-')) {
+      try {
+        await deleteCoachById(coachId);
+      } catch (err) {
+        console.error('deleteCoach remote failed', err);
+        setSyncNotification('خطا در حذف مربی روی سرور. دوباره تلاش کنید.');
+        throw err;
+      }
+    }
+    setCoaches((prev) => prev.filter((c) => c.id !== coachId));
+    setSyncNotification('مربی با موفقیت حذف شد.');
   };
 
   const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking | null> => {
@@ -1047,6 +1091,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleFreeAgentStatus,
         inviteFreeAgent,
         coaches,
+        addCoach,
+        deleteCoach,
         coachBookings,
         bookCoach,
         tournaments,
