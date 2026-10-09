@@ -46,7 +46,7 @@ export const PlayerProfileView: React.FC = () => {
     cancelBooking
   } = usePadel();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'history'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
   const [showUserMgmt, setShowUserMgmt] = useState(false);
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'super_admin';
@@ -93,6 +93,8 @@ export const PlayerProfileView: React.FC = () => {
 
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+    // Close the edit form after successful save
+    setTimeout(() => setActiveTab('none'), 1000);
 
     try {
     } catch {}
@@ -274,7 +276,7 @@ export const PlayerProfileView: React.FC = () => {
         {/* Tab Switcher */}
         <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
           <button
-            onClick={() => setActiveTab('profile')}
+            onClick={() => setActiveTab(activeTab === 'profile' ? 'none' : 'profile')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeTab === 'profile'
                 ? 'btn-fire shadow-md'
@@ -285,7 +287,7 @@ export const PlayerProfileView: React.FC = () => {
             <span>ویرایش مشخصات و رنگ اختصاصی بازیکن</span>
           </button>
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => setActiveTab(activeTab === 'history' ? 'none' : 'history')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeTab === 'history'
                 ? 'btn-fire shadow-md'
