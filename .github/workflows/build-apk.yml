@@ -42,9 +42,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Vendor Poolakey AAR (no jitpack needed)
-        run: bash scripts/patch-bazaar-plugin.sh
-
       - name: Extract Supabase config from live web bundle
         # The anon key is public by design (it ships inside the app).
         # If the Render deploy has VITE_ vars baked in, reuse them here.
