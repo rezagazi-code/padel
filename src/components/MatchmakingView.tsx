@@ -29,7 +29,9 @@ export const MatchmakingView: React.FC = () => {
     joinMatchSlot,
     leaveMatchSlot,
     playerProfile,
-    clubs
+    clubs,
+    freeAgents,
+    inviteFreeAgent
   } = usePadel();
 
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
@@ -423,6 +425,37 @@ export const MatchmakingView: React.FC = () => {
                   <span className="text-[11px] text-slate-500">سازنده: {match.creatorName}</span>
                 </div>
               </div>
+
+              {/* Suggested free agents for empty slots */}
+              {(() => {
+                const emptySlots = match.slots.filter((s) => !s.playerName).length;
+                if (emptySlots === 0) return null;
+                const compatible = freeAgents.filter(
+                  (a) => a.level >= match.minLevel && a.level <= match.maxLevel && a.id !== playerProfile.id
+                );
+                if (compatible.length === 0) return null;
+                return (
+                  <div className="mt-4 p-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
+                    <p className="text-xs font-bold text-emerald-300 mb-2">
+                      🎯 {compatible.length} بازیکن آزاد هم‌سطح برای {emptySlots} جای خالی
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {compatible.slice(0, 4).map((a) => (
+                        <button
+                          key={a.id}
+                          onClick={() => inviteFreeAgent(a.id, match.id)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition text-xs"
+                          title={`دعوت ${a.name}`}
+                        >
+                          <img src={a.avatar} alt={a.name} className="w-6 h-6 rounded-full object-cover" />
+                          <span className="text-slate-200 font-bold">{a.name}</span>
+                          <span className="text-emerald-400">+ دعوت</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
             </div>
           );
