@@ -13,6 +13,7 @@ function calculateSuggestion(teamsCount: number, courtsCount: number, hours: num
 }
 
 export const FriendlyTournamentView: React.FC = () => {
+  // retry build
   const {
     friendlyTournaments,
     createFriendlyTournament,
