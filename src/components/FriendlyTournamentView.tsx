@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { FriendlyTournament } from '../types';
 import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins } from 'lucide-react';
+import { TVBracket, BracketMatch } from './TVBracket';
+import { generateBracket } from '../lib/bracket';
 
 // Suggest match duration and validate feasibility
 function calculateSuggestion(teamsCount: number, courtsCount: number, hours: number) {
@@ -187,50 +189,62 @@ export const FriendlyTournamentView: React.FC = () => {
           </div>
         )}
 
-        {/* Bracket */}
-        {tourn.bracket.length > 0 && (
-          <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-6">
-            <h3 className="font-black text-slate-200 mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-400" />جدول مسابقات</h3>
-            <div className="space-y-3">
-              {tourn.bracket.map((m) => (
-                <div key={m.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                  <p className="text-xs text-slate-500 mb-2">{m.roundFa}</p>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className={`font-bold ${m.winnerId === m.team1Id ? 'text-emerald-400' : 'text-slate-200'}`}>
-                      {getTeamName(tourn, m.team1Id)}
-                    </span>
-                    <span className="text-slate-500 text-xs">در برابر</span>
-                    <span className={`font-bold ${m.winnerId === m.team2Id ? 'text-emerald-400' : 'text-slate-200'}`}>
-                      {getTeamName(tourn, m.team2Id)}
-                    </span>
+        {/* TV-Style Bracket */}
+        {(() => {
+          // Convert FriendlyMatch[] to BracketMatch[] for TV display
+          const tvMatches: BracketMatch[] = tourn.bracket.map((m, idx) => {
+            const roundNum = m.round === 'final' ? 2 : m.round === 'semifinal' ? 1 : 0;
+            return {
+              id: m.id,
+              round: roundNum,
+              roundName: m.roundFa,
+              team1: getTeamName(tourn, m.team1Id),
+              team2: getTeamName(tourn, m.team2Id),
+              winner: m.winnerId ? getTeamName(tourn, m.winnerId) : undefined,
+              score1: m.score1 ?? undefined,
+              score2: m.score2 ?? undefined,
+            };
+          });
+          // If no bracket yet but teams exist, generate preview
+          const displayMatches = tvMatches.length > 0 ? tvMatches : 
+            (tourn.teams.length >= 2 ? generateBracket(tourn.teams.map(t => ({ id: t.id, name: t.name, rank: t.rank }))) : []);
+          
+          if (displayMatches.length === 0) return null;
+          return (
+            <div className="space-y-4">
+              <TVBracket matches={displayMatches} title={`جدول ${tourn.title}`} />
+              {/* Score entry for admins - kept below the TV bracket */}
+              {tourn.bracket.length > 0 && (
+                <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-6">
+                  <h4 className="font-bold text-slate-300 text-sm mb-4">ثبت نتایج</h4>
+                  <div className="space-y-3">
+                    {tourn.bracket.map((m) => (
+                      !m.winnerId && m.team1Id && m.team2Id ? (
+                        <div key={m.id} className="flex items-center gap-2 text-sm">
+                          <span className="text-slate-400 text-xs flex-1">{m.roundFa}: {getTeamName(tourn, m.team1Id)} در برابر {getTeamName(tourn, m.team2Id)}</span>
+                          <input
+                            value={scoreInputs[m.id]?.s1 || ''}
+                            onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s1: e.target.value } }))}
+                            placeholder="0" inputMode="numeric"
+                            className="w-14 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
+                          />
+                          <span className="text-slate-500">-</span>
+                          <input
+                            value={scoreInputs[m.id]?.s2 || ''}
+                            onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s2: e.target.value } }))}
+                            placeholder="0" inputMode="numeric"
+                            className="w-14 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
+                          />
+                          <button onClick={() => handleScore(m.id)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">ثبت</button>
+                        </div>
+                      ) : null
+                    ))}
                   </div>
-                  {m.winnerId ? (
-                    <p className="text-xs text-slate-500 mt-2">نتیجه: {m.score1} - {m.score2}</p>
-                  ) : m.team1Id && m.team2Id ? (
-                    <div className="flex items-center gap-2 mt-3">
-                      <input
-                        value={scoreInputs[m.id]?.s1 || ''}
-                        onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s1: e.target.value } }))}
-                        placeholder="0" inputMode="numeric"
-                        className="w-16 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
-                      />
-                      <span className="text-slate-500">-</span>
-                      <input
-                        value={scoreInputs[m.id]?.s2 || ''}
-                        onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s2: e.target.value } }))}
-                        placeholder="0" inputMode="numeric"
-                        className="w-16 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
-                      />
-                      <button onClick={() => handleScore(m.id)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">ثبت</button>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-600 mt-2">استراحت (Bye)</p>
-                  )}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }
