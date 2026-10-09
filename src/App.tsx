@@ -25,8 +25,35 @@ const MainContent: React.FC = () => {
   const { activeTab, isMobileDeviceView, setIsMobileDeviceView, syncNotification, setSyncNotification } = usePadel();
   const { ready: authReady, user } = useAuth();
 
-  const isNativeApp =
-    typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+  // Robust native-app detection: Capacitor bridge may not be ready on first
+  // render, so poll briefly. Fallback: Android WebView user agent ("wv").
+  const [isNativeApp, setIsNativeApp] = useState(false);
+  useEffect(() => {
+    const check = (): boolean => {
+      try {
+        const cap = (window as any).Capacitor;
+        if (cap?.isNativePlatform?.()) return true;
+      } catch { /* ignore */ }
+      try {
+        const ua = navigator.userAgent || '';
+        if (/Android/.test(ua) && /; wv\)/.test(ua)) return true;
+      } catch { /* ignore */ }
+      return false;
+    };
+    if (check()) {
+      setIsNativeApp(true);
+      return;
+    }
+    let attempts = 0;
+    const t = setInterval(() => {
+      attempts += 1;
+      if (check() || attempts >= 10) {
+        if (check()) setIsNativeApp(true);
+        clearInterval(t);
+      }
+    }, 500);
+    return () => clearInterval(t);
+  }, []);
 
   // Native app auth gate: on a fresh install with no session, require
   // email login/signup before showing the app — no mock profile.
