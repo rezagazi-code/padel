@@ -70,24 +70,7 @@ export function generateBracket(
     });
   });
 
-  // Generate subsequent rounds (placeholders - winners TBD)
-  // NOTE: Only generate next round, not all future rounds, to avoid clutter
-  // The bracket will expand as winners are determined
-  let prevRoundCount = firstRoundMatches.length;
-  if (prevRoundCount > 1) {
-    const r = 1;
-    const roundMatchCount = Math.ceil(prevRoundCount / 2);
-    const rName = getRoundName(r, totalRounds);
-    for (let i = 0; i < roundMatchCount; i++) {
-      matches.push({
-        id: `br-${matchId++}`,
-        round: r,
-        roundName: rName,
-        team1: '؟',
-        team2: '؟',
-      });
-    }
-  }
-
+  // Only show first round - no placeholders for future rounds
+  // Future rounds will appear as winners are determined
   return matches;
 }
