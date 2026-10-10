@@ -278,12 +278,14 @@ export interface RankingPlayer {
 }
 
 // Friendly tournament (matchmaking): no ranking points, prize to 1st/2nd
+import type { SkillGrade } from './utils/skillGrades';
+
 export interface FriendlyTeam {
   id: string;
   teamName: string;
   player1Name: string;
   player2Name: string;
-  rank: number; // for seeding the draw (lower = stronger)
+  rank: SkillGrade; // for seeding the draw (A+ strongest)
 }
 
 export interface FriendlyMatch {

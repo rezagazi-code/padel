@@ -1,4 +1,5 @@
 import type { BracketMatch } from '../components/TVBracket';
+import { SKILL_GRADES, type SkillGrade } from '../utils/skillGrades';
 
 function getRoundName(roundIndex: number, totalRounds: number): string {
   const fromEnd = totalRounds - 1 - roundIndex;
@@ -18,12 +19,14 @@ function getRoundName(roundIndex: number, totalRounds: number): string {
  * by recordFriendlyScore as winners are determined.
  */
 export function generateBracket(
-  teams: { id: string; name: string; rank?: number }[]
+  teams: { id: string; name: string; rank: SkillGrade }[]
 ): BracketMatch[] {
   if (teams.length < 2) return [];
 
-  // Sort by rank (lower = stronger). Unranked go last.
-  const sorted = [...teams].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
+  // Sort by rank (A+ strongest).
+  const sorted = [...teams].sort(
+    (a, b) => SKILL_GRADES.indexOf(a.rank) - SKILL_GRADES.indexOf(b.rank)
+  );
   const n = sorted.length;
 
   // Next power of 2 determines bracket size

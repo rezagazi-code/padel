@@ -4,6 +4,7 @@ import { FriendlyTournament } from '../types';
 import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins } from 'lucide-react';
 import { TVBracket, BracketMatch } from './TVBracket';
 import { generateBracket, bracketToDisplay } from '../lib/bracket';
+import { SKILL_GRADES, type SkillGrade } from '../utils/skillGrades';
 
 // Suggest match duration and validate feasibility
 function calculateSuggestion(teamsCount: number, courtsCount: number, hours: number) {
@@ -42,7 +43,7 @@ export const FriendlyTournamentView: React.FC = () => {
   const [tName, setTName] = useState('');
   const [tP1, setTP1] = useState('');
   const [tP2, setTP2] = useState('');
-  const [tRank, setTRank] = useState('');
+  const [tRank, setTRank] = useState<SkillGrade>('C');
 
   // Score form
   const [scoreInputs, setScoreInputs] = useState<Record<string, { s1: string; s2: string }>>({});
@@ -75,12 +76,12 @@ export const FriendlyTournamentView: React.FC = () => {
       teamName: tName.trim(),
       player1Name: tP1.trim() || 'بازیکن ۱',
       player2Name: tP2.trim() || 'بازیکن ۲',
-      rank: parseInt(tRank) || 999,
+      rank: tRank,
     });
     // Refresh selected
     const updated = friendlyTournaments.find((t) => t.id === selected.id);
-    if (updated) setSelected({ ...updated, teams: [...updated.teams, { id: 'tmp', teamName: tName.trim(), player1Name: tP1.trim(), player2Name: tP2.trim(), rank: parseInt(tRank) || 999 }] });
-    setTName(''); setTP1(''); setTP2(''); setTRank('');
+    if (updated) setSelected({ ...updated, teams: [...updated.teams, { id: 'tmp', teamName: tName.trim(), player1Name: tP1.trim(), player2Name: tP2.trim(), rank: tRank }] });
+    setTName(''); setTP1(''); setTP2(''); setTRank('C');
   };
 
   const handleScore = (matchId: string) => {
@@ -178,14 +179,18 @@ export const FriendlyTournamentView: React.FC = () => {
               {tourn.teams.map((tm) => (
                 <div key={tm.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10 text-sm">
                   <span className="font-bold text-slate-200">{tm.teamName}</span>
-                  <span className="text-slate-500 text-xs">{tm.player1Name} و {tm.player2Name} (رنک {tm.rank})</span>
+                  <span className="text-slate-500 text-xs">{tm.player1Name} و {tm.player2Name} (سطح {tm.rank})</span>
                 </div>
               ))}
               {tourn.teams.length === 0 && <p className="text-slate-500 text-sm">هنوز تیمی اضافه نشده.</p>}
             </div>
             <form onSubmit={handleAddTeam} className="grid grid-cols-2 gap-2">
               <input value={tName} onChange={(e) => setTName(e.target.value)} placeholder="نام تیم *" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
-              <input value={tRank} onChange={(e) => setTRank(e.target.value)} placeholder="رنک (برای قرعه‌کشی)" inputMode="numeric" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
+              <select value={tRank} onChange={(e) => setTRank(e.target.value as SkillGrade)} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
+                {SKILL_GRADES.map((g) => (
+                  <option key={g} value={g} className="bg-[#0d1420]">سطح {g}</option>
+                ))}
+              </select>
               <input value={tP1} onChange={(e) => setTP1(e.target.value)} placeholder="بازیکن ۱" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <input value={tP2} onChange={(e) => setTP2(e.target.value)} placeholder="بازیکن ۲" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <button type="submit" className="col-span-2 py-2 rounded-xl bg-[#2f7bff] text-white text-sm font-bold">+ افزودن تیم</button>

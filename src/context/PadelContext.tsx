@@ -26,7 +26,7 @@ import {
   initialRankings,
   initialTournaments
 } from '../mockData';
-import { levelToGrade } from '../utils/skillGrades';
+import { levelToGrade, SKILL_GRADES } from '../utils/skillGrades';
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
 import {
   fetchClubs,
@@ -797,7 +797,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open' || t.teams.length < 2) return t;
-        const sorted = [...t.teams].sort((a, b) => a.rank - b.rank);
+        const sorted = [...t.teams].sort((a, b) => SKILL_GRADES.indexOf(a.rank) - SKILL_GRADES.indexOf(b.rank));
         // Pad to power of 2 with byes
         const n = sorted.length;
         const size = Math.pow(2, Math.ceil(Math.log2(n)));
