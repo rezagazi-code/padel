@@ -3,7 +3,7 @@ import { usePadel } from '../context/PadelContext';
 import { FriendlyTournament } from '../types';
 import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins } from 'lucide-react';
 import { TVBracket, BracketMatch } from './TVBracket';
-import { generateBracket } from '../lib/bracket';
+import { generateBracket, bracketToDisplay } from '../lib/bracket';
 
 // Suggest match duration and validate feasibility
 function calculateSuggestion(teamsCount: number, courtsCount: number, hours: number) {
@@ -191,20 +191,8 @@ export const FriendlyTournamentView: React.FC = () => {
 
         {/* TV-Style Bracket */}
         {(() => {
-          // Convert FriendlyMatch[] to BracketMatch[] for TV display
-          const tvMatches: BracketMatch[] = tourn.bracket.map((m, idx) => {
-            const roundNum = m.round === 'final' ? 2 : m.round === 'semifinal' ? 1 : 0;
-            return {
-              id: m.id,
-              round: roundNum,
-              roundName: m.roundFa,
-              team1: getTeamName(tourn, m.team1Id),
-              team2: getTeamName(tourn, m.team2Id),
-              winner: m.winnerId ? getTeamName(tourn, m.winnerId) : undefined,
-              score1: m.score1 ?? undefined,
-              score2: m.score2 ?? undefined,
-            };
-          });
+          // Convert FriendlyMatch[] to BracketMatch[] for TV display (properly ordered)
+          const tvMatches: BracketMatch[] = bracketToDisplay(tourn.bracket, (id) => getTeamName(tourn, id));
           // If no bracket yet but teams exist, generate preview
           const displayMatches = tvMatches.length > 0 ? tvMatches : 
             (tourn.teams.length >= 2 ? generateBracket(tourn.teams.map(t => ({ id: t.id, name: t.teamName, rank: t.rank }))) : []);

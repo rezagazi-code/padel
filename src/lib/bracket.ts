@@ -1,76 +1,96 @@
 import type { BracketMatch } from '../components/TVBracket';
 
-const ROUND_NAMES: Record<string, string> = {
-  final: 'فینال',
-  semifinal: 'نیمه‌نهایی',
-  quarterfinal: 'یک‌چهارم نهایی',
-  round16: 'یک‌هشتم نهایی',
-};
-
-function getRoundName(roundNum: number, totalRounds: number): string {
-  const fromEnd = totalRounds - roundNum;
+function getRoundName(roundIndex: number, totalRounds: number): string {
+  const fromEnd = totalRounds - 1 - roundIndex;
   if (fromEnd === 0) return 'فینال';
   if (fromEnd === 1) return 'نیمه‌نهایی';
   if (fromEnd === 2) return 'یک‌چهارم نهایی';
-  if (fromEnd === 3) return 'یک‌هشتم نهایی';
-  return `دور ${roundNum + 1}`;
+  return `دور ${roundIndex + 1}`;
 }
 
 /**
- * Generate a single-elimination bracket for N teams.
- * Returns BracketMatch[] ready for TVBracket display.
- * Teams are seeded by rank (1st vs last, etc.)
+ * Generate a single-elimination bracket.
+ * Handles any number of teams (2+) with proper byes.
+ * - Sorts by rank for seeding (1 = strongest)
+ * - Pairs strongest vs weakest
+ * - Byes go to top seeds
+ * Returns only the FIRST round matches. Later rounds are built
+ * by recordFriendlyScore as winners are determined.
  */
 export function generateBracket(
   teams: { id: string; name: string; rank?: number }[]
 ): BracketMatch[] {
   if (teams.length < 2) return [];
 
-  // Sort by rank if available (1 = strongest)
+  // Sort by rank (lower = stronger). Unranked go last.
   const sorted = [...teams].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
+  const n = sorted.length;
 
-  // Calculate rounds needed
-  const teamCount = sorted.length;
-  const totalRounds = Math.ceil(Math.log2(teamCount));
+  // Next power of 2 determines bracket size
+  const bracketSize = Math.pow(2, Math.ceil(Math.log2(n)));
+  const byes = bracketSize - n;
+  const totalRounds = Math.log2(bracketSize);
+
+  // Top `byes` seeds get a bye. Remaining teams play first round.
+  const byeTeams = sorted.slice(0, byes);
+  const playingTeams = sorted.slice(byes);
 
   const matches: BracketMatch[] = [];
   let matchId = 0;
+  const roundName = getRoundName(0, totalRounds);
 
-  // First round: pair teams (1st vs last, 2nd vs 2nd-last, etc.)
-  // Handle byes for non-power-of-2
-  const firstRoundTeams = [...sorted];
-  const firstRoundMatches: { team1: string; team2: string; team1Id: string; team2Id: string }[] = [];
-
-  // Simple pairing: top half vs bottom half
-  const half = Math.ceil(firstRoundTeams.length / 2);
-  for (let i = 0; i < half && i + half < firstRoundTeams.length; i++) {
-    const t1 = firstRoundTeams[i];
-    const t2 = firstRoundTeams[firstRoundTeams.length - 1 - i];
-    if (t1 && t2 && t1.id !== t2.id) {
-      firstRoundMatches.push({
+  // Pair: strongest playing vs weakest playing
+  for (let i = 0; i < playingTeams.length / 2; i++) {
+    const t1 = playingTeams[i];
+    const t2 = playingTeams[playingTeams.length - 1 - i];
+    if (t1 && t2) {
+      matches.push({
+        id: `br-${Date.now()}-${matchId++}`,
+        round: 0,
+        roundName,
         team1: t1.name,
         team2: t2.name,
-        team1Id: t1.id,
-        team2Id: t2.id,
       });
     }
   }
 
-  // Handle odd team out (bye) - they advance automatically
-  // For simplicity, if odd number, last team gets a bye to next round
-
-  const roundName = getRoundName(0, totalRounds);
-  firstRoundMatches.forEach((m) => {
-    matches.push({
-      id: `br-${matchId++}`,
-      round: 0,
-      roundName,
-      team1: m.team1,
-      team2: m.team2,
-    });
-  });
-
-  // Only show first round - no placeholders for future rounds
-  // Future rounds will appear as winners are determined
   return matches;
+}
+
+/**
+ * Build display matches from a FriendlyTournament's bracket,
+ * grouped and ordered for the TV bracket component.
+ */
+export function bracketToDisplay(
+  bracket: {
+    id: string;
+    round: string;
+    roundFa: string;
+    team1Id: string | null;
+    team2Id: string | null;
+    score1: number | null;
+    score2: number | null;
+    winnerId: string | null;
+  }[],
+  getTeamName: (id: string | null) => string
+): BracketMatch[] {
+  const roundOrder: Record<string, number> = {
+    round16: 0,
+    quarterfinal: 1,
+    semifinal: 2,
+    final: 3,
+  };
+  const sorted = [...bracket].sort(
+    (a, b) => (roundOrder[a.round] ?? 99) - (roundOrder[b.round] ?? 99)
+  );
+  return sorted.map((m) => ({
+    id: m.id,
+    round: roundOrder[m.round] ?? 99,
+    roundName: m.roundFa,
+    team1: getTeamName(m.team1Id),
+    team2: getTeamName(m.team2Id),
+    winner: m.winnerId ? getTeamName(m.winnerId) : undefined,
+    score1: m.score1 ?? undefined,
+    score2: m.score2 ?? undefined,
+  }));
 }
