@@ -832,50 +832,95 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId) return t;
+        
+        // 1. Record the score
         const bracket = t.bracket.map((m) => {
           if (m.id !== matchId) return m;
-          const winnerId = score1 > score2 ? m.team1Id : m.team2Id;
+          const winnerId = score1 > score2 ? m.team1Id : score2 > score1 ? m.team2Id : m.team1Id;
           return { ...m, score1, score2, winnerId };
         });
-        // Advance winners to next round
-        const winners = bracket.filter((m) => m.winnerId).map((m) => m.winnerId as string);
+
+        // 2. Group by round to find the LATEST round
+        const roundOrder: Record<string, number> = {
+          round16: 0, quarterfinal: 1, semifinal: 2, final: 3,
+        };
+        const byRound = new Map<string, typeof bracket>();
+        bracket.forEach((m) => {
+          if (!byRound.has(m.round)) byRound.set(m.round, []);
+          byRound.get(m.round)!.push(m);
+        });
+        
+        // Find latest round (highest order)
+        let latestRound = '';
+        let latestOrder = -1;
+        byRound.forEach((_, round) => {
+          const order = roundOrder[round] ?? -1;
+          if (order > latestOrder) {
+            latestOrder = order;
+            latestRound = round;
+          }
+        });
+
+        const latestMatches = byRound.get(latestRound) || [];
+        const allWinnersDecided = latestMatches.length > 0 && latestMatches.every((m) => m.winnerId);
+        
         let newBracket = [...bracket];
         let status = t.status;
-        if (winners.length >= 2 && bracket.every((m) => m.winnerId)) {
-          // Create next round
-          const nextRound = bracket[0].round === 'quarterfinal' ? 'semifinal' : bracket[0].round === 'semifinal' ? 'final' : '';
-          const nextRoundFa = nextRound === 'semifinal' ? 'نیمه‌نهایی' : nextRound === 'final' ? 'فینال' : '';
-          if (nextRound) {
-            const nextMatches: FriendlyMatch[] = [];
-            for (let i = 0; i < winners.length; i += 2) {
-              nextMatches.push({
-                id: `fm-${Date.now()}-r${i}`,
-                round: nextRound,
-                roundFa: nextRoundFa,
-                team1Id: winners[i] ?? null,
-                team2Id: winners[i + 1] ?? null,
-                score1: null,
-                score2: null,
-                winnerId: null,
-              });
-            }
-            newBracket = [...bracket, ...nextMatches];
-            status = 'in_progress';
-          } else if (bracket[0].round === 'final' && bracket.every((m) => m.winnerId)) {
-            status = 'completed';
-          }
-        }
-        // Check if final is done
-        const finalMatch = newBracket.find((m) => m.round === 'final');
         let winnerTeamId = t.winnerTeamId;
         let runnerUpTeamId = t.runnerUpTeamId;
-        if (finalMatch?.winnerId && status === 'completed') {
-          winnerTeamId = finalMatch.winnerId;
-          runnerUpTeamId = finalMatch.team1Id === winnerTeamId ? finalMatch.team2Id ?? undefined : finalMatch.team1Id ?? undefined;
+
+        if (allWinnersDecided) {
+          if (latestRound === 'final') {
+            // Tournament complete!
+            const finalMatch = latestMatches[0];
+            winnerTeamId = finalMatch.winnerId ?? undefined;
+            runnerUpTeamId = finalMatch.winnerId === finalMatch.team1Id 
+              ? finalMatch.team2Id ?? undefined 
+              : finalMatch.team1Id ?? undefined;
+            status = 'completed';
+          } else {
+            // Create next round from winners of latest round
+            const winners = latestMatches.map((m) => m.winnerId as string).filter(Boolean);
+            const nextOrder = latestOrder + 1;
+            const nextRound = Object.keys(roundOrder).find((k) => roundOrder[k] === nextOrder) || '';
+            const nextRoundFa = nextRound === 'semifinal' ? 'نیمه‌نهایی' 
+              : nextRound === 'final' ? 'فینال'
+              : nextRound === 'quarterfinal' ? 'یک‌چهارم نهایی'
+              : nextRound === 'round16' ? 'یک‌هشتم نهایی' : '';
+            
+            if (nextRound && winners.length >= 2) {
+              const nextMatches: FriendlyMatch[] = [];
+              for (let i = 0; i < winners.length; i += 2) {
+                // Skip bye vs bye (shouldn't happen, but safe)
+                if (!winners[i] && !winners[i + 1]) continue;
+                nextMatches.push({
+                  id: `fm-${Date.now()}-r${nextOrder}-${i}`,
+                  round: nextRound,
+                  roundFa: nextRoundFa,
+                  team1Id: winners[i] ?? null,
+                  team2Id: winners[i + 1] ?? null,
+                  score1: null,
+                  score2: null,
+                  // Auto-advance if one side is bye
+                  winnerId: winners[i] && !winners[i + 1] ? winners[i] : !winners[i] && winners[i + 1] ? winners[i + 1] : null,
+                });
+              }
+              if (nextMatches.length > 0) {
+                newBracket = [...bracket, ...nextMatches];
+                status = 'in_progress';
+              }
+            } else if (winners.length === 1) {
+              // Single winner = champion (happens with byes)
+              winnerTeamId = winners[0];
+              status = 'completed';
+            }
+          }
         }
+
         return { ...t, bracket: newBracket, status, winnerTeamId, runnerUpTeamId };
       })
     );
+    setSyncNotification('نتیجه ثبت شد!');
   };
 
   const finalizeFriendlyTournament = (tournId: string) => {

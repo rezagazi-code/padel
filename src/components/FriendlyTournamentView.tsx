@@ -152,7 +152,19 @@ export const FriendlyTournamentView: React.FC = () => {
               <p className="text-slate-300">مجموع ورودی: {prizePool.toLocaleString('fa-IR')} تومان</p>
               <p className="text-slate-400">🥇 اول: {prizeFirst.toLocaleString('fa-IR')} | 🥈 دوم: {prizeSecond.toLocaleString('fa-IR')} ({tourn.prizeSplit})</p>
               {tourn.winnerTeamId && (
-                <p className="text-emerald-400 mt-1">🏆 قهرمان: {getTeamName(tourn, tourn.winnerTeamId)}</p>
+                <div className="mt-3 p-5 rounded-2xl bg-gradient-to-l from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/30 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.15)_0%,transparent_70%)] animate-pulse" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="text-4xl animate-bounce">🏆</div>
+                    <div>
+                      <p className="text-amber-300 font-black text-lg">قهرمان مسابقات!</p>
+                      <p className="text-slate-200 font-bold">{getTeamName(tourn, tourn.winnerTeamId)}</p>
+                      {tourn.runnerUpTeamId && (
+                        <p className="text-slate-400 text-sm mt-1">🥈 نایب‌قهرمان: {getTeamName(tourn, tourn.runnerUpTeamId)}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
