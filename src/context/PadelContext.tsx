@@ -806,8 +806,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Standard seeding: 1 vs last, 2 vs second-last, etc.
         const matches: FriendlyMatch[] = [];
-        const roundName = size === 2 ? 'final' : size === 4 ? 'semifinal' : 'quarterfinal';
-        const roundFa = size === 2 ? 'فینال' : size === 4 ? 'نیمه‌نهایی' : 'یک‌چهارم نهایی';
+        // Round key must match the true bracket depth: size 8 -> quarterfinal,
+        // size 16 -> round16. (Sizes 2/4 -> final/semifinal.) Using 'quarterfinal'
+        // for 9-16 teams mislabeled the first round, so the bracket finished one
+        // round early and crowned a "champion" from only half the bracket.
+        const roundName = size === 2 ? 'final' : size === 4 ? 'semifinal' : size === 8 ? 'quarterfinal' : 'round16';
+        const roundFa = size === 2 ? 'فینال' : size === 4 ? 'نیمه‌نهایی' : size === 8 ? 'یک‌چهارم نهایی' : 'یک‌هشتم نهایی';
         for (let i = 0; i < size / 2; i++) {
           const t1 = seeded[i];
           const t2 = seeded[size - 1 - i];
