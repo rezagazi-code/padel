@@ -22,6 +22,11 @@ apply from: "variables.gradle"
 
 allprojects {
     repositories {
+        // Local vendored AARs first (no network): poolakey for Cafe Bazaar billing.
+        // :app resolves the transitive poolakey AAR via the root repos (not the
+        // plugin's own flatDir), so without this it depends on mirrors proxying
+        // a jitpack artifact — which broke builds during mirror outages.
+        flatDir { dirs "$rootDir/../vendor" }
         // Fast mirrors (google()/mavenCentral() kept as fallback)
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
