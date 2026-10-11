@@ -23,6 +23,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -110,6 +111,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const sb = getSupabase();
+    if (!sb) return { error: 'اتصال به سرور برقرار نیست.' };
+    const email = session?.user?.email;
+    if (!email) return { error: 'نشست معتبر نیست. دوباره وارد شوید.' };
+    // Verify the current password first by re-authenticating
+    const { error: signInError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
+    if (signInError) return { error: 'رمز فعلی اشتباه است.' };
+    const { error: updateError } = await sb.auth.updateUser({ password: newPassword });
+    if (updateError) return { error: updateError.message };
+    return { error: null };
+  }, [session]);
+
   const user = session?.user ?? null;
   const value: AuthContextValue = {
     ready,
@@ -121,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signIn,
     signOut,
+    changePassword,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

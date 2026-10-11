@@ -51,10 +51,48 @@ export const PlayerProfileView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
   const [showUserMgmt, setShowUserMgmt] = useState(false);
-  const { user } = useAuth();
+  const { user, changePassword } = useAuth();
   const isSuperAdmin = user?.role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Change-password form state
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+    setPwSuccess(false);
+    if (pwNew.length < 6) {
+      setPwError('رمز جدید باید حداقل ۶ کاراکتر باشد.');
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError('تکرار رمز جدید با رمز جدید یکی نیست.');
+      return;
+    }
+    setPwBusy(true);
+    const { error } = await changePassword(pwCurrent, pwNew);
+    setPwBusy(false);
+    if (error) {
+      setPwError(error);
+      return;
+    }
+    setPwSuccess(true);
+    setPwCurrent('');
+    setPwNew('');
+    setPwConfirm('');
+    setTimeout(() => {
+      setShowPwForm(false);
+      setPwSuccess(false);
+    }, 2500);
+  };
 
   // Auth gate: anonymous visitors must not see or edit any profile
   // (local residue included). Matches the native-app login gate in App.tsx.
@@ -332,6 +370,79 @@ export const PlayerProfileView: React.FC = () => {
             <span>تاریخچه رزروها و جلسات ({bookings.length + coachBookings.length})</span>
           </button>
         </div>
+      </div>
+
+      {/* Security: change password */}
+      <div className="rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden">
+        <button
+          onClick={() => setShowPwForm((v) => !v)}
+          className="w-full flex items-center justify-between px-5 py-4 cursor-pointer"
+        >
+          <span className="flex items-center gap-2 text-sm font-black text-slate-100">
+            <Shield className="w-4 h-4 text-[#ff6b81]" />
+            تغییر رمز عبور
+          </span>
+          <span className="text-[11px] text-slate-500 font-bold">
+            {showPwForm ? 'بستن ▲' : '▼'}
+          </span>
+        </button>
+        {showPwForm && (
+          <form onSubmit={handleChangePassword} className="px-5 pb-5 space-y-3">
+            <div>
+              <label className="block text-[11px] text-slate-400 font-bold mb-1">رمز فعلی</label>
+              <input
+                type="password"
+                value={pwCurrent}
+                onChange={(e) => setPwCurrent(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:border-[#ff2d55]/60 outline-none"
+                placeholder="رمز عبور فعلی"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] text-slate-400 font-bold mb-1">رمز جدید (حداقل ۶ کاراکتر)</label>
+              <input
+                type="password"
+                value={pwNew}
+                onChange={(e) => setPwNew(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:border-[#ff2d55]/60 outline-none"
+                placeholder="رمز عبور جدید"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] text-slate-400 font-bold mb-1">تکرار رمز جدید</label>
+              <input
+                type="password"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:border-[#ff2d55]/60 outline-none"
+                placeholder="تکرار رمز عبور جدید"
+              />
+            </div>
+            {pwError && (
+              <p className="text-[11px] text-rose-400 font-bold">{pwError}</p>
+            )}
+            {pwSuccess && (
+              <p className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                رمز عبور با موفقیت تغییر کرد.
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={pwBusy}
+              className="w-full py-3 bg-[#ff2d55] hover:bg-[#e11d48] disabled:opacity-50 text-white font-black text-sm rounded-xl transition cursor-pointer"
+            >
+              {pwBusy ? 'در حال تغییر...' : 'تغییر رمز عبور'}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Tab 1: Profile Editor Form */}
