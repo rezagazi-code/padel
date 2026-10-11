@@ -3,6 +3,7 @@ import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { Coach } from '../types';
 import GradeBadge from './GradeBadge';
+import { BottomSheet } from './BottomSheet';
 import { levelToGrade } from '../utils/skillGrades';
 import {
   GraduationCap,
@@ -269,23 +270,20 @@ export const CoachBookingView: React.FC = () => {
       </div>
       )}
 
-      {/* Booking Modal */}
+      {/* Booking Sheet — slides up from bottom */}
       {selectedCoach && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-3xl glass-strong p-6 shadow-2xl space-y-4 my-8 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-[#ff6b81]" />
-                <h3 className="text-base font-black text-slate-100">رزرو جلسه با {selectedCoach.name}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedCoach(null)}
-                className="text-slate-500 hover:text-slate-100 p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        <BottomSheet
+          label={`رزرو جلسه با ${selectedCoach.name}`}
+          onClose={() => setSelectedCoach(null)}
+          maxContentHeight="70vh"
+          title={
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-[#ff6b81]" />
+              <h3 className="text-base font-black text-slate-100">رزرو جلسه با {selectedCoach.name}</h3>
             </div>
-
+          }
+        >
+          <div className="text-xs">
             <form onSubmit={handleConfirmBooking} className="space-y-4">
               {/* Select Club */}
               <div>
@@ -388,7 +386,7 @@ export const CoachBookingView: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </BottomSheet>
       )}
 
       {/* Confirmation Receipt Modal */}

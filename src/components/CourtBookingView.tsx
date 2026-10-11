@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
-import { ClubCourtsSheet } from './ClubCourtsSheet';
+import { ClubDetailSheet } from './ClubDetailSheet';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
@@ -480,7 +480,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           {currentClub && (
             <div className="court-card p-6 space-y-6">
               
-              {/* Club Header Info */}
+              {/* Club Header Info — on mobile this lives in the bottom sheet */}
+              <div className="hidden lg:block">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
                 <div>
                   <div className="flex items-center gap-2">
@@ -517,8 +518,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </div>
                 )}
               </div>
+              </div>
 
-              {/* Player ratings → club rank */}
+              {/* Player ratings → club rank — on mobile this lives in the bottom sheet */}
+              <div className="hidden lg:block">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="flex items-center gap-2">
                   <StarRating value={currentClub.reviewCount > 0 ? currentClub.rating : 0} size={18} />
@@ -544,8 +547,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   />
                 </div>
               </div>
+              </div>
 
-              {/* Amenities Tags */}
+              {/* Amenities Tags — on mobile these live in the bottom sheet */}
+              <div className="hidden lg:block">
               <div>
                 <div className="court-title text-xs font-bold text-slate-400 mb-2">
                   <span>امکانات ویژه باشگاه</span>
@@ -561,6 +566,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     </span>
                   ))}
                 </div>
+              </div>
               </div>
 
               {/* Court Selection Tabs */}
@@ -1001,14 +1007,16 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         onCancel={() => setClubToDelete(null)}
       />
 
-      {/* Courts bottom-sheet (mobile): pick a court with minimal scrolling */}
+      {/* Club detail bottom-sheet (mobile): full info slides up on tap */}
       {sheetClub && (
-        <ClubCourtsSheet
+        <ClubDetailSheet
           club={sheetClub}
           selectedCourtId={selectedCourtId}
           onSelectCourt={(courtId) => {
             setSelectedClubId(sheetClub.id);
             setSelectedCourtId(courtId);
+          }}
+          onContinue={() => {
             setSheetClub(null);
             // Bring the date/time booking controls into view
             requestAnimationFrame(() => {
@@ -1018,6 +1026,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             });
           }}
           onClose={() => setSheetClub(null)}
+          myRating={myClubRatings[sheetClub.id] ?? 0}
+          onRate={(n) => {
+            void rateClub(sheetClub.id, n).catch(() => {});
+          }}
         />
       )}
 
