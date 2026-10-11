@@ -134,7 +134,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto menu-fade">
       <div className="w-full max-w-2xl rounded-3xl glass-strong p-6 sm:p-8 shadow-2xl space-y-6 my-8 text-xs">
         
         {/* Modal Header */}
@@ -279,7 +279,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
               {courts.map((court, index) => (
                 <div
                   key={index}
-                  className="p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 space-y-3 relative"
+                  className={`p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 space-y-3 relative menu-pop-item menu-pop-${(index % 8) + 1}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-100 text-xs">زمین شماره {index + 1}</span>

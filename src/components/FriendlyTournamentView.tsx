@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { FriendlyTournament } from '../types';
-import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins } from 'lucide-react';
+import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins, Calculator, TriangleAlert, Lightbulb } from 'lucide-react';
 import { TVBracket, BracketMatch } from './TVBracket';
+import { FriendlyTournamentPredictions } from './Predictions';
 import { generateBracket, bracketToDisplay } from '../lib/bracket';
 import { SKILL_GRADES, type SkillGrade } from '../utils/skillGrades';
 
@@ -123,7 +124,7 @@ export const FriendlyTournamentView: React.FC = () => {
           → بازگشت به لیست
         </button>
 
-        <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-6">
+        <div className="court-card court-watermark p-6">
           <h2 className="text-xl font-black text-slate-100 mb-2">{tourn.title}</h2>
           <div className="flex flex-wrap gap-4 text-sm text-slate-400">
             <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{tourn.clubName}</span>
@@ -133,14 +134,14 @@ export const FriendlyTournamentView: React.FC = () => {
 
           {/* Calculator */}
           <div className="mt-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-sm">
-            <p className="font-bold text-slate-300 mb-2">🧮 محاسبه‌گر</p>
+            <p className="font-bold text-slate-300 mb-2 flex items-center gap-1.5"><Calculator className="w-4 h-4 text-[#ff6b81]" />محاسبه‌گر</p>
             <p className="text-slate-400">
               {tourn.teams.length} تیم → {suggestion.matchesNeeded} بازی لازم است.
               با {tourn.courtsCount} زمین و {tourn.hoursReserved} ساعت، {suggestion.matchesPossible} بازی می‌توانید برگزار کنید.
             </p>
             {!suggestion.feasible && suggestion.matchesNeeded > 0 && (
-              <p className="text-amber-400 mt-1">
-                ⚠️ زمان کافی نیست! حدود {suggestion.hoursNeeded} ساعت لازم دارید.
+              <p className="text-amber-400 mt-1 flex items-center gap-1.5">
+                <TriangleAlert className="w-4 h-4 shrink-0" />زمان کافی نیست! حدود {suggestion.hoursNeeded} ساعت لازم دارید.
               </p>
             )}
             <p className="text-slate-500 mt-1">مدت پیشنهادی هر بازی: {suggestion.matchMin} دقیقه</p>
@@ -151,12 +152,14 @@ export const FriendlyTournamentView: React.FC = () => {
             <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-sm">
               <p className="font-bold text-amber-300 mb-1 flex items-center gap-1"><Coins className="w-4 h-4" />جایزه</p>
               <p className="text-slate-300">مجموع ورودی: {prizePool.toLocaleString('fa-IR')} تومان</p>
-              <p className="text-slate-400">🥇 اول: {prizeFirst.toLocaleString('fa-IR')} | 🥈 دوم: {prizeSecond.toLocaleString('fa-IR')} ({tourn.prizeSplit})</p>
+              <p className="text-slate-400">اول: {prizeFirst.toLocaleString('fa-IR')} | دوم: {prizeSecond.toLocaleString('fa-IR')} ({tourn.prizeSplit})</p>
               {tourn.winnerTeamId && (
                 <div className="mt-3 p-5 rounded-2xl bg-gradient-to-l from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/30 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.15)_0%,transparent_70%)] animate-pulse" />
                   <div className="relative flex items-center gap-3">
-                    <div className="text-4xl animate-bounce">🏆</div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-400/15 border border-amber-400/40 flex items-center justify-center shrink-0">
+                      <Trophy className="w-6 h-6 text-amber-300" />
+                    </div>
                     <div>
                       <p className="text-amber-300 font-black text-lg">قهرمان مسابقات!</p>
                       <p className="text-slate-200 font-bold">{getTeamName(tourn, tourn.winnerTeamId)}</p>
@@ -173,11 +176,13 @@ export const FriendlyTournamentView: React.FC = () => {
 
         {/* Teams */}
         {tourn.status === 'open' && (
-          <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-6">
-            <h3 className="font-black text-slate-200 mb-4">تیم‌ها ({tourn.teams.length})</h3>
+          <div className="court-card p-6">
+            <div className="court-title mb-4">
+              <h3 className="font-black text-slate-200 whitespace-nowrap">تیم‌ها ({tourn.teams.length})</h3>
+            </div>
             <div className="space-y-2 mb-4">
               {tourn.teams.map((tm) => (
-                <div key={tm.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10 text-sm">
+                <div key={tm.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] text-sm">
                   <span className="font-bold text-slate-200">{tm.teamName}</span>
                   <span className="text-slate-500 text-xs">{tm.player1Name} و {tm.player2Name} (سطح {tm.rank})</span>
                 </div>
@@ -193,12 +198,12 @@ export const FriendlyTournamentView: React.FC = () => {
               </select>
               <input value={tP1} onChange={(e) => setTP1(e.target.value)} placeholder="بازیکن ۱" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <input value={tP2} onChange={(e) => setTP2(e.target.value)} placeholder="بازیکن ۲" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
-              <button type="submit" className="col-span-2 py-2 rounded-xl bg-[#2f7bff] text-white text-sm font-bold">+ افزودن تیم</button>
+              <button type="submit" className="col-span-2 py-2 rounded-xl btn-ice text-white text-sm font-bold">+ افزودن تیم</button>
             </form>
             {tourn.teams.length >= 2 && (
               <button
                 onClick={() => { drawFriendlyBracket(tourn.id); }}
-                className="w-full mt-4 py-3 rounded-xl bg-[#ff2d55] text-white font-black flex items-center justify-center gap-2"
+                className="w-full mt-4 py-3 rounded-xl btn-fire text-white font-black flex items-center justify-center gap-2"
               >
                 <Shuffle className="w-5 h-5" />قرعه‌کشی بر اساس رنک
               </button>
@@ -220,8 +225,10 @@ export const FriendlyTournamentView: React.FC = () => {
               <TVBracket matches={displayMatches} title={`جدول ${tourn.title}`} />
               {/* Score entry for admins - kept below the TV bracket */}
               {tourn.bracket.length > 0 && (
-                <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-6">
-                  <h4 className="font-bold text-slate-300 text-sm mb-4">ثبت نتایج</h4>
+                <div className="court-card p-6">
+                  <div className="court-title mb-4">
+                    <h4 className="font-bold text-slate-300 text-sm whitespace-nowrap">ثبت نتایج</h4>
+                  </div>
                   <div className="space-y-3">
                     {tourn.bracket.map((m) => (
                       !m.winnerId && m.team1Id && m.team2Id ? (
@@ -250,6 +257,8 @@ export const FriendlyTournamentView: React.FC = () => {
             </div>
           );
         })()}
+
+        <FriendlyTournamentPredictions tournament={tourn} defaultName={playerProfile.name} />
       </div>
     );
   }
@@ -260,7 +269,7 @@ export const FriendlyTournamentView: React.FC = () => {
         <h2 className="text-xl font-black text-slate-100">مسابقات دوستانه</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-4 py-2 rounded-xl bg-[#ff2d55] text-white text-sm font-bold flex items-center gap-1"
+          className="px-4 py-2 rounded-xl btn-fire text-white text-sm font-bold flex items-center gap-1"
         >
           <Plus className="w-4 h-4" />جدید
         </button>
@@ -268,7 +277,7 @@ export const FriendlyTournamentView: React.FC = () => {
       <p className="text-sm text-slate-500">بدون امتیاز رنکینگ — جایزه نقدی به تیم اول و دوم</p>
 
       {friendlyTournaments.length === 0 ? (
-        <div className="rounded-3xl bg-white/[0.03] border border-white/10 p-12 text-center">
+        <div className="court-card p-12 text-center">
           <Trophy className="w-12 h-12 text-slate-600 mx-auto mb-4" />
           <p className="text-slate-400">هنوز مسابقه دوستانه‌ای ساخته نشده.</p>
         </div>
@@ -278,7 +287,7 @@ export const FriendlyTournamentView: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setSelected(t)}
-              className="text-right p-5 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/20 transition"
+              className="court-card card-hover text-right p-5 transition"
             >
               <p className="font-black text-slate-100">{t.title}</p>
               <p className="text-xs text-slate-500 mt-1">{t.clubName} • {t.teams.length} تیم • {t.status === 'open' ? 'ثبت‌نام باز' : t.status === 'completed' ? 'پایان یافته' : 'در حال برگزاری'}</p>
@@ -312,8 +321,8 @@ export const FriendlyTournamentView: React.FC = () => {
                   <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bg-[#ff2d55] border-[#ff2d55] text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500">💡 هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(fCourts) || 2) * (parseFloat(fHours) || 4) * 60 / 90)} بازی برگزار کنید.</p>
-              <button type="submit" className="w-full py-3 rounded-xl bg-[#ff2d55] text-white font-black">ساخت مسابقه</button>
+              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(fCourts) || 2) * (parseFloat(fHours) || 4) * 60 / 90)} بازی برگزار کنید.</p>
+              <button type="submit" className="w-full py-3 rounded-xl btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
         </div>

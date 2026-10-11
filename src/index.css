@@ -15,12 +15,13 @@
     font-family: var(--font-vazir);
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background-color: #060a13;
-    color: #e2e8f0;
+    background-color: #17181d;
+    color: #e8e9ec;
     overflow-x: hidden;
   }
 
-  /* Midnight Volt ambient background: red glow top-left, blue glow right, deep ink base */
+  /* Court Lines theme: dark charcoal gray with white court-line markings.
+     Like looking down at a padel court at night — gray surface, white lines. */
   body::before {
     content: '';
     position: fixed;
@@ -28,11 +29,23 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(900px 520px at 8% -5%, rgba(255, 45, 85, 0.14), transparent 60%),
-      radial-gradient(820px 520px at 105% 18%, rgba(47, 123, 255, 0.13), transparent 60%),
-      radial-gradient(760px 700px at 50% 115%, rgba(47, 123, 255, 0.07), transparent 60%),
-      radial-gradient(500px 400px at 92% 88%, rgba(255, 45, 85, 0.06), transparent 60%),
-      #060a13;
+      radial-gradient(900px 520px at 8% -5%, rgba(255, 45, 85, 0.10), transparent 60%),
+      radial-gradient(820px 520px at 105% 18%, rgba(47, 123, 255, 0.09), transparent 60%),
+      radial-gradient(760px 700px at 50% 115%, rgba(255, 255, 255, 0.03), transparent 60%),
+      #17181d;
+  }
+
+  /* White court-line grid overlay: thin lines every 96px, very subtle */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 95px, rgba(255, 255, 255, 0.028) 95px 96px),
+      repeating-linear-gradient(90deg, transparent 0 95px, rgba(255, 255, 255, 0.028) 95px 96px);
   }
 
   ::selection {
@@ -367,21 +380,6 @@
 .menu-pop {
   animation: menu-pop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes menu-item-in {
-  from { opacity: 0; transform: translateX(12px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.menu-pop-item {
-  animation: menu-item-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.menu-pop-item:nth-child(1) { animation-delay: 0.03s; }
-.menu-pop-item:nth-child(2) { animation-delay: 0.06s; }
-.menu-pop-item:nth-child(3) { animation-delay: 0.09s; }
-.menu-pop-item:nth-child(4) { animation-delay: 0.12s; }
-.menu-pop-item:nth-child(5) { animation-delay: 0.15s; }
-.menu-pop-item:nth-child(6) { animation-delay: 0.18s; }
-.menu-pop-item:nth-child(7) { animation-delay: 0.21s; }
-.menu-pop-item:nth-child(8) { animation-delay: 0.24s; }
 
 /* Glowing dot under mobile active nav label */
 .mobile-nav-dot {
@@ -453,3 +451,104 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
 .pp-rise-4 { animation-delay: 0.18s; }
 .pp-rise-5 { animation-delay: 0.23s; }
 .pp-rise-6 { animation-delay: 0.28s; }
+
+/* ============ COURT LINES design language ============ */
+
+/* Card framed like a court: 1px white line border, subtle inner surface */
+.court-card {
+  position: relative;
+  background: linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+/* Corner ticks like court-line intersections */
+.court-card::before, .court-card::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  pointer-events: none;
+}
+.court-card::before {
+  top: -1px; right: -1px;
+  border-top: 2px solid rgba(255,255,255,0.55);
+  border-right: 2px solid rgba(255,255,255,0.55);
+  border-top-right-radius: 1rem;
+}
+.court-card::after {
+  bottom: -1px; left: -1px;
+  border-bottom: 2px solid rgba(255,255,255,0.55);
+  border-left: 2px solid rgba(255,255,255,0.55);
+  border-bottom-left-radius: 1rem;
+}
+
+/* Thin white divider line with center notch, like a net line */
+.court-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  position: relative;
+}
+.court-divider::after {
+  content: '';
+  position: absolute;
+  top: -2px; right: 50%;
+  width: 5px; height: 5px;
+  transform: translateX(50%) rotate(45deg);
+  background: rgba(255,255,255,0.5);
+}
+
+/* Section title with sideline rules */
+.court-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.court-title::before, .court-title::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22));
+}
+.court-title::after {
+  background: linear-gradient(90deg, rgba(255,255,255,0.22), transparent);
+}
+
+/* Menu opening: items spring in one after another */
+@keyframes menu-pop-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.menu-pop-item {
+  animation: menu-pop-in 0.32s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+.menu-pop-1 { animation-delay: 0.02s; }
+.menu-pop-2 { animation-delay: 0.06s; }
+.menu-pop-3 { animation-delay: 0.10s; }
+.menu-pop-4 { animation-delay: 0.14s; }
+.menu-pop-5 { animation-delay: 0.18s; }
+.menu-pop-6 { animation-delay: 0.22s; }
+.menu-pop-7 { animation-delay: 0.26s; }
+.menu-pop-8 { animation-delay: 0.30s; }
+
+/* Backdrop for menus: quick fade */
+@keyframes menu-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.menu-fade {
+  animation: menu-fade-in 0.22s ease-out both;
+}
+
+/* Padel court outline watermark for hero sections */
+.court-watermark {
+  position: relative;
+  overflow: hidden;
+}
+.court-watermark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.10;
+  background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'%3E%3Crect x='10' y='10' width='180' height='280' fill='none' stroke='white' stroke-width='3'/%3E%3Cline x1='10' y1='150' x2='190' y2='150' stroke='white' stroke-width='3'/%3E%3Cline x1='100' y1='10' x2='100' y2='290' stroke='white' stroke-width='2'/%3E%3Crect x='55' y='90' width='90' height='120' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+}

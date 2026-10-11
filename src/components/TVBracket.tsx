@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Crown } from 'lucide-react';
 
 export interface BracketMatch {
   id: string;
@@ -20,7 +20,7 @@ interface TVBracketProps {
 export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
   if (matches.length === 0) {
     return (
-      <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-8 text-center">
+      <div className="court-card p-8 text-center">
         <Trophy className="w-10 h-10 mx-auto text-slate-600 mb-3" />
         <p className="text-slate-400 text-sm">هنوز جدولی ساخته نشده است.</p>
       </div>
@@ -36,9 +36,9 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
   const sortedRounds = Array.from(rounds.entries()).sort((a, b) => a[0] - b[0]);
 
   return (
-    <div className="rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-b from-[#0d1420] to-[#080d16]">
+    <div className="court-card">
       {/* TV-style header */}
-      <div className="bg-gradient-to-l from-[#ff2d55]/20 via-[#ff2d55]/10 to-transparent border-b border-white/10 px-6 py-4">
+      <div className="court-watermark rounded-t-2xl bg-gradient-to-l from-[#ff2d55]/15 via-white/[0.03] to-transparent border-b border-white/10 px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#ff2d55] flex items-center justify-center shadow-lg shadow-[#ff2d55]/30">
             <Trophy className="w-5 h-5 text-white" />
@@ -55,7 +55,7 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
       </div>
 
       {/* Bracket */}
-      <div className="p-6 overflow-x-auto bg-[radial-gradient(ellipse_at_center,rgba(255,45,85,0.03)_0%,transparent_70%)]">
+      <div className="p-6 overflow-x-auto rounded-b-2xl bg-[radial-gradient(ellipse_at_center,rgba(255,45,85,0.03)_0%,transparent_70%)]">
         <div className="flex gap-6 min-w-max">
           {sortedRounds.map(([roundNum, roundMatches], roundIdx) => (
             <div key={roundNum} className="flex flex-col gap-6 min-w-[240px]">
@@ -72,7 +72,7 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                 {roundMatches.map((m) => (
                   <div
                     key={m.id}
-                    className="rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.03] border border-white/15 overflow-hidden hover:border-[#ff2d55]/40 hover:shadow-lg hover:shadow-[#ff2d55]/10 transition-all duration-300"
+                    className="rounded-2xl bg-white/[0.04] border border-white/10 overflow-hidden hover:border-[#ff2d55]/40 hover:shadow-lg hover:shadow-[#ff2d55]/10 transition-all duration-300"
                   >
                     {/* Team 1 */}
                     <div
@@ -83,7 +83,7 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                       }`}
                     >
                       <span className={`text-sm font-black ${m.winner === m.team1 ? 'text-emerald-300' : 'text-slate-100'}`}>
-                        {m.winner === m.team1 && '🏆 '}{m.team1}
+                        {m.winner === m.team1 && <Crown className="w-3.5 h-3.5 inline-block ml-1 -mt-0.5" />}{m.team1}
                       </span>
                       {m.score1 !== undefined && (
                         <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${
@@ -104,7 +104,7 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                       }`}
                     >
                       <span className={`text-sm font-black ${m.winner === m.team2 ? 'text-emerald-300' : 'text-slate-100'}`}>
-                        {m.winner === m.team2 && '🏆 '}{m.team2}
+                        {m.winner === m.team2 && <Crown className="w-3.5 h-3.5 inline-block ml-1 -mt-0.5" />}{m.team2}
                       </span>
                       {m.score2 !== undefined && (
                         <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${

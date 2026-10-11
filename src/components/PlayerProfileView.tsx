@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
+import { AuthModal } from './AuthModal';
 import { PlayingHand, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
@@ -26,6 +27,7 @@ import {
   History
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
+import { Badges } from './Badges';
 
 const PALETTE_COLORS = [
   { name: 'قرمز ولت', hex: '#ff2d55' },
@@ -51,6 +53,32 @@ export const PlayerProfileView: React.FC = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Auth gate: anonymous visitors must not see or edit any profile
+  // (local residue included). Matches the native-app login gate in App.tsx.
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#ff2d55]/15 border border-[#ff2d55]/30 flex items-center justify-center mb-4">
+          <User className="w-8 h-8 text-[#ff2d55]" />
+        </div>
+        <h2 className="text-lg font-black text-slate-100 mb-2">پروفایل من</h2>
+        <p className="text-sm text-slate-400 leading-relaxed mb-6">
+          برای دیدن و ویرایش پروفایلت وارد شو
+          <br />
+          <span className="text-xs text-slate-500">رزروها، تاریخچه و مشخصاتت روی سرور ذخیره می‌شن</span>
+        </p>
+        <button
+          onClick={() => setAuthModalOpen(true)}
+          className="px-8 py-3 rounded-xl bg-[#ff2d55] text-white font-bold text-sm shadow-[0_0_24px_rgba(255,45,85,0.4)] active:scale-95 transition"
+        >
+          ورود / ثبت‌نام
+        </button>
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      </div>
+    );
+  }
 
   // Form State
   const [name, setName] = useState(playerProfile.name);
@@ -620,6 +648,11 @@ export const PlayerProfileView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* نشان‌های من — monthly challenges + collectible badges.
+          Mounted below all profile content, only reachable for signed-in
+          users because the anonymous auth gate above returns early. */}
+      <Badges />
 
     </div>
   );

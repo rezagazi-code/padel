@@ -49,7 +49,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto menu-fade">
       <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-5 text-xs">
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2.5">
@@ -94,11 +94,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.04] border border-white/10">
-              {(['signin', 'signup'] as const).map((m) => (
+              {(['signin', 'signup'] as const).map((m, idx) => (
                 <button
                   key={m}
                   onClick={() => { setMode(m); setError(null); setNotice(null); }}
-                  className={`py-2.5 rounded-xl font-black transition ${mode === m ? 'bg-[#ff2d55] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                  className={`py-2.5 rounded-xl font-black transition menu-pop-item menu-pop-${(idx % 8) + 1} ${mode === m ? 'bg-[#ff2d55] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
                 >
                   {m === 'signin' ? 'ورود' : 'ثبت‌نام'}
                 </button>

@@ -77,7 +77,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     <div className="space-y-4">
       
       {/* Title & Info Bar */}
-      <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-white/10">
+      <div className="flex items-center justify-between flex-wrap gap-2 pb-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40">
             <Trophy className="w-4 h-4" />
@@ -96,6 +96,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
         )}
       </div>
 
+      <div className="court-divider" />
+
       {/* Modern Grid Bracket Display */}
       <div className="overflow-x-auto pb-4 pt-2">
         <div className="min-w-[650px] grid grid-cols-2 gap-8 relative">
@@ -111,8 +113,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
             </div>
 
             <div className="space-y-6 relative">
-              {semiMatches.map((match, idx) => {
-                const isFinished = match.status === 'completed';
+              {semiMatches.map((match) => {
                 const team1Win = match.team1?.isWinner;
                 const team2Win = match.team2?.isWinner;
 
@@ -120,12 +121,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                   <div
                     key={match.id}
                     onClick={() => handleOpenEdit(match)}
-                    className={`relative rounded-2xl border transition-all p-3.5 shadow-md ${
-                      canManage ? 'cursor-pointer hover:border-[#ff2d55]/60/70 hover:bg-white/[0.05]' : ''
-                    } ${
-                      isFinished
-                        ? 'bg-white/[0.06] border-white/10'
-                        : 'bg-white/[0.06] border-white/10'
+                    className={`court-card p-3.5 transition-all ${
+                      canManage ? 'cursor-pointer' : ''
                     }`}
                   >
                     {/* Header info */}
@@ -144,8 +141,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     <div
                       className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition ${
                         team1Win
-                          ? 'bg-emerald-500/15 border border-emerald-500/40 text-slate-100 font-black'
-                          : 'bg-white/[0.04] text-slate-400'
+                          ? 'bg-emerald-500/10 border-r-2 border-r-emerald-400 text-slate-100 font-black'
+                          : 'bg-white/[0.03] text-slate-400'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -176,8 +173,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     <div
                       className={`flex items-center justify-between p-2 rounded-xl transition ${
                         team2Win
-                          ? 'bg-emerald-500/15 border border-emerald-500/40 text-slate-100 font-black'
-                          : 'bg-white/[0.04] text-slate-400'
+                          ? 'bg-emerald-500/10 border-r-2 border-r-emerald-400 text-slate-100 font-black'
+                          : 'bg-white/[0.03] text-slate-400'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -232,13 +229,18 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
             {finalMatch ? (
               <div
                 onClick={() => handleOpenEdit(finalMatch)}
-                className={`relative rounded-3xl border transition-all p-5 shadow-2xl bg-gradient-to-b from-white/[0.06] to-white/[0.03] ${
-                  canManage ? 'cursor-pointer hover:border-amber-400' : ''
-                } ${
-                  finalMatch.status === 'completed'
-                    ? 'border-amber-500/70 ring-2 ring-amber-500/20'
-                    : 'border-white/10'
+                className={`court-card p-5 transition-all ${
+                  canManage ? 'cursor-pointer' : ''
                 }`}
+                style={
+                  finalMatch.status === 'completed'
+                    ? {
+                        borderColor: 'rgba(251,191,36,0.55)',
+                        boxShadow:
+                          '0 0 44px -10px rgba(251,191,36,0.35), 0 10px 30px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
+                      }
+                    : undefined
+                }
               >
                 {/* Finalist Header */}
                 <div className="flex items-center justify-between text-[11px] pb-3 border-b border-white/10 mb-3">
@@ -256,8 +258,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                 <div
                   className={`flex items-center justify-between p-3 rounded-2xl mb-2 transition ${
                     finalMatch.team1?.isWinner
-                      ? 'bg-amber-500/20 border border-amber-500/50 text-slate-100 font-black'
-                      : 'bg-white/[0.05] text-slate-300'
+                      ? 'bg-amber-500/10 border-r-2 border-r-amber-400 text-slate-100 font-black'
+                      : 'bg-white/[0.04] text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -288,8 +290,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                 <div
                   className={`flex items-center justify-between p-3 rounded-2xl transition ${
                     finalMatch.team2?.isWinner
-                      ? 'bg-amber-500/20 border border-amber-500/50 text-slate-100 font-black'
-                      : 'bg-white/[0.05] text-slate-300'
+                      ? 'bg-amber-500/10 border-r-2 border-r-amber-400 text-slate-100 font-black'
+                      : 'bg-white/[0.04] text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -344,7 +346,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
       {/* Edit Match Score Modal for Authorized Admins */}
       {editingMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white/[0.05] border border-white/10 p-6 shadow-2xl space-y-4 text-xs">
+          <div className="w-full max-w-md court-card p-6 space-y-4 text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-[#ff6b81]" />

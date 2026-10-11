@@ -5,6 +5,7 @@ import GradeBadge from './GradeBadge';
 import { levelToGrade, SKILL_GRADES, GRADE_MIDPOINT, gradeBandFa, type SkillGrade } from '../utils/skillGrades';
 import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
+import { OfficialTournamentPredictions } from './Predictions';
 import { ConfirmDialog } from './ConfirmDialog';
 import { toJalaliDisplay } from '../utils/dates';
 import {
@@ -185,7 +186,8 @@ export const TournamentsView: React.FC = () => {
     <div className="space-y-6 pb-12">
       
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#ff2d55]/12 via-white/[0.03] to-[#2f7bff]/12 border border-white/10 p-6 sm:p-8 relative overflow-hidden">
+      <div className="court-card">
+        <div className="court-watermark relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#ff2d55]/10 via-white/[0.02] to-[#2f7bff]/10 p-6 sm:p-8">
         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -279,6 +281,7 @@ export const TournamentsView: React.FC = () => {
               ))}
             </select>
           </div>
+          </div>
         </div>
       </div>
 
@@ -293,11 +296,11 @@ export const TournamentsView: React.FC = () => {
             return (
               <div
                 key={tourn.id}
-                className={`rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden hover:border-white/10 transition space-y-4 shadow-lg flex flex-col justify-between ${riseClass}`}
+                className={`court-card flex flex-col justify-between space-y-4 ${riseClass}`}
               >
                 <div>
                   {/* Tournament Banner Cover */}
-                  <div className="relative h-44 w-full overflow-hidden">
+                  <div className="relative h-44 w-full overflow-hidden rounded-t-2xl">
                     <img
                       src={tourn.bannerImage}
                       alt={tourn.title}
@@ -434,7 +437,8 @@ export const TournamentsView: React.FC = () => {
                   </div>
 
                   {/* Toggle Bracket Display Button */}
-                  <div className="pt-2 border-t border-white/50 flex items-center justify-between">
+                  <div className="court-divider" />
+                  <div className="pt-1 flex items-center justify-between">
                     <button
                       onClick={() =>
                         setExpandedBracketTournId(
@@ -463,7 +467,8 @@ export const TournamentsView: React.FC = () => {
 
                   {/* Collapsible Tournament Bracket UI */}
                   {expandedBracketTournId === tourn.id && (
-                    <div className="pt-3 border-t border-white/10">
+                    <div className="space-y-4">
+                      <div className="court-divider" />
                       <TournamentBracket
                         bracket={tourn.bracket}
                         canManage={canManageTournament(tourn)}
@@ -471,6 +476,10 @@ export const TournamentsView: React.FC = () => {
                           updateTournamentBracketMatch(tourn.id, matchId, winnerId, score)
                         }
                         tournamentTitle={tourn.title}
+                      />
+                      <OfficialTournamentPredictions
+                        tournament={tourn}
+                        defaultName={playerProfile.name}
                       />
                     </div>
                   )}
@@ -484,7 +493,7 @@ export const TournamentsView: React.FC = () => {
 
       {/* Sub-Tab 2: Official Rankings Table */}
       {activeTab === 'rankings' && (
-        <div className="rounded-3xl bg-white/[0.06] border border-white/10 overflow-hidden shadow-xl">
+        <div className="court-card">
           
           <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -504,6 +513,7 @@ export const TournamentsView: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
+            <div className="rounded-b-2xl overflow-hidden">
             <table className="w-full text-right text-xs">
               <thead className="bg-white/[0.05] text-slate-500 font-bold border-b border-white/10">
                 <tr>
@@ -620,6 +630,7 @@ export const TournamentsView: React.FC = () => {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
 
         </div>

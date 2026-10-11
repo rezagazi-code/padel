@@ -25,7 +25,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-y-auto menu-fade">
       <div className="relative w-full max-w-2xl rounded-3xl bg-white/[0.05] border border-white/10 p-6 sm:p-8 shadow-[0_20px_70px_rgba(0,0,0,0.8)] my-8 space-y-6 text-right text-xs">
         
         {/* Glow ambient */}
@@ -75,7 +75,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-cyan-500/40 transition">
+            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-cyan-500/40 transition menu-pop-item menu-pop-1">
               <span className="font-bold text-slate-100 block text-xs">Vercel (پیشنهادی)</span>
               <p className="text-[11px] text-slate-500 leading-tight">
                 اتصال مستقیم به گیت‌هاب، دپلوی اتوماتیک با CDN جهانی و دامنه رایگان HTTPS.
@@ -83,7 +83,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
               <span className="inline-block text-[10px] font-mono text-cyan-400">vercel.com</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-[#ff2d55]/60/40 transition">
+            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-[#ff2d55]/60/40 transition menu-pop-item menu-pop-2">
               <span className="font-bold text-slate-100 block text-xs">Netlify</span>
               <p className="text-[11px] text-slate-500 leading-tight">
                 پشتیبانی از فرم‌ها، عملکرد بدون سرور (Serverless) و آپ‌تایم ۹۹.۹۹٪ رایگان.
@@ -91,7 +91,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
               <span className="inline-block text-[10px] font-mono text-[#ff6b81]">netlify.com</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-amber-500/40 transition">
+            <div className="p-3 rounded-xl bg-white/[0.05] border border-white/10 space-y-1.5 hover:border-amber-500/40 transition menu-pop-item menu-pop-3">
               <span className="font-bold text-slate-100 block text-xs">Supabase (دیتابیس ابری)</span>
               <p className="text-[11px] text-slate-500 leading-tight">
                 پایگاه داده PostgreSQL بلادرنگ و احراز هویت رایگان با ۵۰۰ مگابایت حافظه دائمی.
@@ -115,7 +115,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             {/* Android */}
-            <div className="p-3.5 rounded-xl bg-white/[0.05] border border-white/10 space-y-2">
+            <div className="p-3.5 rounded-xl bg-white/[0.05] border border-white/10 space-y-2 menu-pop-item menu-pop-1">
               <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs">
                 <Smartphone className="w-4 h-4" />
                 <span>نسخه اندروید (Android APK / PWA)</span>
@@ -131,7 +131,7 @@ export const CloudExportModal: React.FC<CloudExportModalProps> = ({ isOpen, onCl
             </div>
 
             {/* iOS */}
-            <div className="p-3.5 rounded-xl bg-white/[0.05] border border-white/10 space-y-2">
+            <div className="p-3.5 rounded-xl bg-white/[0.05] border border-white/10 space-y-2 menu-pop-item menu-pop-2">
               <div className="flex items-center gap-2 text-sky-400 font-bold text-xs">
                 <Apple className="w-4 h-4" />
                 <span>نسخه آیفون (iOS WebApp / IPA)</span>

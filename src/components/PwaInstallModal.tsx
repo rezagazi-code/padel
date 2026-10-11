@@ -20,7 +20,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-y-auto menu-fade">
       <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-5 text-xs text-right animate-in fade-in zoom-in-95 duration-200">
         
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -54,7 +54,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
         )}
 
         {/* Instructions for Android Chrome */}
-        <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2.5">
+        <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2.5 menu-pop-item menu-pop-1">
           <h4 className="font-bold text-slate-100 flex items-center gap-1.5 text-xs">
             <Download className="w-4 h-4 text-[#ff6b81]" />
             روش نصب در گوشی‌های اندروید (Chrome / Samsung):
@@ -67,7 +67,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Instructions for iPhone / iOS */}
-        <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2.5">
+        <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2.5 menu-pop-item menu-pop-2">
           <h4 className="font-bold text-slate-100 flex items-center gap-1.5 text-xs">
             <Share2 className="w-4 h-4 text-cyan-400" />
             روش نصب در آیفون (iOS Safari):
@@ -81,11 +81,11 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
 
         {/* App benefits */}
         <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 pt-1">
-          <div className="flex items-center gap-1.5 bg-white/[0.05] p-2 rounded-xl border border-white/10">
+          <div className="flex items-center gap-1.5 bg-white/[0.05] p-2 rounded-xl border border-white/10 menu-pop-item menu-pop-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-[#ff6b81]" />
             <span>اجرای تمام‌صفحه بدون نوار آدرس</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white/[0.05] p-2 rounded-xl border border-white/10">
+          <div className="flex items-center gap-1.5 bg-white/[0.05] p-2 rounded-xl border border-white/10 menu-pop-item menu-pop-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-[#ff6b81]" />
             <span>کش آفلاین و باز شدن پرسرعت</span>
           </div>

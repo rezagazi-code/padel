@@ -20,12 +20,15 @@ import {
   Sun,
   Moon,
   Info,
-  Trash2
+  Trash2,
+  Wallet
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { fetchBookedTimeSlots } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
+import { saveDongiRecord } from '../lib/dongi';
+import { DongiPanel } from './DongiPanel';
 
 interface CourtBookingViewProps {
   onOpenClubOwnerModal: () => void;
@@ -39,6 +42,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     deleteClub,
     currentUserRole,
     playerProfile,
+    freeAgents,
     selectedProvince,
     setSelectedProvince
   } = usePadel();
@@ -81,6 +85,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [duration, setDuration] = useState<number>(90); // 60, 90, 120
   const [splitPayment, setSplitPayment] = useState<boolean>(true);
+  // «دنگی» split-cost tagging (stored in padelpro:dongi:v1, additive to bookings)
+  const [dongiEnabled, setDongiEnabled] = useState<boolean>(false);
+  const [dongiNames, setDongiNames] = useState<string[]>(['', '', '']);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [needsExtraPlayers, setNeedsExtraPlayers] = useState<boolean>(false);
   const [playersNeededCount, setPlayersNeededCount] = useState<number>(1);
@@ -181,6 +188,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const totalPrice = Math.round((baseRate * duration) / 60);
   const splitPrice = Math.round(totalPrice / 4);
 
+  // «دنگی» per-person share: booker + tagged teammates split the full total.
+  const dongiOthers = dongiNames
+    .map((n) => n.trim())
+    .filter(Boolean)
+    .filter((n) => n !== playerProfile.name);
+  const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
+
   const handleConfirmBooking = async () => {
     if (!currentClub || !currentCourt) return;
     setBookingError(null);
@@ -212,6 +226,23 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     setLastBookingInfo(newBooking);
     setShowConfirmationModal(true);
 
+    // Additive «دنگی» ledger entry — never touches the booking itself.
+    if (dongiEnabled) {
+      const names = [playerProfile.name, ...dongiOthers];
+      const perPerson = Math.round(totalPrice / Math.max(1, names.length));
+      saveDongiRecord({
+        bookingId: newBooking.id,
+        total: totalPrice,
+        paidBy: playerProfile.name,
+        clubName: newBooking.clubName,
+        courtName: newBooking.courtName,
+        date: newBooking.date,
+        timeSlot: newBooking.timeSlot,
+        shares: names.map((name, idx) => ({ name, amount: perPerson, paid: idx === 0 })),
+      });
+      setDongiNames(['', '', '']);
+    }
+
     try {
     } catch {
       // safe fallback
@@ -221,8 +252,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   return (
     <div className="space-y-6 pb-12">
       
-      {/* Hero — Midnight Volt */}
-      <div className="relative overflow-hidden rounded-[2rem] grad-border">
+      {/* Hero — Midnight Volt, court-lines watermark */}
+      <div className="relative overflow-hidden rounded-[2rem] grad-border court-watermark">
         <img
           src="/hero-court.jpg"
           alt="زمین پدل"
@@ -259,20 +290,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           </div>
         </div>
 
-        {/* Province Filter Pills */}
+        {/* Province Filter — the core org model (central onboarding per province) */}
         <div className="relative z-10 px-6 sm:px-10 py-4 border-t border-white/10 bg-black/40 backdrop-blur-md flex items-center gap-2 overflow-x-auto scrollbar-none">
-          <span className="text-xs font-semibold text-slate-500 flex items-center gap-1 shrink-0 ml-2">
-            <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
-            استان:
+          <span className="text-xs font-black text-slate-300 flex items-center gap-1.5 shrink-0 ml-2">
+            <MapPin className="w-4 h-4 text-[#ff6b81]" />
+            فیلتر استان:
           </span>
           {PROVINCES_LIST.map((prov) => (
             <button
               key={prov}
               onClick={() => setSelectedProvince(prov)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition cursor-pointer chip ${
-                selectedProvince === prov
-                  ? 'btn-fire shadow-[0_2px_12px_rgba(255,45,85,0.4)]'
-                  : 'bg-white/[0.05] text-slate-400 hover:bg-white/10 border border-white/10'
+              className={`chip px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 cursor-pointer ${
+                selectedProvince === prov ? 'chip-on' : ''
               }`}
             >
               {prov}
@@ -286,12 +315,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         
         {/* Left Column: Clubs List (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#ff6b81]" />
-              باشگاه‌های منتخب ({filteredClubs.length})
+          <div className="space-y-1">
+            <h2 className="court-title text-base font-black text-slate-100">
+              <span className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#ff6b81]" />
+                باشگاه‌های منتخب ({filteredClubs.length})
+              </span>
             </h2>
-            <span className="text-xs text-slate-500">کورت‌های دارای مجوز</span>
+            <p className="text-xs text-slate-500">کورت‌های دارای مجوز</p>
           </div>
 
           <div className="space-y-3">
@@ -306,10 +337,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       setSelectedCourtId(club.courts[0].id);
                     }
                   }}
-                  className={`group relative overflow-hidden rounded-2xl p-4 transition cursor-pointer border ${
+                  className={`court-card group overflow-hidden p-4 transition cursor-pointer ${
                     isSelected
-                      ? 'bg-white/[0.06] border-[#ff2d55]/60 shadow-[0_0_20px_rgba(255,45,85,0.15)] ring-1 ring-[#a3e635]'
-                      : 'bg-white/[0.05] border-white/10 hover:border-white/10 hover:bg-white/[0.04]'
+                      ? 'border-[#ff2d55]/60 shadow-[0_0_20px_rgba(255,45,85,0.15)] ring-1 ring-[#a3e635]'
+                      : 'hover:border-white/25'
                   }`}
                 >
                   <div className="flex gap-3">
@@ -334,9 +365,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         {club.city}
                       </p>
 
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[#ff2d55]/15 text-[#ff6b81] border border-[#ff2d55]/60/30">
                           {club.courtsCount} کورت فعال
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/[0.06] text-slate-400 border border-white/15 flex items-center gap-1">
+                          <MapPin className="w-2.5 h-2.5 text-[#6ea8ff]" />
+                          {club.province}
                         </span>
                         <span className="text-[11px] text-slate-500 font-medium">
                           ساعت کار: {club.openingHour} الی {club.closingHour}
@@ -355,7 +390,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           
           {/* Selected Club Details Card */}
           {currentClub && (
-            <div className="rounded-3xl bg-white/[0.05] border border-white/10 p-6 space-y-6">
+            <div className="court-card p-6 space-y-6">
               
               {/* Club Header Info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
@@ -365,6 +400,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3" />
                       تایید رسمی
+                    </span>
+                    <span className="chip rounded-full text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-[#6ea8ff]" />
+                      {currentClub.province}
                     </span>
                     {currentUserRole === 'super_admin' && (
                       <button
@@ -391,7 +430,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Amenities Tags */}
               <div>
-                <span className="text-xs font-bold text-slate-500 block mb-2">امکانات ویژه باشگاه:</span>
+                <div className="court-title text-xs font-bold text-slate-400 mb-2">
+                  <span>امکانات ویژه باشگاه</span>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {currentClub.amenities.map((am, idx) => (
                     <span
@@ -407,9 +448,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Court Selection Tabs */}
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-2">
-                  ۱. انتخاب زمین مورد نظر ({currentClub.courts.length} زمین):
-                </label>
+                <div className="court-title text-xs font-bold text-slate-400 mb-2">
+                  <span>۱. انتخاب زمین مورد نظر ({currentClub.courts.length} زمین)</span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {currentClub.courts.map((court) => {
                     const isCourtSelected = court.id === currentCourt?.id;
@@ -445,9 +486,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Date Selection Horizontal Bar */}
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-2">
-                  ۲. انتخاب روز رزرو:
-                </label>
+                <div className="court-title text-xs font-bold text-slate-400 mb-2">
+                  <span>۲. انتخاب روز رزرو</span>
+                </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                   {daysList.map((d, index) => {
                     const isDateSelected = d.raw === selectedDate.raw;
@@ -471,9 +512,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Duration Toggle: 60, 90, 120 mins */}
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-2">
-                  ۳. مدت زمان سانس بازی:
-                </label>
+                <div className="court-title text-xs font-bold text-slate-400 mb-2">
+                  <span>۳. مدت زمان سانس بازی</span>
+                </div>
                 <div className="inline-flex p-1 rounded-xl bg-white/[0.04] border border-white/10 gap-1">
                   {[
                     { mins: 60, label: '۶۰ دقیقه' },
@@ -497,9 +538,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
               {/* Time Slots Grid */}
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-2">
-                  ۴. انتخاب سانس ساعت:
-                </label>
+                <div className="court-title text-xs font-bold text-slate-400 mb-2">
+                  <span>۴. انتخاب سانس ساعت</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {timeSlots.map((slot, index) => {
                     const isSlotSelected = selectedTimeSlot === slot.time;
@@ -598,8 +639,92 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 )}
               </div>
 
+              {/* «دنگی» — tag teammates so each person's share lands in the ledger */}
+              <div className="rounded-2xl bg-[#ff2d55]/[0.05] border border-[#ff2d55]/25 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-[#ff6b81]" />
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-100">«دنگی» — تقسیم هزینه بین هم‌بازی‌ها</h4>
+                      <p className="text-xs text-slate-500">
+                        نام هم‌بازی‌ها را ثبت کنید تا سهم هر نفر در «حساب دنگی» ذخیره شود؛ شما پرداخت‌کننده‌ی کل مبلغ هستید.
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={dongiEnabled}
+                      onChange={(e) => setDongiEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff2d55]"></div>
+                  </label>
+                </div>
+
+                {dongiEnabled && (
+                  <div className="pt-3 border-t border-white/10 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {dongiNames.map((name, idx) => (
+                        <input
+                          key={idx}
+                          value={name}
+                          onChange={(e) =>
+                            setDongiNames((prev) => {
+                              const next = [...prev];
+                              next[idx] = e.target.value;
+                              return next;
+                            })
+                          }
+                          placeholder={`نام هم‌بازی ${['۱', '۲', '۳'][idx]}`}
+                          className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-3 py-2 text-xs font-bold text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#ff2d55]/60"
+                        />
+                      ))}
+                    </div>
+
+                    {freeAgents.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] text-slate-500">افزودن سریع از بازیکن‌های آزاد:</span>
+                        {freeAgents.slice(0, 6).map((agent) => {
+                          const used =
+                            agent.name === playerProfile.name || dongiOthers.includes(agent.name);
+                          const noSlot = !dongiNames.some((n) => !n.trim());
+                          return (
+                            <button
+                              key={agent.id}
+                              disabled={used || noSlot}
+                              onClick={() =>
+                                setDongiNames((prev) => {
+                                  const next = [...prev];
+                                  const slot = next.findIndex((n) => !n.trim());
+                                  if (slot >= 0) next[slot] = agent.name;
+                                  return next;
+                                })
+                              }
+                              className="chip rounded-lg px-2.5 py-1 text-[11px] font-bold cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                            >
+                              {agent.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <p className="text-[11px] text-slate-400">
+                      سهم هر نفر:{' '}
+                      <span className="font-black text-[#ff6b81]">
+                        {dongiPerPerson.toLocaleString('fa-IR')} تومان
+                      </span>{' '}
+                      ({1 + dongiOthers.length} نفر)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="court-divider" />
+
               {/* Checkout Calculation & Confirmation */}
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 
                 {/* Payment Breakdown */}
                 <div>
@@ -664,6 +789,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
       </div>
 
+      {/* حساب دنگی — running split-cost ledger under the booking area */}
+      <div id="dongi-panel" className="pp-rise">
+        <DongiPanel />
+      </div>
+
       {/* Booking Confirmation Receipt Modal */}
       {showConfirmationModal && lastBookingInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
@@ -678,7 +808,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             </div>
 
             {/* Receipt Summary Box */}
-            <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-3 text-xs">
+            <div className="court-card p-4 space-y-3 text-xs">
               <div className="flex justify-between text-slate-400">
                 <span className="text-slate-500">کد پیگیری:</span>
                 <span className="font-mono text-cyan-400 font-bold">{lastBookingInfo.id}</span>

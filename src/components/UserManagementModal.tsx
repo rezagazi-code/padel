@@ -71,7 +71,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto menu-fade">
       <div className="glass-strong rounded-3xl border border-white/10 p-6 w-full max-w-2xl space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-slate-100">مدیریت کاربران</h2>
@@ -88,10 +88,10 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
           <p className="text-slate-400 text-center py-8">کاربری یافت نشد.</p>
         ) : (
           <div className="space-y-2">
-            {users.map((u) => (
+            {users.map((u, idx) => (
               <div
                 key={u.id}
-                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10"
+                className={`flex items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 menu-pop-item menu-pop-${(idx % 8) + 1}`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-slate-200 truncate">{u.name || 'بدون نام'}</p>

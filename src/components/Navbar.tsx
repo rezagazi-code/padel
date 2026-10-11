@@ -92,14 +92,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Desktop Navigation Tabs */}
           <nav className="hidden lg:flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/10 shadow-inner">
-            {navItems.map((item) => {
+            {navItems.map((item, idx) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer nav-link ${
+                  className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer nav-link menu-pop-item menu-pop-${(idx % 8) + 1} ${
                     isActive
                       ? 'nav-active font-bold'
                       : 'text-slate-400 hover:text-slate-100'
@@ -219,14 +219,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Bottom Navigation Bar (Always visible on mobile screens) */}
       <div className="mobile-nav-bar lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0f1c]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2 shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-around">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer relative nav-link ${
+                className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer relative nav-link menu-pop-item menu-pop-${(idx % 8) + 1} ${
                   isActive ? 'text-white mobile-nav-dot' : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
