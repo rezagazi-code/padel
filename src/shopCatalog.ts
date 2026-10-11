@@ -12,6 +12,7 @@ export const SHOP_LAST_UPDATED = '۲۱ مهر ۱۴۰۵';
 export const SHOP_CATALOG: ShopProduct[] = [
   {
     id: 'shop-dunlop-dunlop-boost-2-0-1',
+    image: '/shop/shop-dunlop-dunlop-boost-2-0-1.jpg',
     name: 'راکت پدل Dunlop Boost 2.0',
     brand: 'Dunlop',
     category: 'racket',
@@ -23,6 +24,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-x-one-casual-2025-2',
+    image: '/shop/shop-nox-nox-x-one-casual-2025-2.jpg',
     name: 'راکت پدل Nox X-One Casual 2025',
     brand: 'Nox',
     category: 'racket',
@@ -32,6 +34,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-evo-speed-2025-3',
+    image: '/shop/shop-head-head-evo-speed-2025-3.jpg',
     name: 'راکت پدل Head EVO Speed 2025',
     brand: 'Head',
     category: 'racket',
@@ -41,6 +44,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-vibe-2026-4',
+    image: '/shop/shop-head-head-vibe-2026-4.jpg',
     name: 'راکت پدل Head Vibe 2026',
     brand: 'Head',
     category: 'racket',
@@ -50,6 +54,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-item-5',
+    image: '/shop/shop-item-5.jpg',
     name: 'راکت پدل کارکرده (دیوار زعفرانیه)',
     brand: 'متفرقه',
     category: 'racket',
@@ -59,6 +64,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-oxdog-oxdog-ultimate-court-202-6',
+    image: '/shop/shop-oxdog-oxdog-ultimate-court-202-6.jpg',
     name: 'راکت پدل Oxdog Ultimate Court 2026',
     brand: 'Oxdog',
     category: 'racket',
@@ -68,6 +74,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-extreme-one-2025-7',
+    image: '/shop/shop-head-head-extreme-one-2025-7.jpg',
     name: 'راکت پدل Head Extreme One 2025',
     brand: 'Head',
     category: 'racket',
@@ -77,6 +84,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-at10-pro-cup-hard-2026-8',
+    image: '/shop/shop-nox-nox-at10-pro-cup-hard-2026-8.jpg',
     name: 'راکت پدل Nox AT10 Pro Cup Hard 2026',
     brand: 'Nox',
     category: 'racket',
@@ -86,6 +94,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-at10-genius-18k-2024-9',
+    image: '/shop/shop-nox-nox-at10-genius-18k-2024-9.jpg',
     name: 'راکت پدل Nox AT10 Genius 18K 2024',
     brand: 'Nox',
     category: 'racket',
@@ -95,6 +104,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-extreme-one-x-2025-10',
+    image: '/shop/shop-head-head-extreme-one-x-2025-10.jpg',
     name: 'راکت پدل Head Extreme One X 2025',
     brand: 'Head',
     category: 'racket',
@@ -104,6 +114,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-bullpadel-bullpadel-vertex-05--11',
+    image: '/shop/shop-bullpadel-bullpadel-vertex-05--11.jpg',
     name: 'راکت پدل Bullpadel Vertex 05 W 2026',
     brand: 'Bullpadel',
     category: 'racket',
@@ -113,6 +124,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-at10-luxury-genius-18k-12',
+    image: '/shop/shop-nox-nox-at10-luxury-genius-18k-12.jpg',
     name: 'راکت پدل Nox AT10 Luxury Genius 18K',
     brand: 'Nox',
     category: 'racket',
@@ -122,6 +134,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-padel-team-13',
+    image: '/shop/shop-head-head-padel-team-13.jpg',
     name: 'توپ پدل Head Padel Team (بسته ۳ عددی)',
     brand: 'Head',
     category: 'balls',
@@ -131,6 +144,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-qicksand-qicksand-14',
+    image: '/shop/shop-qicksand-qicksand-14.jpg',
     name: 'توپ پدل qicksand (بسته ۳ عددی)',
     brand: 'qicksand',
     category: 'balls',
@@ -140,6 +154,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-nerbo-speed-15',
+    image: '/shop/shop-nox-nox-nerbo-speed-15.jpg',
     name: 'توپ پدل Nox Nerbo Speed',
     brand: 'Nox',
     category: 'balls',
@@ -149,6 +164,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-dunlop-dunlop-pro-padel-16',
+    image: '/shop/shop-dunlop-dunlop-pro-padel-16.jpg',
     name: 'توپ پدل Dunlop Pro Padel (بسته ۳ عددی)',
     brand: 'Dunlop',
     category: 'balls',
@@ -158,6 +174,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-asics-asics-solution-speed-ff2-17',
+    image: '/shop/shop-asics-asics-solution-speed-ff2-17.jpg',
     name: 'کفش تنیس/پدل Asics Solution Speed FF2',
     brand: 'Asics',
     category: 'shoes',
@@ -167,6 +184,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-joma-joma-18',
+    image: '/shop/shop-joma-joma-18.jpg',
     name: 'کفش تنیس/پدل Joma',
     brand: 'Joma',
     category: 'shoes',
@@ -176,6 +194,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-adidas-adidas-gamecourt-2-19',
+    image: '/shop/shop-adidas-adidas-gamecourt-2-19.jpg',
     name: 'کفش تنیس Adidas Gamecourt 2',
     brand: 'Adidas',
     category: 'shoes',
@@ -185,6 +204,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nikecourt-air-zoom-lite-3-20',
+    image: '/shop/shop-nike-nikecourt-air-zoom-lite-3-20.jpg',
     name: 'کفش تنیس NikeCourt Air Zoom Lite 3',
     brand: 'Nike',
     category: 'shoes',
@@ -194,6 +214,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-asics-asics-gel-resolution-9-21',
+    image: '/shop/shop-asics-asics-gel-resolution-9-21.jpg',
     name: 'کفش تنیس Asics Gel-Resolution 9',
     brand: 'Asics',
     category: 'shoes',
@@ -203,6 +224,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-revolt-court-22',
+    image: '/shop/shop-head-head-revolt-court-22.jpg',
     name: 'کفش تنیس Head Revolt Court',
     brand: 'Head',
     category: 'shoes',
@@ -212,6 +234,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-adidas-adidas-crazyquick-boost-23',
+    image: '/shop/shop-adidas-adidas-crazyquick-boost-23.jpg',
     name: 'کفش پدل Adidas Crazyquick Boost (زنانه)',
     brand: 'Adidas',
     category: 'shoes',
@@ -221,6 +244,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nikecourt-dri-fit-rafa-24',
+    image: '/shop/shop-nike-nikecourt-dri-fit-rafa-24.jpg',
     name: 'تیشرت تنیس NikeCourt Dri-FIT Rafa (صورتی)',
     brand: 'Nike',
     category: 'apparel',
@@ -230,6 +254,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nikecourt-dri-fit-25',
+    image: '/shop/shop-nike-nikecourt-dri-fit-25.jpg',
     name: 'تیشرت تنیس NikeCourt Dri-FIT (قرمز)',
     brand: 'Nike',
     category: 'apparel',
@@ -239,6 +264,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nike-court-victory-dri-fi-26',
+    image: '/shop/shop-nike-nike-court-victory-dri-fi-26.jpg',
     name: 'تیشرت تنیس Nike Court Victory Dri-FIT (طوسی)',
     brand: 'Nike',
     category: 'apparel',
@@ -248,6 +274,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nike-dri-fit-rafa-challen-27',
+    image: '/shop/shop-nike-nike-dri-fit-rafa-challen-27.jpg',
     name: 'تیشرت تنیس Nike Dri-FIT Rafa Challenger (نارنجی)',
     brand: 'Nike',
     category: 'apparel',
@@ -257,6 +284,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nike-nikecourt-advantage-dri-f-28',
+    image: '/shop/shop-nike-nikecourt-advantage-dri-f-28.jpg',
     name: 'شلوارک تنیس NikeCourt Advantage Dri-FIT',
     brand: 'Nike',
     category: 'apparel',
@@ -266,6 +294,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-item-29',
+    image: '/shop/shop-item-29.jpg',
     name: 'کیف تنیس و پدل (سفید/مشکی)',
     brand: 'متفرقه',
     category: 'bags',
@@ -275,6 +304,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-pro-x-court-bag-40l-30',
+    image: '/shop/shop-head-head-pro-x-court-bag-40l-30.jpg',
     name: 'ساک تنیس Head Pro X Court Bag 40L',
     brand: 'Head',
     category: 'bags',
@@ -284,6 +314,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-wilson-wilson-roland-garros-to-31',
+    image: '/shop/shop-wilson-wilson-roland-garros-to-31.jpg',
     name: 'کوله تنیس Wilson Roland Garros Tour',
     brand: 'Wilson',
     category: 'bags',
@@ -293,6 +324,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-coello-tour-padel-ba-32',
+    image: '/shop/shop-head-head-coello-tour-padel-ba-32.jpg',
     name: 'ساک پدل Head Coello Tour Padel Bag L',
     brand: 'Head',
     category: 'bags',
@@ -302,6 +334,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-vs-vs-33',
+    image: '/shop/shop-vs-vs-33.jpg',
     name: 'اورگریپ VS (تکی)',
     brand: 'VS',
     category: 'accessories',
@@ -311,6 +344,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-wilson-wilson-comfort-34',
+    image: '/shop/shop-wilson-wilson-comfort-34.jpg',
     name: 'اورگریپ Wilson Comfort (تکی)',
     brand: 'Wilson',
     category: 'accessories',
@@ -320,6 +354,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-xtreme-soft-35',
+    image: '/shop/shop-head-head-xtreme-soft-35.jpg',
     name: 'اورگریپ Head Xtreme Soft (تکی، قرمز)',
     brand: 'Head',
     category: 'accessories',
@@ -329,6 +364,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-nox-nox-pro-colors-36',
+    image: '/shop/shop-nox-nox-pro-colors-36.jpg',
     name: 'اورگریپ Nox Pro Colors',
     brand: 'Nox',
     category: 'accessories',
@@ -338,6 +374,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-head-head-xtreme-track-37',
+    image: '/shop/shop-head-head-xtreme-track-37.jpg',
     name: 'اورگریپ Head Xtreme Track (۳ عددی)',
     brand: 'Head',
     category: 'accessories',
@@ -347,6 +384,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-seed-kuikma-1',
+    image: '/shop/shop-seed-kuikma-1.jpg',
     name: 'راکت Kuikma PR Open',
     brand: 'Kuikma',
     category: 'racket',
@@ -357,6 +395,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-seed-tuyo-1',
+    image: '/shop/shop-seed-tuyo-1.jpg',
     name: 'راکت Tuyo Tyro',
     brand: 'Tuyo',
     category: 'racket',
@@ -366,6 +405,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-seed-nordic-1',
+    image: '/shop/shop-seed-nordic-1.jpg',
     name: 'راکت NORDICDOTS Fiesta',
     brand: 'NORDICDOTS',
     category: 'racket',
@@ -375,6 +415,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-seed-set-1',
+    image: '/shop/shop-seed-set-1.jpg',
     name: 'ست ۲ راکت کربن + کیف + توپ',
     brand: 'Carbon',
     category: 'racket',
@@ -385,6 +426,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
   },
   {
     id: 'shop-seed-nox-1',
+    image: '/shop/shop-seed-nox-1.jpg',
     name: 'راکت Nox Genius Ultralight',
     brand: 'Nox',
     category: 'racket',

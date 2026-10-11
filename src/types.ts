@@ -395,6 +395,8 @@ export interface ShopProduct {
   brand: string;
   category: ShopCategory;
   description?: string;
+  /** Bundled product photo path, e.g. '/shop/<id>.jpg' */
+  image?: string;
   /** offers sorted by price asc (null prices last) */
   offers: ShopOffer[];
 }

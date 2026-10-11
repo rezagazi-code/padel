@@ -665,3 +665,285 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
   0% { background-position: 120% 0; }
   60%, 100% { background-position: -120% 0; }
 }
+
+/* ============================================================
+   SHOP LIGHT THEME — pale aqua mist, glossy bubble buttons
+   (based on 2025-2026 award-winning light e-commerce patterns)
+   ============================================================ */
+
+/* Page background: aqua mist + two soft radial washes */
+.shop-bg {
+  background:
+    radial-gradient(600px 300px at 85% -5%, rgba(56, 189, 248, 0.14), transparent 70%),
+    radial-gradient(500px 260px at 8% 12%, rgba(14, 165, 233, 0.10), transparent 70%),
+    linear-gradient(180deg, #F7FBFE 0%, #F2F7FB 45%, #EDF4FA 100%);
+}
+
+/* ---- Bubble button: glossy, opaque, chic (not candy) ---- */
+.bubble-btn {
+  --btn-top: #38BDF8;
+  --btn-mid: #0EA5E9;
+  --btn-bot: #0369A1;
+  position: relative;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(1, 40, 80, 0.35);
+  background: linear-gradient(180deg, var(--btn-top) 0%, var(--btn-mid) 55%, var(--btn-bot) 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.55),
+    inset 0 -5px 10px rgba(1, 40, 80, 0.28),
+    0 8px 20px rgba(14, 165, 233, 0.35),
+    0 1px 2px rgba(1, 50, 100, 0.25);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+  border: 0;
+}
+/* gloss dome — the "bubble" read */
+.bubble-btn::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 4%;
+  left: 8%;
+  right: 8%;
+  height: 46%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.80), rgba(255, 255, 255, 0));
+}
+/* specular dot */
+.bubble-btn::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 14%;
+  left: 16%;
+  width: 26%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 70%);
+  filter: blur(1px);
+  transform: rotate(-18deg);
+}
+.bubble-btn:hover { transform: translateY(-1px) scale(1.02); }
+.bubble-btn:active {
+  transform: scale(0.95);
+  box-shadow:
+    inset 0 3px 10px rgba(1, 40, 80, 0.35),
+    0 2px 6px rgba(14, 165, 233, 0.25);
+}
+.bubble-btn:active::before { opacity: 0.35; }
+
+/* White/ghost bubble variant (icon buttons, secondary actions) */
+.bubble-ghost {
+  position: relative;
+  border-radius: 999px;
+  color: #0E1B2C;
+  font-weight: 700;
+  background: linear-gradient(180deg, #FFFFFF, #EDF4FA);
+  border: 1px solid rgba(14, 27, 44, 0.08);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.9),
+    inset 0 -3px 6px rgba(14, 27, 44, 0.08),
+    0 6px 14px rgba(14, 27, 44, 0.10);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.bubble-ghost::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 4%;
+  left: 8%;
+  right: 8%;
+  height: 46%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+}
+.bubble-ghost:active { transform: scale(0.95); }
+
+/* Slow shine sweep on primary CTAs (premium shimmer, pauses on touch) */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -120px;
+  width: 110px;
+  background: linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.35), rgba(255,255,255,0) 70%);
+  animation: btn-shine-sweep 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btn-shine-sweep {
+  0% { left: -120px; }
+  45%, 100% { left: 110%; }
+}
+.btn-shine:active::after { animation: none; opacity: 0; }
+
+/* ---- Product cards (light) ---- */
+.product-card {
+  background: #FFFFFF;
+  border-radius: 26px;
+  border: 1px solid rgba(14, 27, 44, 0.07);
+  box-shadow: 0 2px 6px rgba(14, 27, 44, 0.05), 0 14px 34px rgba(14, 27, 44, 0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.product-card:active { transform: scale(0.97); }
+.product-photo {
+  aspect-ratio: 1 / 1;
+  width: calc(100% - 16px);
+  margin: 8px 8px 0;
+  object-fit: cover;
+  background: #EAF2F8;
+  border-radius: 18px;
+  display: block;
+}
+/* gold "best price" bubble pill */
+.best-price {
+  position: absolute;
+  top: 14px;
+  inset-inline-start: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 10.5px;
+  line-height: 1.8;
+  color: #5C3D00;
+  background: linear-gradient(180deg, #FFD54F, #F5A623);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7), 0 4px 10px rgba(245, 166, 35, 0.40);
+  z-index: 2;
+}
+
+/* ---- Search pill + chips (light) ---- */
+.search-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border-radius: 999px;
+  padding: 0 18px;
+  height: 50px;
+  border: 1px solid rgba(14, 27, 44, 0.08);
+  box-shadow: inset 0 2px 6px rgba(14, 27, 44, 0.06), 0 8px 20px rgba(14, 27, 44, 0.07);
+}
+.search-pill input {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 14px;
+  color: #0E1B2C;
+  width: 100%;
+  font-family: inherit;
+}
+.search-pill input::placeholder { color: #8CA0B3; }
+
+.chip {
+  flex: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: #33475E;
+  background: linear-gradient(180deg, #FFFFFF, #EFF5FA);
+  border: 1px solid rgba(14, 27, 44, 0.10);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 3px 8px rgba(14, 27, 44, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.chip:active { transform: scale(0.94); }
+.chip.active {
+  color: #fff;
+  border: 0;
+  text-shadow: 0 1px 2px rgba(1, 40, 80, 0.35);
+  background: linear-gradient(180deg, #38BDF8, #0EA5E9 55%, #0369A1);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.5),
+    inset 0 -3px 6px rgba(1, 40, 80, 0.25),
+    0 6px 14px rgba(14, 165, 233, 0.35);
+}
+.chip.active::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 4%;
+  left: 10%;
+  right: 10%;
+  height: 46%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+}
+
+/* Section label with aqua tick — the one chic detail */
+.shop-section-label {
+  position: relative;
+  display: inline-block;
+  font-weight: 800;
+  font-size: 13px;
+  color: #0E1B2C;
+  padding-bottom: 7px;
+}
+.shop-section-label::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 24px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38BDF8, #0EA5E9);
+}
+
+/* Image skeleton shimmer while loading (light) */
+.img-loading { position: relative; overflow: hidden; background: #EAF2F8; }
+.img-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%);
+  animation: skimmer 1.4s infinite;
+}
+@keyframes skimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* Underwater bubbles retinted for the light shop background */
+.bubbles-light .bubble {
+  border-color: rgba(14, 165, 233, 0.28);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(186, 240, 255, 0.20) 40%,
+    transparent 70%
+  );
+  box-shadow: inset -2px -3px 6px rgba(14, 165, 233, 0.12);
+}
+
+/* Offer sheet (light) */
+.offer-sheet {
+  background: #FFFFFF;
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 40px rgba(14, 27, 44, 0.18);
+}
+.offer-row {
+  background: #F7FBFE;
+  border: 1px solid rgba(14, 27, 44, 0.07);
+  border-radius: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after { animation: none; }
+  .img-loading::after { animation: none; }
+  .bubble { animation: none; }
+}
