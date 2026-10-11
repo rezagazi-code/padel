@@ -78,10 +78,12 @@ interface PadelContextType {
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
   joinMatchSlot: (matchId: string, slotNumber: number) => boolean;
   leaveMatchSlot: (matchId: string, slotNumber: number) => void;
+  deleteOpenMatch: (matchId: string) => void;
   groupSessions: GroupSession[];
   createGroupSession: (data: Omit<GroupSession, 'id' | 'courts' | 'status' | 'createdAt'>, courtNames: string[]) => GroupSession;
   joinGroupSessionSlot: (sessionId: string, courtNumber: number, slotNumber: number) => boolean;
   leaveGroupSessionSlot: (sessionId: string, courtNumber: number, slotNumber: number) => void;
+  deleteGroupSession: (sessionId: string) => void;
   friendlyTournaments: FriendlyTournament[];
   createFriendlyTournament: (data: Omit<FriendlyTournament, 'id' | 'status' | 'teams' | 'bracket' | 'createdAt'>) => FriendlyTournament;
   addFriendlyTeam: (tournId: string, team: Omit<FriendlyTeam, 'id'>) => void;
@@ -778,6 +780,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSyncNotification('شما از این مسابقه انصراف دادید.');
   };
 
+  const deleteOpenMatch = (matchId: string) => {
+    setOpenMatches((prev) => prev.filter((m) => m.id !== matchId));
+    setSyncNotification('مسابقه حذف شد.');
+  };
+
   // ============ Group Sessions (سانس گروهی — multi-court open sessions) ============
 
   const makeGroupSessionCourts = (courtNames: string[]): GroupSessionCourt[] =>
@@ -885,6 +892,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
     setSyncNotification('شما از این سانس گروهی انصراف دادید.');
+  };
+
+  const deleteGroupSession = (sessionId: string) => {
+    setGroupSessions((prev) => prev.filter((g) => g.id !== sessionId));
+    setSyncNotification('سانس گروهی حذف شد.');
   };
 
   // ============ Friendly Tournaments (matchmaking) ============
@@ -1418,10 +1430,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createOpenMatch,
         joinMatchSlot,
         leaveMatchSlot,
+        deleteOpenMatch,
         groupSessions,
         createGroupSession,
         joinGroupSessionSlot,
         leaveGroupSessionSlot,
+        deleteGroupSession,
         friendlyTournaments,
         createFriendlyTournament,
         addFriendlyTeam,

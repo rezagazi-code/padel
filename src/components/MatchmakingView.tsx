@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { FriendlyTournamentView } from './FriendlyTournamentView';
-import { MatchType, OpenMatch, PlayingSide } from '../types';
+import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
+import { ConfirmDialog } from './ConfirmDialog';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
 import {
@@ -20,7 +21,8 @@ import {
   PlusCircle,
   HelpCircle,
   Shield,
-  LayoutGrid
+  LayoutGrid,
+  Trash2
 } from 'lucide-react';
 
 export const MatchmakingView: React.FC = () => {
@@ -29,11 +31,14 @@ export const MatchmakingView: React.FC = () => {
     createOpenMatch,
     joinMatchSlot,
     leaveMatchSlot,
+    deleteOpenMatch,
     groupSessions,
     createGroupSession,
     joinGroupSessionSlot,
     leaveGroupSessionSlot,
+    deleteGroupSession,
     playerProfile,
+    currentUserRole,
     clubs,
     freeAgents,
     inviteFreeAgent
@@ -42,6 +47,10 @@ export const MatchmakingView: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
   const [mainTab, setMainTab] = useState<'open' | 'friendly' | 'group'>('open');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [matchToDelete, setMatchToDelete] = useState<OpenMatch | null>(null);
+
+  const canDeleteMatch = (m: OpenMatch) =>
+    m.creatorId === playerProfile.id || currentUserRole === 'super_admin';
 
   const MatchTabs: React.FC = () => (
     <div className="flex gap-2">
@@ -267,6 +276,16 @@ export const MatchmakingView: React.FC = () => {
                     {match.pricePerPlayer.toLocaleString('fa-IR')}
                   </span>
                   <span className="text-[10px] text-slate-500 block">تومان / هر نفر</span>
+                  {canDeleteMatch(match) && (
+                    <button
+                      onClick={() => setMatchToDelete(match)}
+                      className="mt-2 px-2.5 py-1.5 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-bold text-[10px] rounded-lg transition cursor-pointer flex items-center gap-1"
+                      title="حذف مسابقه"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>حذف</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -655,6 +674,18 @@ export const MatchmakingView: React.FC = () => {
         </div>
       )}
 
+      <ConfirmDialog
+        open={!!matchToDelete}
+        title="حذف مسابقه"
+        message={matchToDelete ? `مسابقه «${matchToDelete.title}» حذف شود؟` : ''}
+        confirmLabel="حذف مسابقه"
+        onConfirm={() => {
+          if (matchToDelete) deleteOpenMatch(matchToDelete.id);
+          setMatchToDelete(null);
+        }}
+        onCancel={() => setMatchToDelete(null)}
+      />
+
     </div>
   );
 };
@@ -667,11 +698,17 @@ const GroupSessionsTab: React.FC = () => {
     createGroupSession,
     joinGroupSessionSlot,
     leaveGroupSessionSlot,
+    deleteGroupSession,
     playerProfile,
+    currentUserRole,
     clubs,
   } = usePadel();
 
   const [showModal, setShowModal] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<GroupSession | null>(null);
+
+  const canDeleteSession = (s: GroupSession) =>
+    s.creatorId === playerProfile.id || currentUserRole === 'super_admin';
   const [gTitle, setGTitle] = useState('');
   const [gClubId, setGClubId] = useState(clubs[0]?.id || '');
   const [gCourtCount, setGCourtCount] = useState<2 | 3 | 4>(2);
@@ -772,6 +809,16 @@ const GroupSessionsTab: React.FC = () => {
                     {session.pricePerPlayer.toLocaleString('fa-IR')}
                   </span>
                   <span className="text-[10px] text-slate-500 block">تومان / هر نفر</span>
+                  {canDeleteSession(session) && (
+                    <button
+                      onClick={() => setSessionToDelete(session)}
+                      className="mt-2 px-2.5 py-1.5 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-bold text-[10px] rounded-lg transition cursor-pointer flex items-center gap-1"
+                      title="حذف سانس گروهی"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>حذف</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1111,6 +1158,18 @@ const GroupSessionsTab: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!sessionToDelete}
+        title="حذف سانس گروهی"
+        message={sessionToDelete ? `سانس گروهی «${sessionToDelete.title}» حذف شود؟` : ''}
+        confirmLabel="حذف سانس"
+        onConfirm={() => {
+          if (sessionToDelete) deleteGroupSession(sessionToDelete.id);
+          setSessionToDelete(null);
+        }}
+        onCancel={() => setSessionToDelete(null)}
+      />
     </div>
   );
 };

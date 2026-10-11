@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { Badges } from './Badges';
+import { CURRENT_VERSION_NAME } from '../lib/appUpdate';
 
 const PALETTE_COLORS = [
   { name: 'قرمز ولت', hex: '#ff2d55' },
@@ -653,6 +654,11 @@ export const PlayerProfileView: React.FC = () => {
           Mounted below all profile content, only reachable for signed-in
           users because the anonymous auth gate above returns early. */}
       <Badges />
+
+      {/* App version — subtle, so the owner can verify which build is installed */}
+      <p className="text-center text-[10px] text-slate-600 font-medium pt-2">
+        نسخه {CURRENT_VERSION_NAME}
+      </p>
 
     </div>
   );
