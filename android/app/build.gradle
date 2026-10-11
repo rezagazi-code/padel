@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+// NOTE: Cafe Bazaar Poolakey is vendored locally, not from jitpack.
+// package.json "postinstall" runs scripts/patch-bazaar-plugin.sh, which copies
+// vendor/poolakey-2.2.0.aar into the plugin's libs/ and resolves it via a
+// flatDir repository (jitpack.io is unreliable from CI networks).
+
 android {
     namespace = "ir.padelpro.arena"
     compileSdk = rootProject.ext.compileSdkVersion
