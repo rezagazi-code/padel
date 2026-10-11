@@ -1,1 +1,10 @@
-{"versionCode": 35, "versionName": "3.11.3", "apkUrl": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.3-signed.apk", "changelog": "اعمال واقعی محدوده سطح هنگام جوین، اصلاح نام دورهای جدول، نگهبان سروری تداخل رزرو (مایگریشن‌های 0008 و 0009 را در سوپابیس اجرا کنید)"}
+{
+  "versionCode": 35,
+  "versionName": "3.11.3",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.3-signed.apk",
+  "changelog": "اعمال واقعی محدوده سطح هنگام جوین، اصلاح نام دورهای جدول، نگهبان سروری تداخل رزرو (مایگریشن‌های 0008 و 0009 را در سوپابیس اجرا کنید)",
+  "latest_version": "3.11.6",
+  "latest_version_code": 38,
+  "latest_apk": "releases/padelpro-v3.11.6-signed.apk",
+  "latest_url": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.6-signed.apk"
+}
