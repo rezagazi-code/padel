@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
+import { ClubCourtsSheet } from './ClubCourtsSheet';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
 import { saveDongiRecord } from '../lib/dongi';
@@ -49,6 +50,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
+  const [sheetClub, setSheetClub] = useState<Club | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -401,6 +403,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     if (club.courts.length > 0) {
                       setSelectedCourtId(club.courts[0].id);
                     }
+                    // On phones the detail sits far below the list: open the
+                    // courts bottom-sheet instead so no scrolling is needed.
+                    if (window.matchMedia('(max-width: 1023.5px)').matches) {
+                      setSheetClub(club);
+                    }
                   }}
                   className={`court-card group overflow-hidden p-4 transition cursor-pointer ${
                     isSelected
@@ -451,7 +458,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         </div>
 
         {/* Right Column: Court Schedule & Booking Controls (8 Cols) */}
-        <div className="lg:col-span-8 space-y-6">
+        <div id="booking-detail" className="lg:col-span-8 space-y-6">
           
           {/* Selected Club Details Card */}
           {currentClub && (
@@ -950,6 +957,26 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         }}
         onCancel={() => setClubToDelete(null)}
       />
+
+      {/* Courts bottom-sheet (mobile): pick a court with minimal scrolling */}
+      {sheetClub && (
+        <ClubCourtsSheet
+          club={sheetClub}
+          selectedCourtId={selectedCourtId}
+          onSelectCourt={(courtId) => {
+            setSelectedClubId(sheetClub.id);
+            setSelectedCourtId(courtId);
+            setSheetClub(null);
+            // Bring the date/time booking controls into view
+            requestAnimationFrame(() => {
+              document
+                .getElementById('booking-detail')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }}
+          onClose={() => setSheetClub(null)}
+        />
+      )}
 
     </div>
   );
