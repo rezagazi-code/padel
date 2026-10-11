@@ -762,6 +762,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           // Check level
           if (playerProfile.level < m.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > m.maxLevel + LEVEL_JOIN_TOLERANCE) {
             setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این مسابقه (${levelToGrade(m.minLevel)} - ${levelToGrade(m.maxLevel)}) منطبق نیست.`);
+            return m;
           }
 
           const updatedSlots = m.slots.map((slot) => {
@@ -881,6 +882,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         if (playerProfile.level < g.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > g.maxLevel + LEVEL_JOIN_TOLERANCE) {
           setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این سانس (${levelToGrade(g.minLevel)} - ${levelToGrade(g.maxLevel)}) منطبق نیست.`);
+          return g;
         }
         const updatedCourts = g.courts.map((c) => {
           if (c.courtNumber !== courtNumber) return c;

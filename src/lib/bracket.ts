@@ -6,8 +6,9 @@ function getRoundName(roundIndex: number, totalRounds: number): string {
   if (fromEnd === 0) return 'فینال';
   if (fromEnd === 1) return 'نیمه‌نهایی';
   if (fromEnd === 2) return 'یک‌چهارم نهایی';
-  if (fromEnd === 3) return 'یک‌شانزدهم نهایی';
-  if (fromEnd === 4) return 'یک‌سی‌ودوم نهایی';
+  if (fromEnd === 3) return 'یک‌هشتم نهایی';
+  if (fromEnd === 4) return 'یک‌شانزدهم نهایی';
+  if (fromEnd === 5) return 'یک‌سی‌ودوم نهایی';
   return `دور ${roundIndex + 1}`;
 }
 

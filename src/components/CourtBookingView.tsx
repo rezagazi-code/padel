@@ -487,10 +487,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                  <Phone className="w-3.5 h-3.5 text-cyan-400" />
-                  <span dir="ltr">{currentClub.phone}</span>
-                </div>
+                {currentClub.phone && (
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                    <Phone className="w-3.5 h-3.5 text-cyan-400" />
+                    <span dir="ltr">{currentClub.phone}</span>
+                  </div>
+                )}
               </div>
 
               {/* Amenities Tags */}

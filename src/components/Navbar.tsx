@@ -197,7 +197,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="relative">
                 <img
                   src={playerProfile.avatar}
-                  alt={playerProfile.name}
+                  alt=""
+                  aria-hidden="true"
                   className="w-8 h-8 rounded-lg object-cover ring-2"
                   style={{ borderColor: playerProfile.themeColor }}
                 />

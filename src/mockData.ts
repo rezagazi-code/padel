@@ -567,7 +567,7 @@ export const initialClubs: Club[] = [
   },
   {
     id: 'club-teh-courtina',
-    name: 'کورتیتا',
+    name: 'کورتینا',
     province: 'تهران',
     city: 'تهران',
     address: 'تهران، خیابان ازگل، کوچه آبشار شرقی، مجموعه کورتینا',
@@ -581,7 +581,7 @@ export const initialClubs: Club[] = [
     courtsCount: 2,
     openingHour: '07:00',
     closingHour: '22:00',
-    ownerName: 'مدیریت باشگاه کورتیتا',
+    ownerName: 'مدیریت باشگاه کورتینا',
     ownerPhone: '09121971827',
     amenities: [
       'اینستاگرام: @playatcourtina',

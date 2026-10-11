@@ -565,7 +565,8 @@ export const TournamentsView: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <img
                             src={player.avatar}
-                            alt={player.name}
+                            alt=""
+                            aria-hidden="true"
                             className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200/60"
                           />
                           <div>
