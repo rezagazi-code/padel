@@ -12,6 +12,7 @@ interface BubbleSpec {
  * Ambient underwater bubbles: they rise from below, wobble gently,
  * and pop (burst) at random heights — like texts submerged in water.
  * Pure CSS animation, pointer-events-none, cheap to run.
+ * (retrigger: previous CI run hit a transient Maven mirror 502)
  */
 export const Bubbles: React.FC<{ count?: number; className?: string }> = ({
   count = 14,
