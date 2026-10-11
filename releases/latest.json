@@ -1,10 +1,10 @@
 {
-  "versionCode": 39,
-  "versionName": "3.11.7",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.7-signed.apk",
-  "changelog": "رنک باشگاه‌ها از امتیاز بازیکن‌ها (مایگریشن 0010 را در سوپابیس اجرا کنید) + لانگ‌پرس حذف + شیت کشویی زمین‌ها + تغییر رمز عبور",
-  "latest_version": "3.11.7",
-  "latest_version_code": 39,
-  "latest_apk": "releases/padelpro-v3.11.7-signed.apk",
-  "latest_url": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.7-signed.apk"
+  "versionCode": 42,
+  "versionName": "3.11.10",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.10-signed.apk",
+  "changelog": "فروشگاه لوازم پدل: تب جدید با ۴۲ کالای واقعی و بهترین قیمت (ترب، دیوار، ایمالز، اینستاگرام) + سرچ فارسی هوشمند + افکت لمس آب + حباب‌های زیر آب و برق عنوان",
+  "latest_version": "3.11.10",
+  "latest_version_code": 42,
+  "latest_apk": "releases/padelpro-v3.11.10-signed.apk",
+  "latest_url": "https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/padelpro-v3.11.10-signed.apk"
 }
