@@ -16,6 +16,7 @@ import {
   bestOffer,
 } from '../types';
 import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
+import { WaterRipple } from './WaterRipple';
 
 const CATEGORY_ICONS: Record<ShopCategory, string> = {
   racket: '🎾',
@@ -49,9 +50,10 @@ function formatPrice(t: number): string {
 const ProductCard: React.FC<{ p: ShopProduct; onOpen: () => void }> = ({ p, onOpen }) => {
   const best = bestOffer(p);
   return (
+    <WaterRipple className="rounded-3xl">
     <button
       onClick={onOpen}
-      className="group text-right rounded-3xl overflow-hidden bg-gradient-to-b from-[#1c1611] to-[#14100c] border border-amber-100/10 hover:border-amber-400/40 transition cursor-pointer shadow-lg"
+      className="group w-full text-right rounded-3xl overflow-hidden bg-gradient-to-b from-[#1c1611] to-[#14100c] border border-amber-100/10 hover:border-amber-400/40 transition cursor-pointer shadow-lg active:scale-[0.98]"
     >
       {/* Image placeholder — distinct warm gradient per category */}
       <div className="h-28 flex items-center justify-center bg-gradient-to-br from-amber-500/15 via-[#1c1611] to-[#14100c] relative">
@@ -83,6 +85,7 @@ const ProductCard: React.FC<{ p: ShopProduct; onOpen: () => void }> = ({ p, onOp
         </p>
       </div>
     </button>
+    </WaterRipple>
   );
 };
 
@@ -161,15 +164,17 @@ const ProductSheet: React.FC<{ p: ShopProduct; onClose: () => void }> = ({ p, on
               ) : (
                 <p className="text-[11px] font-bold text-stone-400 shrink-0">دایرکت</p>
               )}
+              <WaterRipple className="shrink-0 rounded-xl">
               <a
                 href={o.url}
                 target="_blank"
                 rel="noreferrer"
-                className="shrink-0 p-2.5 rounded-xl bg-amber-400 text-black hover:bg-amber-300 transition"
+                className="block p-2.5 rounded-xl bg-amber-400 text-black hover:bg-amber-300 transition active:scale-90"
                 aria-label={`مشاهده در ${o.store}`}
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
+              </WaterRipple>
             </div>
           ))}
         </div>
@@ -257,10 +262,10 @@ export const ShopView: React.FC = () => {
         {categories.map((c) => {
           const active = category === c;
           return (
+            <WaterRipple key={c} className="shrink-0 rounded-xl">
             <button
-              key={c}
               onClick={() => setCategory(c)}
-              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer border ${
+              className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer border active:scale-95 ${
                 active
                   ? 'bg-amber-400 text-black border-amber-400'
                   : 'bg-white/[0.05] text-stone-400 border-white/10 hover:border-amber-400/40'
@@ -268,6 +273,7 @@ export const ShopView: React.FC = () => {
             >
               {c === 'all' ? 'همه' : `${CATEGORY_ICONS[c]} ${SHOP_CATEGORY_LABELS[c]}`}
             </button>
+            </WaterRipple>
           );
         })}
       </div>
