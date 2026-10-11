@@ -7,6 +7,7 @@ import { PROVINCES_LIST } from '../mockData';
 import { TournamentBracket } from './TournamentBracket';
 import { OfficialTournamentPredictions } from './Predictions';
 import { ConfirmDialog } from './ConfirmDialog';
+import { LongPressable } from '../hooks/useLongPress';
 import { toJalaliDisplay } from '../utils/dates';
 import {
   Trophy,
@@ -294,9 +295,12 @@ export const TournamentsView: React.FC = () => {
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
             return (
-              <div
+              <LongPressable
                 key={tourn.id}
                 className={`court-card flex flex-col justify-between space-y-4 ${riseClass}`}
+                onLongPress={() => {
+                  if (canManageTournament(tourn)) setTournamentToDelete(tourn);
+                }}
               >
                 <div>
                   {/* Tournament Banner Cover */}
@@ -485,7 +489,7 @@ export const TournamentsView: React.FC = () => {
                   )}
                 </div>
 
-              </div>
+              </LongPressable>
             );
           })}
         </div>

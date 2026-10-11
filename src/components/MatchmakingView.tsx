@@ -3,6 +3,7 @@ import { usePadel } from '../context/PadelContext';
 import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
 import { ConfirmDialog } from './ConfirmDialog';
+import { LongPressable } from '../hooks/useLongPress';
 import GradeBadge from './GradeBadge';
 import { levelToGrade, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
 import {
@@ -39,6 +40,7 @@ export const MatchmakingView: React.FC = () => {
     deleteGroupSession,
     playerProfile,
     currentUserRole,
+    adminClubId,
     clubs,
     freeAgents,
     inviteFreeAgent
@@ -50,7 +52,9 @@ export const MatchmakingView: React.FC = () => {
   const [matchToDelete, setMatchToDelete] = useState<OpenMatch | null>(null);
 
   const canDeleteMatch = (m: OpenMatch) =>
-    m.creatorId === playerProfile.id || currentUserRole === 'super_admin';
+    m.creatorId === playerProfile.id ||
+    currentUserRole === 'super_admin' ||
+    (currentUserRole === 'club_admin' && m.clubId === adminClubId);
 
   const MatchTabs: React.FC = () => (
     <div className="flex gap-2">
@@ -236,9 +240,12 @@ export const MatchmakingView: React.FC = () => {
           const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
-            <div
+            <LongPressable
               key={match.id}
               className={`rounded-3xl bg-white/[0.06] border border-white/10 p-6 space-y-5 hover:border-white/10 transition relative overflow-hidden shadow-lg ${riseClass}`}
+              onLongPress={() => {
+                if (canDeleteMatch(match)) setMatchToDelete(match);
+              }}
             >
               {/* Card Header */}
               <div className="flex items-start justify-between gap-3">
@@ -489,7 +496,7 @@ export const MatchmakingView: React.FC = () => {
                 );
               })()}
 
-            </div>
+            </LongPressable>
           );
         })}
       </div>
@@ -701,6 +708,7 @@ const GroupSessionsTab: React.FC = () => {
     deleteGroupSession,
     playerProfile,
     currentUserRole,
+    adminClubId,
     clubs,
   } = usePadel();
 
@@ -708,7 +716,9 @@ const GroupSessionsTab: React.FC = () => {
   const [sessionToDelete, setSessionToDelete] = useState<GroupSession | null>(null);
 
   const canDeleteSession = (s: GroupSession) =>
-    s.creatorId === playerProfile.id || currentUserRole === 'super_admin';
+    s.creatorId === playerProfile.id ||
+    currentUserRole === 'super_admin' ||
+    (currentUserRole === 'club_admin' && s.clubId === adminClubId);
   const [gTitle, setGTitle] = useState('');
   const [gClubId, setGClubId] = useState(clubs[0]?.id || '');
   const [gCourtCount, setGCourtCount] = useState<2 | 3 | 4>(2);
@@ -798,7 +808,13 @@ const GroupSessionsTab: React.FC = () => {
           const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
-            <div key={session.id} className={`court-card p-6 space-y-5 ${riseClass}`}>
+            <LongPressable
+              key={session.id}
+              className={`court-card p-6 space-y-5 ${riseClass}`}
+              onLongPress={() => {
+                if (canDeleteSession(session)) setSessionToDelete(session);
+              }}
+            >
               {/* Title + price */}
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-base font-black text-slate-100 leading-relaxed">
@@ -951,7 +967,7 @@ const GroupSessionsTab: React.FC = () => {
                 )}
                 <span className="text-slate-600">سازنده: {session.creatorName}</span>
               </div>
-            </div>
+            </LongPressable>
           );
         })}
       </div>
