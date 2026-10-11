@@ -47,6 +47,8 @@ import {
   updateMyProfile,
   type ProfilePatch,
   DOUBLE_BOOKED,
+  upsertClubRating,
+  fetchMyClubRatings,
 } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
 
@@ -71,6 +73,8 @@ interface PadelContextType {
   addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => Promise<void>;
   deleteClub: (clubId: string) => Promise<void>;
   deleteTournament: (tournamentId: string) => Promise<void>;
+  myClubRatings: Record<string, number>;
+  rateClub: (clubId: string, rating: number) => Promise<void>;
   bookings: Booking[];
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Promise<Booking | null>;
   cancelBooking: (bookingId: string) => Promise<void>;
@@ -180,6 +184,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [clubs, setClubs] = useState<Club[]>(() =>
     withBundledClubs(getInitialData('clubs', initialClubs))
   );
+
+  // My own club ratings (clubId -> 1..5), loaded for the signed-in user.
+  const [myClubRatings, setMyClubRatings] = useState<Record<string, number>>({});
 
   const [bookings, setBookings] = useState<Booking[]>(() =>
     getInitialData('bookings', [])
@@ -308,6 +315,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       cancelled = true;
     };
   }, []);
+
+  // Load my club ratings when the signed-in user changes.
+  useEffect(() => {
+    const userId = auth?.user?.id;
+    if (!getSupabase() || !userId) {
+      setMyClubRatings({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const map = await fetchMyClubRatings(userId);
+        if (!cancelled) setMyClubRatings(map);
+      } catch (err) {
+        console.warn('Failed to load my club ratings:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.user?.id]);
 
   // Sync state to local storage
   useEffect(() => {
@@ -571,6 +599,34 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
     setSyncNotification('باشگاه با موفقیت حذف شد.');
+  };
+
+  const rateClub = async (clubId: string, rating: number): Promise<void> => {
+    const userId = auth?.user?.id;
+    // Bundled/local clubs (club-xxx ids) have no server row to rate.
+    if (!getSupabase() || !userId || !clubId || clubId.startsWith('club-')) {
+      if (clubId?.startsWith('club-')) {
+        setSyncNotification('این باشگاه هنوز روی سرور ثبت نشده؛ امتیازدهی فعلاً ممکن نیست.');
+      }
+      return;
+    }
+    const r = Math.max(1, Math.min(5, Math.round(rating)));
+    try {
+      await upsertClubRating(clubId, userId, r);
+    } catch (err) {
+      console.error('rateClub failed', err);
+      setSyncNotification('خطا در ثبت امتیاز. دوباره تلاش کنید.');
+      throw err;
+    }
+    setMyClubRatings((prev) => ({ ...prev, [clubId]: r }));
+    // The DB trigger refreshes clubs.rating/review_count — reload to show it.
+    try {
+      const remoteClubs = await fetchClubs();
+      if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
+    } catch (err) {
+      console.warn('Club list refresh after rating failed:', err);
+    }
+    setSyncNotification('امتیاز شما ثبت شد. ممنون!');
   };
 
   const deleteTournament = async (tournamentId: string): Promise<void> => {
@@ -1477,6 +1533,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addClub,
         addCourtToClub,
         deleteClub,
+        myClubRatings,
+        rateClub,
         deleteTournament,
         bookings,
         createBooking,

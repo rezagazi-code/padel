@@ -26,6 +26,7 @@ import {
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ClubCourtsSheet } from './ClubCourtsSheet';
+import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
 import { saveDongiRecord } from '../lib/dongi';
@@ -45,7 +46,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     playerProfile,
     freeAgents,
     selectedProvince,
-    setSelectedProvince
+    setSelectedProvince,
+    myClubRatings,
+    rateClub,
   } = usePadel();
 
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
@@ -134,10 +137,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     intervals: { start: number; end: number }[]
   ) => intervals.some((iv) => startA < iv.end && iv.start < endA);
 
-  // Filter clubs by province
-  const filteredClubs = clubs.filter(
-    (c) => selectedProvince === 'همه استان‌ها' || c.province === selectedProvince
-  );
+  // Filter clubs by province, ranked by player ratings (highest first)
+  const filteredClubs = clubs
+    .filter(
+      (c) => selectedProvince === 'همه استان‌ها' || c.province === selectedProvince
+    )
+    .sort((a, b) => {
+      const ra = a.reviewCount > 0 ? a.rating : -1;
+      const rb = b.reviewCount > 0 ? b.rating : -1;
+      if (rb !== ra) return rb - ra;
+      if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount;
+      return a.name.localeCompare(b.name, 'fa');
+    });
 
   const currentClub = filteredClubs.find((c) => c.id === selectedClubId) || filteredClubs[0];
   const currentCourt =
@@ -428,7 +439,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         </h3>
                         <div className="flex items-center gap-1 text-[#facc15] text-xs font-black shrink-0">
                           <Star className="w-3 h-3 fill-current" />
-                          <span>{club.rating}</span>
+                          <span>{club.reviewCount > 0 ? Number(club.rating).toLocaleString('fa-IR') : '—'}</span>
+                          {club.reviewCount > 0 && (
+                            <span className="text-[9px] text-slate-500 font-medium">
+                              ({club.reviewCount.toLocaleString('fa-IR')})
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -500,6 +516,33 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <span dir="ltr">{currentClub.phone}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Player ratings → club rank */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex items-center gap-2">
+                  <StarRating value={currentClub.reviewCount > 0 ? currentClub.rating : 0} size={18} />
+                  <span className="text-xs font-black text-slate-200">
+                    {currentClub.reviewCount > 0
+                      ? `${Number(currentClub.rating).toLocaleString('fa-IR')} از ۵`
+                      : 'بدون امتیاز'}
+                  </span>
+                  {currentClub.reviewCount > 0 && (
+                    <span className="text-[10px] text-slate-500">
+                      ({currentClub.reviewCount.toLocaleString('fa-IR')} رأی)
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mr-auto">
+                  <span className="text-[11px] text-slate-500 font-bold">امتیاز شما:</span>
+                  <StarRating
+                    value={myClubRatings[currentClub.id] ?? 0}
+                    size={22}
+                    onRate={(n) => {
+                      void rateClub(currentClub.id, n).catch(() => {});
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Amenities Tags */}

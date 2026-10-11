@@ -522,3 +522,32 @@ export async function updateUserRole(userId: string, role: 'player' | 'club_admi
   const { error } = await sb.from('profiles').update(update).eq('id', userId);
   if (error) throw error;
 }
+
+// ============ Club ratings (player votes → club rank) ============
+
+/** One rating per player per club (upsert). Returns the saved rating. */
+export async function upsertClubRating(clubId: string, userId: string, rating: number): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const r = Math.max(1, Math.min(5, Math.round(rating)));
+  const { error } = await sb
+    .from('club_ratings')
+    .upsert({ club_id: clubId, user_id: userId, rating: r }, { onConflict: 'club_id,user_id' });
+  if (error) throw error;
+}
+
+/** All ratings by one user: clubId → 1..5 */
+export async function fetchMyClubRatings(userId: string): Promise<Record<string, number>> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { data, error } = await sb
+    .from('club_ratings')
+    .select('club_id, rating')
+    .eq('user_id', userId);
+  if (error) throw error;
+  const map: Record<string, number> = {};
+  for (const row of data ?? []) {
+    map[String((row as any).club_id)] = Number((row as any).rating);
+  }
+  return map;
+}
