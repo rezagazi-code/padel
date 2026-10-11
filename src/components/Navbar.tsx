@@ -125,6 +125,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Action buttons & User Widget */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Shop quick access — blue bubble theme, top of menu */}
+            <button
+              onClick={() => setActiveTab('shop')}
+              className={`bubble-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs ${activeTab === 'shop' ? 'ring-2 ring-white/50' : ''}`}
+              title="فروشگاه پدل"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">فروشگاه</span>
+            </button>
+
             {/* Club Owner Quick Action */}
             <button
               onClick={onOpenClubOwnerModal}
