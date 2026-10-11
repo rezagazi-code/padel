@@ -144,6 +144,30 @@ function getInitialData<T>(key: string, defaultVal: T): T {
   return defaultVal;
 }
 
+// Merge bundled clubs (from initialClubs in mockData.ts) into any club list,
+// so clubs that exist in neither the localStorage cache nor Supabase still
+// show up. Dedupe is by id AND name because Supabase rows carry UUID ids
+// while bundled clubs use `club-xxx` ids. Clubs the super_admin deliberately
+// deleted (tracked in `deleted_club_ids`) are never resurrected.
+function withBundledClubs(list: Club[]): Club[] {
+  let deletedIds: string[] = [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'deleted_club_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedIds = parsed.filter((x) => typeof x === 'string');
+    }
+  } catch {
+    deletedIds = [];
+  }
+  const ids = new Set(list.map((c) => c.id));
+  const names = new Set(list.map((c) => c.name));
+  const missing = initialClubs.filter(
+    (c) => !ids.has(c.id) && !names.has(c.name) && !deletedIds.includes(c.id)
+  );
+  return missing.length > 0 ? [...list, ...missing] : list;
+}
+
 export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('booking');
   const [isMobileDeviceView, setIsMobileDeviceView] = useState<boolean>(false);
@@ -154,7 +178,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   const [clubs, setClubs] = useState<Club[]>(() =>
-    getInitialData('clubs', initialClubs)
+    withBundledClubs(getInitialData('clubs', initialClubs))
   );
 
   const [bookings, setBookings] = useState<Booking[]>(() =>
@@ -273,7 +297,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           fetchTournaments(),
         ]);
         if (!cancelled) {
-          if (remoteClubs.length > 0) setClubs(remoteClubs);
+          if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
           if (remoteTournaments.length > 0) setTournaments(remoteTournaments);
         }
       } catch (err) {
@@ -525,6 +549,24 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.error('deleteClub remote failed', err);
         setSyncNotification('خطا در حذف باشگاه روی سرور. دوباره تلاش کنید.');
         throw err;
+      }
+    } else if (clubId && clubId.startsWith('club-')) {
+      // Bundled club (local `club-xxx` id): remember the deletion so the
+      // withBundledClubs merge never resurrects a club the super_admin
+      // deliberately deleted. Remote (UUID) deletes need no tracking —
+      // Supabase is the source of truth there.
+      try {
+        const key = LOCAL_STORAGE_KEY_PREFIX + 'deleted_club_ids';
+        const raw = localStorage.getItem(key);
+        const parsed: unknown = raw ? JSON.parse(raw) : [];
+        const arr: string[] = Array.isArray(parsed)
+          ? parsed.filter((x) => typeof x === 'string')
+          : [];
+        if (!arr.includes(clubId)) {
+          localStorage.setItem(key, JSON.stringify([...arr, clubId]));
+        }
+      } catch (err) {
+        console.warn('Could not persist deleted club id:', err);
       }
     }
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
