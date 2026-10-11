@@ -9,6 +9,8 @@ import {
   FriendlyTournament,
   FriendlyTeam,
   FriendlyMatch,
+  GroupSession,
+  GroupSessionCourt,
   NeedPlayerPost,
   OpenMatch,
   PlayerProfile,
@@ -20,6 +22,7 @@ import {
   initialClubs,
   initialCoaches,
   initialFreeAgents,
+  initialGroupSessions,
   initialNeedPlayerPosts,
   initialOpenMatches,
   initialPlayerProfile,
@@ -75,6 +78,10 @@ interface PadelContextType {
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
   joinMatchSlot: (matchId: string, slotNumber: number) => boolean;
   leaveMatchSlot: (matchId: string, slotNumber: number) => void;
+  groupSessions: GroupSession[];
+  createGroupSession: (data: Omit<GroupSession, 'id' | 'courts' | 'status' | 'createdAt'>, courtNames: string[]) => GroupSession;
+  joinGroupSessionSlot: (sessionId: string, courtNumber: number, slotNumber: number) => boolean;
+  leaveGroupSessionSlot: (sessionId: string, courtNumber: number, slotNumber: number) => void;
   friendlyTournaments: FriendlyTournament[];
   createFriendlyTournament: (data: Omit<FriendlyTournament, 'id' | 'status' | 'teams' | 'bracket' | 'createdAt'>) => FriendlyTournament;
   addFriendlyTeam: (tournId: string, team: Omit<FriendlyTeam, 'id'>) => void;
@@ -154,6 +161,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [openMatches, setOpenMatches] = useState<OpenMatch[]>(() =>
     getInitialData('open_matches', initialOpenMatches)
+  );
+
+  const [groupSessions, setGroupSessions] = useState<GroupSession[]>(() =>
+    getInitialData('group_sessions', initialGroupSessions)
   );
 
   const [friendlyTournaments, setFriendlyTournaments] = useState<FriendlyTournament[]>(() =>
@@ -306,6 +317,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'open_matches', JSON.stringify(openMatches));
   }, [openMatches]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'group_sessions', JSON.stringify(groupSessions));
+  }, [groupSessions]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'friendly_tournaments', JSON.stringify(friendlyTournaments));
@@ -761,6 +776,115 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
     setSyncNotification('شما از این مسابقه انصراف دادید.');
+  };
+
+  // ============ Group Sessions (سانس گروهی — multi-court open sessions) ============
+
+  const makeGroupSessionCourts = (courtNames: string[]): GroupSessionCourt[] =>
+    courtNames.map((courtName, ci) => ({
+      courtNumber: ci + 1,
+      courtName,
+      slots: [1, 2, 3, 4].map((n) => ({
+        slotNumber: n,
+        team: (n <= 2 ? 1 : 2) as 1 | 2,
+        side: (n % 2 === 1 ? 'left' : 'right') as 'left' | 'right',
+      })),
+    }));
+
+  const createGroupSession = (
+    data: Omit<GroupSession, 'id' | 'courts' | 'status' | 'createdAt'>,
+    courtNames: string[]
+  ): GroupSession => {
+    const courts = makeGroupSessionCourts(courtNames);
+    // Creator takes slot 1 of court 1
+    courts[0].slots[0] = {
+      ...courts[0].slots[0],
+      playerId: playerProfile.id,
+      playerName: playerProfile.name,
+      playerAvatar: playerProfile.avatar,
+      playerLevel: playerProfile.level,
+    };
+    const newSession: GroupSession = {
+      ...data,
+      id: `gs-${Date.now()}`,
+      status: 'open',
+      courts,
+      createdAt: new Date().toISOString(),
+    };
+    setGroupSessions((prev) => [newSession, ...prev]);
+    setSyncNotification(`سانس گروهی جدید در ${newSession.clubName} ایجاد شد.`);
+    return newSession;
+  };
+
+  const groupSessionIsFull = (courts: GroupSession['courts']) =>
+    courts.every((c) => c.slots.every((s) => s.playerId));
+
+  const joinGroupSessionSlot = (sessionId: string, courtNumber: number, slotNumber: number): boolean => {
+    let success = false;
+    setGroupSessions((prev) =>
+      prev.map((g) => {
+        if (g.id !== sessionId) return g;
+        // Player may hold only one slot per session
+        const alreadyIn = g.courts.some((c) => c.slots.some((s) => s.playerId === playerProfile.id));
+        if (alreadyIn) {
+          setSyncNotification('شما قبلاً در این سانس گروهی شرکت کرده‌اید.');
+          return g;
+        }
+        if (playerProfile.level < g.minLevel - 0.2 || playerProfile.level > g.maxLevel + 0.2) {
+          setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این سانس (${levelToGrade(g.minLevel)} - ${levelToGrade(g.maxLevel)}) منطبق نیست.`);
+        }
+        const updatedCourts = g.courts.map((c) => {
+          if (c.courtNumber !== courtNumber) return c;
+          return {
+            ...c,
+            slots: c.slots.map((slot) => {
+              if (slot.slotNumber === slotNumber && !slot.playerId) {
+                success = true;
+                return {
+                  ...slot,
+                  playerId: playerProfile.id,
+                  playerName: playerProfile.name,
+                  playerAvatar: playerProfile.avatar,
+                  playerLevel: playerProfile.level,
+                };
+              }
+              return slot;
+            }),
+          };
+        });
+        return {
+          ...g,
+          courts: updatedCourts,
+          status: groupSessionIsFull(updatedCourts) ? 'full' : 'open',
+        };
+      })
+    );
+    if (success) {
+      setSyncNotification('شما با موفقیت به سانس گروهی پیوستید!');
+    }
+    return success;
+  };
+
+  const leaveGroupSessionSlot = (sessionId: string, courtNumber: number, slotNumber: number) => {
+    setGroupSessions((prev) =>
+      prev.map((g) => {
+        if (g.id !== sessionId) return g;
+        const updatedCourts = g.courts.map((c) => {
+          if (c.courtNumber !== courtNumber) return c;
+          return {
+            ...c,
+            slots: c.slots.map((s) => {
+              if (s.slotNumber === slotNumber && s.playerId === playerProfile.id) {
+                return { slotNumber: s.slotNumber, team: s.team, side: s.side };
+              }
+              return s;
+            }),
+          };
+        });
+        return { ...g, courts: updatedCourts, status: 'open' as const };
+      })
+    );
+    setSyncNotification('شما از این سانس گروهی انصراف دادید.');
   };
 
   // ============ Friendly Tournaments (matchmaking) ============
@@ -1294,6 +1418,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createOpenMatch,
         joinMatchSlot,
         leaveMatchSlot,
+        groupSessions,
+        createGroupSession,
+        joinGroupSessionSlot,
+        leaveGroupSessionSlot,
         friendlyTournaments,
         createFriendlyTournament,
         addFriendlyTeam,

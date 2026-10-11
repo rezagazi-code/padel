@@ -1,4 +1,4 @@
-import { Club, Coach, NeedPlayerPost, OpenMatch, PlayerProfile, RankingPlayer, Tournament } from './types';
+import { Club, Coach, GroupSession, NeedPlayerPost, OpenMatch, PlayerProfile, RankingPlayer, Tournament } from './types';
 
 export const initialPlayerProfile: PlayerProfile = {
   id: 'player-me',
@@ -295,6 +295,51 @@ export const initialClubs: Club[] = [
 ];
 
 export const initialOpenMatches: OpenMatch[] = [];
+
+// نمونه نمایشی سانس گروهی — sample data so the «سانس گروهی» tab isn't empty on first run
+export const initialGroupSessions: GroupSession[] = [
+  {
+    id: 'gs-sample-1',
+    title: 'سانس گروهی جمعه‌شب (نمونه)',
+    clubId: 'club-padelpoint',
+    clubName: 'پدل پوینت',
+    date: 'جمعه - ۱۹:۰۰',
+    time: '۱۹:۰۰ - ۲۰:۳۰',
+    type: 'friendly',
+    minLevel: 3.0,
+    maxLevel: 4.5,
+    pricePerPlayer: 220000,
+    gender: 'all',
+    creatorId: 'player-sample-host',
+    creatorName: 'میزبان نمونه',
+    creatorAvatar: '',
+    creatorLevel: 3.8,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+    courts: [
+      {
+        courtNumber: 1,
+        courtName: 'زمین ۱',
+        slots: [
+          { slotNumber: 1, team: 1, side: 'left', playerId: 'player-sample-host', playerName: 'میزبان نمونه', playerAvatar: '', playerLevel: 3.8 },
+          { slotNumber: 2, team: 1, side: 'right', playerId: 'player-sample-2', playerName: 'بازیکن نمونه ۲', playerAvatar: '', playerLevel: 4.0 },
+          { slotNumber: 3, team: 2, side: 'left' },
+          { slotNumber: 4, team: 2, side: 'right' },
+        ],
+      },
+      {
+        courtNumber: 2,
+        courtName: 'زمین ۲',
+        slots: [
+          { slotNumber: 1, team: 1, side: 'left', playerId: 'player-sample-3', playerName: 'بازیکن نمونه ۳', playerAvatar: '', playerLevel: 3.2 },
+          { slotNumber: 2, team: 1, side: 'right' },
+          { slotNumber: 3, team: 2, side: 'left' },
+          { slotNumber: 4, team: 2, side: 'right' },
+        ],
+      },
+    ],
+  },
+];
 
 export const initialNeedPlayerPosts: NeedPlayerPost[] = [];
 

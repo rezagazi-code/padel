@@ -141,6 +141,48 @@ export interface OpenMatch {
   };
 }
 
+export interface GroupSessionSlot {
+  slotNumber: number;
+  team: 1 | 2;
+  side: PlayingSide;
+  playerId?: string;
+  playerName?: string;
+  playerAvatar?: string;
+  playerLevel?: number;
+}
+
+export interface GroupSessionCourt {
+  courtNumber: number;
+  courtName: string;
+  // 4 Player Slots (2 vs 2) per court
+  slots: GroupSessionSlot[];
+}
+
+/**
+ * «سانس گروهی» — multi-court open session. An organizer books 2–4 courts for
+ * one time slot; players fill 4 slots per court (same slot shape as OpenMatch).
+ */
+export interface GroupSession {
+  id: string;
+  title: string;
+  clubId: string;
+  clubName: string;
+  date: string;
+  time: string;
+  type: MatchType;
+  minLevel: number;
+  maxLevel: number;
+  pricePerPlayer: number;
+  gender: 'all' | 'men' | 'women' | 'mixed';
+  creatorId: string;
+  creatorName: string;
+  creatorAvatar: string;
+  creatorLevel: number;
+  courts: GroupSessionCourt[];
+  status: 'open' | 'full' | 'in_progress' | 'completed';
+  createdAt: string;
+}
+
 export interface NeedPlayerPost {
   id: string;
   bookingId?: string;

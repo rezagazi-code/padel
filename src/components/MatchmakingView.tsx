@@ -19,7 +19,8 @@ import {
   X,
   PlusCircle,
   HelpCircle,
-  Shield
+  Shield,
+  LayoutGrid
 } from 'lucide-react';
 
 export const MatchmakingView: React.FC = () => {
@@ -28,6 +29,10 @@ export const MatchmakingView: React.FC = () => {
     createOpenMatch,
     joinMatchSlot,
     leaveMatchSlot,
+    groupSessions,
+    createGroupSession,
+    joinGroupSessionSlot,
+    leaveGroupSessionSlot,
     playerProfile,
     clubs,
     freeAgents,
@@ -35,8 +40,32 @@ export const MatchmakingView: React.FC = () => {
   } = usePadel();
 
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
-  const [mainTab, setMainTab] = useState<'open' | 'friendly'>('open');
+  const [mainTab, setMainTab] = useState<'open' | 'friendly' | 'group'>('open');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+
+  const MatchTabs: React.FC = () => (
+    <div className="flex gap-2">
+      {(
+        [
+          ['open', 'مسابقات باز'],
+          ['group', 'سانس گروهی'],
+          ['friendly', 'مسابقات دوستانه'],
+        ] as const
+      ).map(([value, label]) => (
+        <button
+          key={value}
+          onClick={() => setMainTab(value)}
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
+            mainTab === value
+              ? 'bg-[#ff2d55] text-white'
+              : 'bg-white/5 border border-white/10 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
 
   // New Match Form State
   const [newTitle, setNewTitle] = useState('');
@@ -53,21 +82,17 @@ export const MatchmakingView: React.FC = () => {
   if (mainTab === 'friendly') {
     return (
       <div className="space-y-6 pb-12">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setMainTab('open')}
-            className="px-4 py-2 rounded-xl text-sm font-bold bg-white/5 border border-white/10 text-slate-400"
-          >
-            مسابقات باز
-          </button>
-          <button
-            onClick={() => setMainTab('friendly')}
-            className="px-4 py-2 rounded-xl text-sm font-bold bg-[#ff2d55] text-white"
-          >
-            مسابقات دوستانه
-          </button>
-        </div>
+        <MatchTabs />
         <FriendlyTournamentView />
+      </div>
+    );
+  }
+
+  if (mainTab === 'group') {
+    return (
+      <div className="space-y-6 pb-12">
+        <MatchTabs />
+        <GroupSessionsTab />
       </div>
     );
   }
@@ -117,20 +142,7 @@ export const MatchmakingView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="flex gap-2">
-        <button
-          onClick={() => setMainTab('open')}
-          className="px-4 py-2 rounded-xl text-sm font-bold bg-[#ff2d55] text-white"
-        >
-          مسابقات باز
-        </button>
-        <button
-          onClick={() => setMainTab('friendly')}
-          className="px-4 py-2 rounded-xl text-sm font-bold bg-white/5 border border-white/10 text-slate-400"
-        >
-          مسابقات دوستانه
-        </button>
-      </div>
+      <MatchTabs />
       
       {/* Header Banner */}
       <div className="rounded-3xl bg-gradient-to-r from-[#ff2d55]/12 via-white/[0.03] to-[#2f7bff]/12 border border-white/10 p-6 sm:p-8 relative overflow-hidden">
@@ -643,6 +655,462 @@ export const MatchmakingView: React.FC = () => {
         </div>
       )}
 
+    </div>
+  );
+};
+
+/* ================= سانس گروهی (Group Sessions) ================= */
+
+const GroupSessionsTab: React.FC = () => {
+  const {
+    groupSessions,
+    createGroupSession,
+    joinGroupSessionSlot,
+    leaveGroupSessionSlot,
+    playerProfile,
+    clubs,
+  } = usePadel();
+
+  const [showModal, setShowModal] = useState(false);
+  const [gTitle, setGTitle] = useState('');
+  const [gClubId, setGClubId] = useState(clubs[0]?.id || '');
+  const [gCourtCount, setGCourtCount] = useState<2 | 3 | 4>(2);
+  const [gCourtNames, setGCourtNames] = useState<string[]>(['زمین ۱', 'زمین ۲']);
+  const [gDate, setGDate] = useState('فردا - ۱۹:۰۰');
+  const [gTime, setGTime] = useState('۱۹:۰۰ - ۲۰:۳۰');
+  const [gType, setGType] = useState<MatchType>('friendly');
+  const [gMinLevel, setGMinLevel] = useState<number>(3.0);
+  const [gMaxLevel, setGMaxLevel] = useState<number>(4.2);
+  const [gPrice, setGPrice] = useState<number>(220000);
+
+  const setCourtCount = (n: 2 | 3 | 4) => {
+    setGCourtCount(n);
+    setGCourtNames((prev) => {
+      const next = [...prev];
+      while (next.length < n) next.push(`زمین ${next.length + 1}`);
+      return next.slice(0, n);
+    });
+  };
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const club = clubs.find((c) => c.id === gClubId) || clubs[0];
+    createGroupSession(
+      {
+        title: gTitle || `سانس گروهی ${club.name}`,
+        clubId: club.id,
+        clubName: club.name,
+        date: gDate,
+        time: gTime,
+        type: gType,
+        minLevel: Number(gMinLevel),
+        maxLevel: Number(gMaxLevel),
+        pricePerPlayer: Number(gPrice),
+        gender: 'all',
+        creatorId: playerProfile.id,
+        creatorName: playerProfile.name,
+        creatorAvatar: playerProfile.avatar,
+        creatorLevel: playerProfile.level,
+      },
+      gCourtNames.map((n, i) => n.trim() || `زمین ${i + 1}`)
+    );
+    setShowModal(false);
+    setGTitle('');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Slim header — calm, one accent */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-black text-slate-100">سانس گروهی</h2>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            چند زمین برای یک سانس؛ هر زمین ۴ نفر. مناسب شب‌های شلوغ باشگاه.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-[#ff2d55] text-white font-bold text-sm px-5 py-2.5 rounded-xl transition active:scale-95 cursor-pointer"
+        >
+          <PlusCircle className="w-4 h-4" />
+          سانس گروهی جدید
+        </button>
+      </div>
+
+      {groupSessions.length === 0 && (
+        <div className="court-card p-10 text-center">
+          <LayoutGrid className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+          <p className="text-sm text-slate-400">هنوز سانس گروهی ساخته نشده.</p>
+          <p className="text-xs text-slate-600 mt-1">اولین سانس را شما بسازید.</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {groupSessions.map((session, idx) => {
+          const totalSlots = session.courts.length * 4;
+          const filledCount = session.courts.reduce(
+            (acc, c) => acc + c.slots.filter((s) => s.playerId).length,
+            0
+          );
+          const isUserIn = session.courts.some((c) =>
+            c.slots.some((s) => s.playerId === playerProfile.id)
+          );
+          const isLevelOk =
+            playerProfile.level >= session.minLevel - 0.25 &&
+            playerProfile.level <= session.maxLevel + 0.25;
+          const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
+
+          return (
+            <div key={session.id} className={`court-card p-6 space-y-5 ${riseClass}`}>
+              {/* Title + price */}
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-black text-slate-100 leading-relaxed">
+                  {session.title}
+                </h3>
+                <div className="text-left shrink-0">
+                  <span className="text-sm font-black text-slate-200">
+                    {session.pricePerPlayer.toLocaleString('fa-IR')}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">تومان / هر نفر</span>
+                </div>
+              </div>
+
+              {/* Meta: club • date • time */}
+              <p className="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5" />
+                  {session.clubName}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {session.date}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {session.time}
+                </span>
+              </p>
+
+              {/* Meta: level + count + type (one accent pill) */}
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                <GradeBadge grade={levelToGrade(session.minLevel)} className="text-[10px] min-w-[1.8rem]" />
+                <span className="text-slate-600">تا</span>
+                <GradeBadge grade={levelToGrade(session.maxLevel)} className="text-[10px] min-w-[1.8rem]" />
+                <span className="text-slate-500 font-bold mr-1">
+                  {filledCount} از {totalSlots} نفر
+                </span>
+                {session.type === 'competitive' ? (
+                  <span className="mr-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                    رقابتی
+                  </span>
+                ) : (
+                  <span className="mr-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                    دوستانه
+                  </span>
+                )}
+              </div>
+
+              <div className="court-divider" />
+
+              {/* Per-court slot grids — airy */}
+              <div className="space-y-5">
+                {session.courts.map((court) => (
+                  <div key={court.courtNumber} className="space-y-2.5">
+                    <p className="text-[11px] font-bold text-slate-400">{court.courtName}</p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {court.slots.map((slot) => {
+                        const filled = Boolean(slot.playerId);
+                        const isMe = slot.playerId === playerProfile.id;
+                        return (
+                          <div
+                            key={slot.slotNumber}
+                            className={`rounded-xl border p-2 text-center transition min-h-[86px] flex flex-col items-center justify-center gap-1 ${
+                              isMe
+                                ? 'border-[#ff2d55]/50 bg-[#ff2d55]/[0.07]'
+                                : filled
+                                ? 'border-white/10 bg-white/[0.03]'
+                                : 'border-dashed border-white/15 hover:border-[#ff2d55]/50'
+                            }`}
+                          >
+                            {filled ? (
+                              <>
+                                {slot.playerAvatar ? (
+                                  <img
+                                    src={slot.playerAvatar}
+                                    alt={slot.playerName}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
+                                    {(slot.playerName || '?').slice(0, 1)}
+                                  </div>
+                                )}
+                                <p className="text-[10px] font-bold text-slate-200 truncate w-full">
+                                  {slot.playerName}
+                                </p>
+                                <GradeBadge
+                                  grade={slot.playerLevel != null ? levelToGrade(slot.playerLevel) : '?'}
+                                  className="text-[9px] min-w-[1.5rem]"
+                                />
+                                {isMe && (
+                                  <button
+                                    onClick={() =>
+                                      leaveGroupSessionSlot(session.id, court.courtNumber, slot.slotNumber)
+                                    }
+                                    className="text-[9px] text-rose-400/80 hover:text-rose-300 font-bold cursor-pointer"
+                                  >
+                                    انصراف
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  joinGroupSessionSlot(session.id, court.courtNumber, slot.slotNumber)
+                                }
+                                className="w-full h-full flex flex-col items-center justify-center gap-1 group cursor-pointer py-2"
+                                title={slot.side === 'left' ? 'سمت چپ (Reves)' : 'سمت راست (Drive)'}
+                              >
+                                <Plus className="w-4 h-4 text-slate-600 group-hover:text-[#ff6b81] transition" />
+                                <span className="text-[9px] text-slate-600 group-hover:text-slate-400">
+                                  {slot.side === 'left' ? 'چپ' : 'راست'}
+                                </span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer: status line + creator */}
+              <div className="flex items-center justify-between text-[11px] pt-1">
+                {session.status === 'full' ? (
+                  <span className="text-slate-400 font-bold">تکمیل شد</span>
+                ) : isUserIn ? (
+                  <span className="text-emerald-300/90 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    شما در این سانس هستید
+                  </span>
+                ) : !isLevelOk ? (
+                  <span className="text-amber-400/80 flex items-center gap-1">
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    سطح شما: {levelToGrade(playerProfile.level)}
+                  </span>
+                ) : (
+                  <span className="text-slate-600">روی جای خالی بزنید تا ملحق شوید.</span>
+                )}
+                <span className="text-slate-600">سازنده: {session.creatorName}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Create modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto menu-fade">
+          <div className="w-full max-w-lg rounded-3xl glass-strong p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-[#ff6b81]" />
+                <h3 className="text-lg font-black text-slate-100">سانس گروهی جدید</h3>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-500 hover:text-slate-100 p-1 rounded-lg hover:bg-white/[0.04] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">عنوان سانس:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: سانس گروهی جمعه‌شب پدل پوینت"
+                  value={gTitle}
+                  onChange={(e) => setGTitle(e.target.value)}
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">باشگاه میزبان:</label>
+                <select
+                  value={gClubId}
+                  onChange={(e) => setGClubId(e.target.value)}
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
+                >
+                  {clubs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">تعداد زمین:</label>
+                <div className="flex gap-2">
+                  {([2, 3, 4] as const).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setCourtCount(n)}
+                      className={`flex-1 py-2.5 rounded-xl font-black border transition cursor-pointer ${
+                        gCourtCount === n
+                          ? 'bg-[#ff2d55] text-white border-[#ff2d55]'
+                          : 'bg-white/[0.05] border-white/10 text-slate-400'
+                      }`}
+                    >
+                      {n} زمین
+                      <span className="block text-[10px] font-normal opacity-70">{n * 4} نفر</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">نام زمین‌ها:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {gCourtNames.map((name, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      value={name}
+                      onChange={(e) =>
+                        setGCourtNames((prev) => prev.map((n, j) => (j === i ? e.target.value : n)))
+                      }
+                      placeholder={`زمین ${i + 1}`}
+                      className="bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none menu-pop-item"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">تاریخ:</label>
+                  <input
+                    type="text"
+                    value={gDate}
+                    onChange={(e) => setGDate(e.target.value)}
+                    placeholder="مثال: جمعه - ۱۹:۰۰"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">ساعت سانس:</label>
+                  <input
+                    type="text"
+                    value={gTime}
+                    onChange={(e) => setGTime(e.target.value)}
+                    placeholder="مثال: ۱۹:۰۰ - ۲۰:۳۰"
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">نوع سانس:</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGType('friendly')}
+                      className={`flex-1 py-2 rounded-xl font-bold border transition cursor-pointer ${
+                        gType === 'friendly'
+                          ? 'bg-emerald-400 text-white border-emerald-400'
+                          : 'bg-white/[0.05] border-white/10 text-slate-400'
+                      }`}
+                    >
+                      دوستانه
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGType('competitive')}
+                      className={`flex-1 py-2 rounded-xl font-bold border transition cursor-pointer ${
+                        gType === 'competitive'
+                          ? 'bg-amber-400 text-white border-amber-400'
+                          : 'bg-white/[0.05] border-white/10 text-slate-400'
+                      }`}
+                    >
+                      رقابتی رنکینگ
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">هزینه هر بازیکن (تومان):</label>
+                  <input
+                    type="number"
+                    step="10000"
+                    value={gPrice}
+                    onChange={(e) => setGPrice(Number(e.target.value))}
+                    className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">
+                  محدوده سطح (
+                  <GradeBadge grade={levelToGrade(gMinLevel)} className="text-[10px] min-w-[1.8rem] mx-0.5" />
+                  تا
+                  <GradeBadge grade={levelToGrade(gMaxLevel)} className="text-[10px] min-w-[1.8rem] mx-0.5" />
+                  ):
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-slate-500 text-[10px] mb-0.5 block">حداقل سطح</span>
+                    <input
+                      type="range"
+                      min="1.0"
+                      max="6.0"
+                      step="0.1"
+                      value={gMinLevel}
+                      onChange={(e) => setGMinLevel(Number(e.target.value))}
+                      className="w-full accent-[#ff2d55]"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[10px] mb-0.5 block">حداکثر سطح</span>
+                    <input
+                      type="range"
+                      min="2.0"
+                      max="7.0"
+                      step="0.1"
+                      value={gMaxLevel}
+                      onChange={(e) => setGMaxLevel(Number(e.target.value))}
+                      className="w-full accent-[#ff2d55]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#ff2d55] text-white font-black rounded-xl transition active:scale-95 cursor-pointer"
+                >
+                  ثبت سانس گروهی
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-5 py-3 bg-white/[0.04] hover:bg-white/10 text-slate-400 font-bold rounded-xl transition cursor-pointer"
+                >
+                  انصراف
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
