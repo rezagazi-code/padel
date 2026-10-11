@@ -1,376 +1,47 @@
 [
   {
-    "id": "shop-dunlop-dunlop-boost-2-0-1",
-    "file": "public/shop/shop-dunlop-dunlop-boost-2-0-1.jpg",
-    "source_url": "cached",
-    "bytes": 45356,
-    "width": 800,
+    "id": "shop-head-coello-pro-2025-43",
+    "file": "public/shop/shop-head-coello-pro-2025-43.jpg",
+    "source_url": "https://www.sprintersports.com/ofertas?utm_source=facebook&utm_medium=social&utm_campaign=SummerSales&utm_content=post&fbclid=IwAR32JR4u5zlsi3aFFfafbRSTLpOY-3J5qCqVFl9LFJ4CAqOgpzvU5FhTUho&page=18",
+    "image_url": "https://resize.sprintercdn.com/b/1504x2256/products/0396852/head-coello-pro-2025_0396852_00_5_1361477454.jpg?w=1504&q=75",
+    "bytes": 36128,
+    "width": 533,
     "height": 800
   },
   {
-    "id": "shop-nox-nox-x-one-casual-2025-2",
-    "file": "public/shop/shop-nox-nox-x-one-casual-2025-2.jpg",
-    "source_url": "cached",
-    "bytes": 45618,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-evo-speed-2025-3",
-    "file": "public/shop/shop-head-head-evo-speed-2025-3.jpg",
-    "source_url": "cached",
-    "bytes": 23018,
-    "width": 500,
-    "height": 625
-  },
-  {
-    "id": "shop-head-head-vibe-2026-4",
-    "file": "public/shop/shop-head-head-vibe-2026-4.jpg",
-    "source_url": "cached",
-    "bytes": 33990,
+    "id": "shop-head-bolt-2025-44",
+    "file": "public/shop/shop-head-bolt-2025-44.jpg",
+    "source_url": "https://courtswaps.com/products",
+    "image_url": "https://cdn-mdb.head.com/CDN3/G/226245/1/1365x1821/bolt-2025-226245.webp",
+    "bytes": 29364,
     "width": 600,
     "height": 800
   },
   {
-    "id": "shop-item-5",
-    "file": "public/shop/shop-item-5.jpg",
-    "source_url": "https://superbpadel.com/how-to-upgrade-your-gear-with-the-best-intermediate-padel-racket/",
-    "image_url": "https://r2-bucket.flowith.net/f/f7d9d0307577a251/premium_padel_racket_close_up_index_0%404096x2286.jpeg",
-    "bytes": 57321,
-    "width": 800,
-    "height": 446
-  },
-  {
-    "id": "shop-oxdog-oxdog-ultimate-court-202-6",
-    "file": "public/shop/shop-oxdog-oxdog-ultimate-court-202-6.jpg",
-    "source_url": "https://padeloutlet.sa/oxdog-ultimate-court-2025-padel-racket/p828925885",
-    "image_url": "https://cdn.salla.sa/YgyXPp/90e1a081-89f8-42d8-bdf5-c70474f6a731-297.51131221719x500-8PgNb5EXDsuDLoGzX1TbCtdzJ18lxfb1fZf21ORt.png",
-    "bytes": 18554,
-    "width": 297,
-    "height": 500
-  },
-  {
-    "id": "shop-head-head-extreme-one-2025-7",
-    "file": "public/shop/shop-head-head-extreme-one-2025-7.jpg",
-    "source_url": "https://ntbespanservice.nl/product/head-extreme-one-2025/",
-    "image_url": "https://ntbespanservice.nl/wp-content/uploads/2026/01/head-extreme-one-2025-2.jpg.webp",
-    "bytes": 27428,
-    "width": 421,
-    "height": 800
-  },
-  {
-    "id": "shop-nox-nox-at10-pro-cup-hard-2026-8",
-    "file": "public/shop/shop-nox-nox-at10-pro-cup-hard-2026-8.jpg",
-    "source_url": "https://www.tenniswarehouse-europe.com/catpage-NOXRAC.html",
-    "image_url": "https://img.tenniswarehouse-europe.com/watermark/rs.php?path=NPRPCUPHAR-1.jpg&nw=428",
-    "bytes": 29814,
-    "width": 428,
-    "height": 571
-  },
-  {
-    "id": "shop-nox-nox-at10-genius-18k-2024-9",
-    "file": "public/shop/shop-nox-nox-at10-genius-18k-2024-9.jpg",
-    "source_url": "https://padelnetwork.shop/products/tigra?variant=52053007860021",
-    "image_url": "https://padelnetwork.shop/cdn/shop/files/NoxAT10Genius18KAlumXtreme.jpg?v=1765907544&width=3840",
-    "bytes": 78718,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-extreme-one-x-2025-10",
-    "file": "public/shop/shop-head-head-extreme-one-x-2025-10.jpg",
-    "source_url": "https://www.padelwarehouse.com/catpage-PADELRAC.html",
-    "image_url": "https://img.tennis-warehouse.com/watermark/rs.php?path=HPREXTONEX-1.jpg&nw=910",
-    "bytes": 30139,
-    "width": 600,
-    "height": 800
-  },
-  {
-    "id": "shop-bullpadel-bullpadel-vertex-05--11",
-    "file": "public/shop/shop-bullpadel-bullpadel-vertex-05--11.jpg",
-    "source_url": "https://www.ongoal.dk/en/products/bullpadel-vertex-05-light-premier-padel-2026",
-    "image_url": "https://www.ongoal.dk/cdn/shop/files/982183-2.jpg?v=1773822875&width=910",
-    "bytes": 42233,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-nox-nox-at10-luxury-genius-18k-12",
-    "file": "public/shop/shop-nox-nox-at10-luxury-genius-18k-12.jpg",
-    "source_url": "https://kz.dobuystore.ae/catalog/sport/padel-/raketka-dlya-padel-nox-at10-luxury-genius-18k-alum-2024-seryy/",
-    "image_url": "https://kz.dobuystore.ae/upload/iblock/e1a/f0mzl4wrkhu8z55bzvscx7r35dcfn57l.jpg",
-    "bytes": 42484,
-    "width": 581,
-    "height": 800
-  },
-  {
-    "id": "shop-seed-kuikma-1",
-    "file": "public/shop/shop-seed-kuikma-1.jpg",
-    "source_url": "https://www.decathlon.pt/p/raquete-de-padel-adulto-kuikma-pr-190-laranja/_/R-p-327586",
-    "image_url": "https://contents.mediadecathlon.com/p2812944/k$ec364beb1fe141708bb33be6fe798f9e/sq/raquete-de-padel-adulto-kuikma-pr-open-vermelho.jpg?format=auto&amp;f=800x0",
-    "bytes": 41921,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-seed-tuyo-1",
-    "file": "public/shop/shop-seed-tuyo-1.jpg",
-    "source_url": "https://jomla.ae/ar/product/tuyo-orange-tyro-padel-racket/",
-    "image_url": "https://jomla-wp.b-cdn.net/wp-content/uploads/2023/09/TU00200201-1.jpg?width=1080&quality=85",
-    "bytes": 25602,
-    "width": 600,
-    "height": 800
-  },
-  {
-    "id": "shop-seed-nordic-1",
-    "file": "public/shop/shop-seed-nordic-1.jpg",
-    "source_url": "https://nordicdots.cl/products/fiesta-series-matte-black",
-    "image_url": "https://www.nordicdots.cl/cdn/shop/files/fiesta-series-matte-black.webp?v=1741897571&width=1000",
-    "bytes": 22478,
-    "width": 673,
-    "height": 800
-  },
-  {
-    "id": "shop-seed-set-1",
-    "file": "public/shop/shop-seed-set-1.jpg",
-    "source_url": "https://padelproshop.com/collections/Oxdog",
-    "image_url": "https://padelproshop.com/cdn/shop/files/ul_pack.webp?v=1763395598&width=1200",
-    "bytes": 63580,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-seed-nox-1",
-    "file": "public/shop/shop-seed-nox-1.jpg",
-    "source_url": "https://padelstars.ru/catalog/raketka-dlya-padel-tennisa-nox-at10-genius-ultralight-by-agustin-tapia-2025/",
-    "image_url": "https://padelstars.ru/upload/iblock/685/nwq10g5hnj3do7lsr376auu1djm1zv88/raketka_dlya_padel_tennisa_nox_at10_genius_ultralight_by_agustin_tapia_2025.jpg",
-    "bytes": 39692,
-    "width": 505,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-padel-team-13",
-    "file": "public/shop/shop-head-head-padel-team-13.jpg",
-    "source_url": "https://www.dibbs.pt/deal/1773578392870",
-    "image_url": "https://www.dibbs.pt/deals/B076TGJ7JZ_PT.png?dpl=dpl_Uf319w8R72XG3pUPMjbqTCmhBd96",
-    "bytes": 22223,
-    "width": 277,
-    "height": 800
-  },
-  {
-    "id": "shop-qicksand-qicksand-14",
-    "file": "public/shop/shop-qicksand-qicksand-14.jpg",
-    "source_url": "https://www.joybuy.co.uk/dp/hypro-3pk-padel-balls/10506227",
-    "image_url": "https://images4.joy-sourcing.com/da/jfsintlpro-000-product/t1/4294967296/6684672/6109817803351/417975/694cb0d5E0e686f61/42b10752b5083d5e.jpg!q70.webp",
-    "bytes": 38380,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-nox-nox-nerbo-speed-15",
-    "file": "public/shop/shop-nox-nox-nerbo-speed-15.jpg",
-    "source_url": "https://brandss.com.py/index/shop/page/9/?s=Alo&post_type=product&per_page=18&add-to-cart=109402",
-    "image_url": "https://i0.wp.com/brandss.com.py/index/wp-content/uploads/2026/08/3-45.png?w=600&ssl=1",
-    "bytes": 21353,
-    "width": 600,
-    "height": 600
-  },
-  {
-    "id": "shop-dunlop-dunlop-pro-padel-16",
-    "file": "public/shop/shop-dunlop-dunlop-pro-padel-16.jpg",
-    "source_url": "https://www.plutosport.com/head-one-padelballs-24-tubes-575383-carton",
-    "image_url": "https://cdn.plutosport.com/a/ProductMedia/Dunlop/P.DUN.PADE.2894/601552_g1.jpg?profile=max_width_mobile",
-    "bytes": 31190,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-asics-asics-solution-speed-ff2-17",
-    "file": "public/shop/shop-asics-asics-solution-speed-ff2-17.jpg",
-    "source_url": "https://www.asics.com/us/en-us/solution-speed-ff-2-road-tested/p/ANA_R041A182-402.html",
-    "image_url": "https://images.asics.com/is/image/asics/1041A182_402_SR_RT_GLB?$sfcc-product$&fmt=jpg&wid=683&hei=512",
-    "bytes": 46197,
-    "width": 683,
-    "height": 512
-  },
-  {
-    "id": "shop-joma-joma-18",
-    "file": "public/shop/shop-joma-joma-18.jpg",
-    "source_url": "https://www.decathlon.pt/p/mp/joma/sapatilhas-padel-homem-joma-t-open-22-preto-coral/_/R-p-c53ccab7-8071-4aad-9095-ec4c351b8029",
-    "image_url": "https://contents.mediadecathlon.com/m8673370/k$81eb3ce1743262c32a51140eca1d3304/sq/joma-topen-2209-topenw2209p-amarelo.jpg?format=auto&amp;f=800x0",
-    "bytes": 66381,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-adidas-adidas-gamecourt-2-19",
-    "file": "public/shop/shop-adidas-adidas-gamecourt-2-19.jpg",
-    "source_url": "https://www.academy.com/p/adidas-mens-gamecourt-2-tennis-shoes",
-    "image_url": "https://academy.scene7.com/is/image/academy/og-image/21627354",
-    "bytes": 27537,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-nike-nikecourt-air-zoom-lite-3-20",
-    "file": "public/shop/shop-nike-nikecourt-air-zoom-lite-3-20.jpg",
-    "source_url": "https://www.microtechcnc.com.sg/?m=56415316",
-    "image_url": "https://i.pinimg.com/736x/10/2b/4d/102b4d22a0c6cddc87898e9e96782c96.jpg",
-    "bytes": 21915,
-    "width": 736,
-    "height": 736
-  },
-  {
-    "id": "shop-asics-asics-gel-resolution-9-21",
-    "file": "public/shop/shop-asics-asics-gel-resolution-9-21.jpg",
-    "source_url": "https://www.sportchek.ca/en/pdp/asics-men-s-gel-resolution-9-tennis-shoes-81265912f.html",
-    "image_url": "https://media-www.sportchek.ca/product/div-05-footwear/dpt-80-footwear/sdpt-01-mens/334400655/asics-men-s-gel-resolution-9-tennis-shoes-4abbed13-192a-4997-b541-00f4e19a774c-jpgrendition.jpg",
-    "bytes": 39730,
-    "width": 800,
-    "height": 375
-  },
-  {
-    "id": "shop-head-head-revolt-court-22",
-    "file": "public/shop/shop-head-head-revolt-court-22.jpg",
-    "source_url": "https://www.sportsdirect.com/head-head-revolt-court-50-mens-tennis-/-padel-shoes-145431#colcode=14543101",
-    "image_url": "https://cdn.media.amplience.net/i/frasersdev/14543101_o_a7.jpg?v=20260505090138",
-    "bytes": 53171,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-adidas-adidas-crazyquick-boost-23",
-    "file": "public/shop/shop-adidas-adidas-crazyquick-boost-23.jpg",
-    "source_url": "https://futurapadelshop.com/products/zapatillas-crazyquick-boost-padel-m-l-azul",
-    "image_url": "https://futurapadelshop.com/cdn/shop/files/Zapatilla_de_padel_Crazyquick_BOOST_Blanco_JR2124_HM1.png?v=1773242356",
-    "bytes": 29131,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-nike-nikecourt-dri-fit-rafa-24",
-    "file": "public/shop/shop-nike-nikecourt-dri-fit-rafa-24.jpg",
-    "source_url": "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/268aaffb-8235-47e9-b712-17b2fe156aa7/nikecourt-dri-fit-rafa-tennis-t-shirt-fw4Rwk.png",
-    "image_url": "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/268aaffb-8235-47e9-b712-17b2fe156aa7/nikecourt-dri-fit-rafa-tennis-t-shirt-fw4Rwk.png",
-    "bytes": 28368,
+    "id": "shop-head-one-ultralight-45",
+    "file": "public/shop/shop-head-one-ultralight-45.jpg",
+    "source_url": "https://midwaysports.com/products/head-coello-team-2025?variant=52094638457204",
+    "image_url": "https://midwaysports.com/cdn/shop/files/Head-One_Ultralight_Black_Padel_Racket_PadelUSA_store_2.webp?v=1746887687&width=1200",
+    "bytes": 30345,
     "width": 640,
     "height": 800
   },
   {
-    "id": "shop-nike-nikecourt-dri-fit-25",
-    "file": "public/shop/shop-nike-nikecourt-dri-fit-25.jpg",
-    "source_url": "https://khyatijoshi.com/ants.asp?iid=14119787-nike+939134&cid=5",
-    "image_url": "https://c.static-nike.com/a/images/t_PDP_1280_v1/f_auto/a61d2f01-7f9e-4981-adbc-a715bf77f2f4/nikecourt-dri-fit-short-sleeve-tennis-top-j8kS21.jpg",
-    "bytes": 26094,
+    "id": "shop-adidas-metalbone-hrd-plus-2026-46",
+    "file": "public/shop/shop-adidas-metalbone-hrd-plus-2026-46.jpg",
+    "source_url": "https://1sport.com.ar/paletas-importas/adidas1/",
+    "image_url": "https://acdn-us.mitiendanube.com/stores/006/342/000/products/3-1c78add2f52567037517722237138598-1024-1024.webp",
+    "bytes": 34853,
+    "width": 455,
+    "height": 800
+  },
+  {
+    "id": "shop-bullpadel-indiga-boy-26-47",
+    "file": "public/shop/shop-bullpadel-indiga-boy-26-47.jpg",
+    "source_url": "https://kortrehberi.com/raketler/kontrol-raketleri",
+    "image_url": "https://kortrehberi.com/_next/image?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0774%2F6813%2F9745%2Ffiles%2Fbullpadel-indiga-boy-26-cocuk-padel-raketi-1.jpg%3Fv%3D1769703130&w=828&q=75",
+    "bytes": 39242,
     "width": 640,
-    "height": 800
-  },
-  {
-    "id": "shop-nike-nike-court-victory-dri-fi-26",
-    "file": "public/shop/shop-nike-nike-court-victory-dri-fi-26.jpg",
-    "source_url": "https://khyatijoshi.com/ants.asp?iid=14119787-nike+939134&cid=5",
-    "image_url": "https://c.static-nike.com/a/images/t_PDP_1280_v1/f_auto/a61d2f01-7f9e-4981-adbc-a715bf77f2f4/nikecourt-dri-fit-short-sleeve-tennis-top-j8kS21.jpg",
-    "bytes": 26094,
-    "width": 640,
-    "height": 800
-  },
-  {
-    "id": "shop-nike-nike-dri-fit-rafa-challen-27",
-    "file": "public/shop/shop-nike-nike-dri-fit-rafa-challen-27.jpg",
-    "source_url": "https://114.p.syniva.es/it/t/maglia-da-tennis-a-manica-corta-dri-fit-rafa-challenger-lMXvwk",
-    "image_url": "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/2a306e33-a0ab-4b9c-9784-cffc9f9f68cd/maglia-da-tennis-a-manica-corta-dri-fit-rafa-challenger-lMXvwk.png",
-    "bytes": 29141,
-    "width": 640,
-    "height": 800
-  },
-  {
-    "id": "shop-nike-nikecourt-advantage-dri-f-28",
-    "file": "public/shop/shop-nike-nikecourt-advantage-dri-f-28.jpg",
-    "source_url": "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/4b27c51f-73b5-448b-bcb6-5ac8e8d8320b/nikecourt-dri-fit-advantage-tennis-shorts-RdpFf4.png",
-    "image_url": "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/4b27c51f-73b5-448b-bcb6-5ac8e8d8320b/nikecourt-dri-fit-advantage-tennis-shorts-RdpFf4.png",
-    "bytes": 25244,
-    "width": 640,
-    "height": 800
-  },
-  {
-    "id": "shop-item-29",
-    "file": "public/shop/shop-item-29.jpg",
-    "source_url": "https://www.babolat.ca",
-    "image_url": "https://www.babolat.ca/cdn/shop/files/759018-RH_TEAM_PADEL_JL-144-3-With_racquet.png?v=1710441163&width=1225",
-    "bytes": 62541,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-pro-x-court-bag-40l-30",
-    "file": "public/shop/shop-head-head-pro-x-court-bag-40l-30.jpg",
-    "source_url": "https://forheads.vn/collections/tui-balo-tennis-1",
-    "image_url": "https://product.hstatic.net/1000135006/product/1__1__a0771a42dde54631b350828ae005e9c1_large.jpg",
-    "bytes": 12380,
-    "width": 480,
-    "height": 367
-  },
-  {
-    "id": "shop-wilson-wilson-roland-garros-to-31",
-    "file": "public/shop/shop-wilson-wilson-roland-garros-to-31.jpg",
-    "source_url": "https://di-miniapp.inweb.uz/products/159897",
-    "image_url": "https://admin.di-sport.uz/storage/galleries/28782/SROvNtfkyGfxu2O9uWrAkiRGWWuhIcmJRsptPMY5.webp",
-    "bytes": 22015,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-coello-tour-padel-ba-32",
-    "file": "public/shop/shop-head-head-coello-tour-padel-ba-32.jpg",
-    "source_url": "https://padelprijzen.nl/merken/head",
-    "image_url": "https://padelprijzen.nl/api/img?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0646%2F3671%2F5163%2Ffiles%2F261985CoelloTourPadelBagL3200_1.jpg%3Fv%3D1758888633",
-    "bytes": 31742,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-vs-vs-33",
-    "file": "public/shop/shop-vs-vs-33.jpg",
-    "source_url": "https://www.teniszmarket.hu/Babolat-VS-Original-Feel-Blue",
-    "image_url": "https://www.teniszmarket.hu/img/26417/653040_0136/490x490,r/653040_0136.jpg?time=1674731318",
-    "bytes": 29957,
-    "width": 490,
-    "height": 490
-  },
-  {
-    "id": "shop-wilson-wilson-comfort-34",
-    "file": "public/shop/shop-wilson-wilson-comfort-34.jpg",
-    "source_url": "https://tennisexpress.com/blogs/news/small-changes-big-impact-the-value-of-updating-your-grip-strings-and-shoes-in-tennis",
-    "image_url": "https://cdn.shopify.com/s/files/1/0887/5599/4939/files/65538-DEFAULT-L_dd296d21-95c5-47b5-8999-afa903aaf046.jpg?v=1749233719",
-    "bytes": 57780,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-xtreme-soft-35",
-    "file": "public/shop/shop-head-head-xtreme-soft-35.jpg",
-    "source_url": "https://www.ionas.gr/product/xtremesoft-overgrip/",
-    "image_url": "https://www.ionas.gr/wp-content/uploads/2018/09/ionas_1453280160_products-1.jpg",
-    "bytes": 29760,
-    "width": 700,
-    "height": 700
-  },
-  {
-    "id": "shop-nox-nox-pro-colors-36",
-    "file": "public/shop/shop-nox-nox-pro-colors-36.jpg",
-    "source_url": "https://sportano.lt/img/986c30c27a3d26a3ee16c136f92f4ff5/8/4/8436049561288_40-jpg/padelio-apvija-nox-pro-overgrip-3-pcs-multicolour-0.jpg",
-    "image_url": "https://sportano.lt/img/986c30c27a3d26a3ee16c136f92f4ff5/8/4/8436049561288_40-jpg/padelio-apvija-nox-pro-overgrip-3-pcs-multicolour-0.jpg",
-    "bytes": 38515,
-    "width": 800,
-    "height": 800
-  },
-  {
-    "id": "shop-head-head-xtreme-track-37",
-    "file": "public/shop/shop-head-head-xtreme-track-37.jpg",
-    "source_url": "https://shopee.com.br/Overgrip-Head-Xtreme-Track-i.241519822.12725955966",
-    "image_url": "https://down-br.img.susercontent.com/file/f9141f007db3d00e3d6e83aad95ace1d",
-    "bytes": 34596,
-    "width": 800,
     "height": 800
   }
 ]
