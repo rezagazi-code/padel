@@ -14,6 +14,7 @@ import { FreeAgentsView } from './components/FreeAgentsView';
 import { TournamentsView } from './components/TournamentsView';
 import { CoachBookingView } from './components/CoachBookingView';
 import { PlayerProfileView } from './components/PlayerProfileView';
+import { ShopView } from './components/ShopView';
 import { ClubOwnerModal } from './components/ClubOwnerModal';
 import { SupabaseModal } from './components/SupabaseModal';
 import { PwaInstallModal } from './components/PwaInstallModal';
@@ -124,6 +125,8 @@ const MainContent: React.FC = () => {
         return <TournamentsView />;
       case 'coaches':
         return <CoachBookingView />;
+      case 'shop':
+        return <ShopView />;
       case 'profile':
         return <PlayerProfileView />;
       default:

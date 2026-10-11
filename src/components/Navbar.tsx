@@ -10,6 +10,7 @@ import {
   UserCheck,
   GraduationCap,
   User,
+  ShoppingBag,
   PlusCircle,
   Smartphone,
   Cloud,
@@ -50,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
 
   const navItems: {
-    id: 'booking' | 'matchmaking' | 'free-agents' | 'tournaments' | 'coaches' | 'profile';
+    id: 'booking' | 'matchmaking' | 'free-agents' | 'tournaments' | 'coaches' | 'profile' | 'shop';
     label: string;
     icon: any;
     badge?: string;
@@ -60,6 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'free-agents', label: 'بازیکنان آزاد', icon: UserCheck, badge: 'جدید' },
     { id: 'tournaments', label: 'تورنومنت و رنکینگ', icon: Trophy },
     { id: 'coaches', label: 'رزرو مربی', icon: GraduationCap },
+    { id: 'shop', label: 'فروشگاه', icon: ShoppingBag, badge: 'جدید' },
     { id: 'profile', label: 'پروفایل من', icon: User },
   ];
 

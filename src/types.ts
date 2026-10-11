@@ -360,3 +360,48 @@ export interface FriendlyTournament {
   createdBy: string;
   createdAt: string;
 }
+
+// ============ Padel Shop (فروشگاه لوازم پدل) ============
+
+export type ShopCategory =
+  | 'racket'
+  | 'balls'
+  | 'shoes'
+  | 'apparel'
+  | 'bags'
+  | 'accessories';
+
+export const SHOP_CATEGORY_LABELS: Record<ShopCategory, string> = {
+  racket: 'راکت',
+  balls: 'توپ',
+  shoes: 'کفش',
+  apparel: 'لباس',
+  bags: 'کیف و ساک',
+  accessories: 'لوازم جانبی',
+};
+
+export interface ShopOffer {
+  store: string;
+  /** price in Toman; null = price only via DM / unknown */
+  priceToman: number | null;
+  url: string;
+  condition: 'نو' | 'کارکرده';
+  note?: string;
+}
+
+export interface ShopProduct {
+  id: string;
+  name: string;
+  brand: string;
+  category: ShopCategory;
+  description?: string;
+  /** offers sorted by price asc (null prices last) */
+  offers: ShopOffer[];
+}
+
+/** Cheapest known price across offers, or null if none listed. */
+export function bestOffer(p: ShopProduct): ShopOffer | null {
+  const priced = p.offers.filter((o) => o.priceToman != null);
+  if (priced.length === 0) return p.offers[0] ?? null;
+  return priced.reduce((a, b) => (a.priceToman! <= b.priceToman! ? a : b));
+}

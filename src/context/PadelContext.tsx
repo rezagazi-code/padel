@@ -59,6 +59,7 @@ export type ActiveTab =
   | 'tournaments'
   | 'coaches'
   | 'profile'
+  | 'shop'
   | 'club-owner';
 
 interface PadelContextType {
