@@ -88,7 +88,7 @@ export const TournamentsView: React.FC = () => {
   const [newEndDate, setNewEndDate] = useState(isoPlusDays(16));
   const [newDeadline, setNewDeadline] = useState(isoPlusDays(10));
   const [newEntryFee, setNewEntryFee] = useState<number>(1500000);
-  const [newPrizePool, setNewPrizePool] = useState('۵۰,۰۰۰,۰۰۰ تومان وجه نقد + مدال');
+  const [newPrizePool, setNewPrizePool] = useState('۵۰٬۰۰۰٬۰۰۰ تومان وجه نقد + مدال');
   const [newMaxTeams, setNewMaxTeams] = useState<number>(16);
   const [tournSubmitting, setTournSubmitting] = useState(false);
   const [tournSubmitError, setTournSubmitError] = useState('');
@@ -333,7 +333,7 @@ export const TournamentsView: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3 bg-white/[0.05] p-3.5 rounded-2xl border border-white/10">
                       <div>
                         <span className="text-slate-500 block text-[10px]">مجموع جوایز و پاداش:</span>
-                        <span className="text-sm font-black text-amber-400">{tourn.prizePool}</span>
+                        <span className="text-sm font-black text-amber-400">{tourn.prizePool.replace(/,/g, '٬')}</span>
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px]">ورودی تیم (دونفره):</span>
@@ -461,7 +461,7 @@ export const TournamentsView: React.FC = () => {
                     </button>
 
                     <span className="text-[10px] text-slate-500">
-                      برگزارکننده: {tourn.organizerType === 'province' ? 'ادمین هیات استان' : `باشگاه ${tourn.clubName}`}
+                      برگزارکننده: {tourn.organizerType === 'province' ? 'ادمین هیات استان' : (tourn.clubName.startsWith('باشگاه') ? tourn.clubName : `باشگاه ${tourn.clubName}`)}
                     </span>
                   </div>
 

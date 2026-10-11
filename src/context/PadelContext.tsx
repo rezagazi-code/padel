@@ -29,7 +29,7 @@ import {
   initialRankings,
   initialTournaments
 } from '../mockData';
-import { levelToGrade, SKILL_GRADES } from '../utils/skillGrades';
+import { levelToGrade, SKILL_GRADES, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
 import {
   fetchClubs,
@@ -718,7 +718,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             return m;
           }
           // Check level
-          if (playerProfile.level < m.minLevel - 0.2 || playerProfile.level > m.maxLevel + 0.2) {
+          if (playerProfile.level < m.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > m.maxLevel + LEVEL_JOIN_TOLERANCE) {
             setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این مسابقه (${levelToGrade(m.minLevel)} - ${levelToGrade(m.maxLevel)}) منطبق نیست.`);
           }
 
@@ -837,7 +837,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setSyncNotification('شما قبلاً در این سانس گروهی شرکت کرده‌اید.');
           return g;
         }
-        if (playerProfile.level < g.minLevel - 0.2 || playerProfile.level > g.maxLevel + 0.2) {
+        if (playerProfile.level < g.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > g.maxLevel + LEVEL_JOIN_TOLERANCE) {
           setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این سانس (${levelToGrade(g.minLevel)} - ${levelToGrade(g.maxLevel)}) منطبق نیست.`);
         }
         const updatedCourts = g.courts.map((c) => {
@@ -943,11 +943,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Standard seeding: 1 vs last, 2 vs second-last, etc.
         const matches: FriendlyMatch[] = [];
         // Round key must match the true bracket depth: size 8 -> quarterfinal,
-        // size 16 -> round16. (Sizes 2/4 -> final/semifinal.) Using 'quarterfinal'
-        // for 9-16 teams mislabeled the first round, so the bracket finished one
-        // round early and crowned a "champion" from only half the bracket.
-        const roundName = size === 2 ? 'final' : size === 4 ? 'semifinal' : size === 8 ? 'quarterfinal' : 'round16';
-        const roundFa = size === 2 ? 'فینال' : size === 4 ? 'نیمه‌نهایی' : size === 8 ? 'یک‌چهارم نهایی' : 'یک‌هشتم نهایی';
+        // size 16 -> round16, size 32 -> round32. (Sizes 2/4 -> final/semifinal.)
+        // Using a key shallower than the true depth makes recordFriendlyScore
+        // reach 'final' with leftover matches, crowning a champion one round
+        // early, so the key is derived from the actual bracket size.
+        const firstRound: Record<number, { key: string; fa: string }> = {
+          2: { key: 'final', fa: 'فینال' },
+          4: { key: 'semifinal', fa: 'نیمه‌نهایی' },
+          8: { key: 'quarterfinal', fa: 'یک‌چهارم نهایی' },
+          16: { key: 'round16', fa: 'یک‌هشتم نهایی' },
+          32: { key: 'round32', fa: 'یک‌شانزدهم نهایی' },
+          64: { key: 'round64', fa: 'یک‌سی‌ودوم نهایی' },
+        };
+        const roundName = firstRound[size]?.key ?? 'round16';
+        const roundFa = firstRound[size]?.fa ?? 'یک‌هشتم نهایی';
         for (let i = 0; i < size / 2; i++) {
           const t1 = seeded[i];
           const t2 = seeded[size - 1 - i];
@@ -982,7 +991,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // 2. Group by round to find the LATEST round
         const roundOrder: Record<string, number> = {
-          round16: 0, quarterfinal: 1, semifinal: 2, final: 3,
+          round64: -2, round32: -1, round16: 0, quarterfinal: 1, semifinal: 2, final: 3,
         };
         const byRound = new Map<string, typeof bracket>();
         bracket.forEach((m) => {
@@ -1026,7 +1035,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const nextRoundFa = nextRound === 'semifinal' ? 'نیمه‌نهایی' 
               : nextRound === 'final' ? 'فینال'
               : nextRound === 'quarterfinal' ? 'یک‌چهارم نهایی'
-              : nextRound === 'round16' ? 'یک‌هشتم نهایی' : '';
+              : nextRound === 'round16' ? 'یک‌هشتم نهایی'
+              : nextRound === 'round32' ? 'یک‌شانزدهم نهایی'
+              : nextRound === 'round64' ? 'یک‌سی‌ودوم نهایی' : '';
             
             if (nextRound && winners.length >= 2) {
               const nextMatches: FriendlyMatch[] = [];

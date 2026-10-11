@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Club, Court } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
-import { fetchBookedTimeSlots } from '../lib/db';
+import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
 import { saveDongiRecord } from '../lib/dongi';
 import { DongiPanel } from './DongiPanel';
@@ -93,8 +93,44 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [playersNeededCount, setPlayersNeededCount] = useState<number>(1);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [lastBookingInfo, setLastBookingInfo] = useState<any>(null);
-  // Real availability: time_slot strings already booked for the selected court+date.
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  // Real availability: existing bookings for the selected court+date,
+  // each with its duration, so availability is computed from
+  // [start, start + durationMinutes) intervals.
+  const [booked, setBooked] = useState<BookedInterval[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  // Tracks whether the user has manually picked a slot; the auto-select
+  // effect must not clobber a manual pick when bookings load later.
+  const userPickedSlotRef = useRef(false);
+
+  // Slot labels use Persian digits ('۱۸:۰۰ - ۱۹:۳۰'); normalize to get the
+  // start of the slot in minutes since midnight.
+  const faDigitsToEn = (s: string) =>
+    s.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+  const slotStartMinutes = (timeSlot: string): number | null => {
+    const m = faDigitsToEn(timeSlot).match(/(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return Number(m[1]) * 60 + Number(m[2]);
+  };
+
+  // Booked intervals in minutes: [start, start + durationMinutes).
+  const bookedIntervals = useMemo(
+    () =>
+      booked
+        .map((b) => {
+          const start = slotStartMinutes(b.timeSlot);
+          if (start === null) return null;
+          return { start, end: start + (b.durationMinutes || 90) };
+        })
+        .filter((iv): iv is { start: number; end: number } => iv !== null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [booked]
+  );
+
+  const intervalsOverlap = (
+    startA: number,
+    endA: number,
+    intervals: { start: number; end: number }[]
+  ) => intervals.some((iv) => startA < iv.end && iv.start < endA);
 
   // Filter clubs by province
   const filteredClubs = clubs.filter(
@@ -117,37 +153,43 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvince]);
 
-  // Real availability: reload booked slots whenever the court or date changes.
+  // Real availability: reload booked intervals whenever the court or date changes.
   useEffect(() => {
     let cancelled = false;
     const courtId = currentCourt?.id;
     const dateISO = selectedDate?.raw;
     if (!courtId || !dateISO) {
-      setBookedSlots([]);
+      setBooked([]);
       return;
     }
     (async () => {
       try {
         if (getSupabase()) {
-          const slots = await fetchBookedTimeSlots(courtId, dateISO);
-          if (!cancelled) setBookedSlots(slots);
+          const intervals = await fetchBookedIntervals(courtId, dateISO);
+          if (!cancelled) setBooked(intervals);
         } else {
-          // Local mode (no backend): derive from the context's bookings.
+          // Local mode (no backend): derive from the context's bookings,
+          // including their durations.
           if (!cancelled)
-            setBookedSlots(
+            setBooked(
               bookings
                 .filter((b) => b.courtId === courtId && b.date === dateISO)
-                .map((b) => b.timeSlot)
+                .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }))
             );
         }
       } catch {
-        if (!cancelled) setBookedSlots([]);
+        if (!cancelled) setBooked([]);
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [currentCourt?.id, selectedDate?.raw, bookings]);
+
+  // A new club/court/date starts a fresh selection: the user hasn't picked yet.
+  useEffect(() => {
+    userPickedSlotRef.current = false;
+  }, [selectedClubId, selectedCourtId, selectedDate?.raw]);
 
   // Time slots generated from the club's working hours (90-min slots).
   // Persian-digit display, e.g. '۱۸:۰۰ - ۱۹:۳۰'.
@@ -168,19 +210,28 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       slots.push({
         time,
         isPeak: h >= 18,
-        // Real availability from bookings (Supabase or local), no demo flags.
-        isBooked: bookedSlots.includes(time),
+        // A slot is bookable only if [slotStart, slotStart + selected duration)
+        // overlaps no existing booking interval (a 60/120-min booking may cover
+        // more than its own 90-min grid cell).
+        isBooked: intervalsOverlap(start, start + duration, bookedIntervals),
         period: h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night',
       });
     }
     return slots;
-  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour, bookedSlots]);
+  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour, bookedIntervals, duration]);
 
-  // Auto-select the first free slot whenever the club (or its hours) change
+  // Auto-select the first free slot on a fresh selection (club/court/date),
+  // but never clobber a manual pick when availability loads/updates later.
   useEffect(() => {
+    if (userPickedSlotRef.current) return;
     const first = timeSlots.find((s) => !s.isBooked) || timeSlots[0];
     setSelectedTimeSlot(first ? first.time : '');
   }, [timeSlots]);
+
+  const handleSlotPick = (time: string) => {
+    userPickedSlotRef.current = true;
+    setSelectedTimeSlot(time);
+  };
 
   const selectedSlot = timeSlots.find((s) => s.time === selectedTimeSlot);
   const isCurrentSlotPeak = selectedSlot ? selectedSlot.isPeak : false;
@@ -196,10 +247,25 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
   const handleConfirmBooking = async () => {
+    if (isSubmitting) return; // double-submit guard
     if (!currentClub || !currentCourt) return;
     setBookingError(null);
+    setIsSubmitting(true);
+    try {
+      // Fresh overlap re-check against the latest known bookings: the chosen
+      // interval [slotStart, slotStart + duration) must not collide with any
+      // existing booking, even when that booking sits on a different
+      // 90-min grid cell.
+      const slotStart = slotStartMinutes(selectedTimeSlot);
+      if (
+        slotStart !== null &&
+        intervalsOverlap(slotStart, slotStart + duration, bookedIntervals)
+      ) {
+        setBookingError('این سانس با یک رزرو موجود تداخل دارد. لطفاً سانس دیگری انتخاب کنید.');
+        return;
+      }
 
-    const newBooking = await createBooking({
+      const newBooking = await createBooking({
       clubId: currentClub.id,
       clubName: currentClub.name,
       courtId: currentCourt.id,
@@ -243,9 +309,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       setDongiNames(['', '', '']);
     }
 
-    try {
-    } catch {
-      // safe fallback
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -548,7 +613,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       <button
                         key={index}
                         disabled={slot.isBooked}
-                        onClick={() => setSelectedTimeSlot(slot.time)}
+                        onClick={() => handleSlotPick(slot.time)}
                         className={`p-3 rounded-xl text-center border transition relative cursor-pointer ${
                           slot.isBooked
                             ? 'bg-white/[0.03] border-white/10 text-slate-400 cursor-not-allowed opacity-50'
@@ -775,10 +840,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 {/* Final CTA Button */}
                 <button
                   onClick={handleConfirmBooking}
-                  className="btn-fire glow-btn-fire flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 rounded-2xl transition cursor-pointer"
+                  disabled={isSubmitting}
+                  className="btn-fire glow-btn-fire flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <CreditCard className="w-5 h-5" />
-                  <span>تایید و رزرو قطعی زمین</span>
+                  <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>
                 </button>
               </div>
 

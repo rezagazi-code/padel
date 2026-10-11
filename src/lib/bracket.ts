@@ -6,6 +6,8 @@ function getRoundName(roundIndex: number, totalRounds: number): string {
   if (fromEnd === 0) return 'فینال';
   if (fromEnd === 1) return 'نیمه‌نهایی';
   if (fromEnd === 2) return 'یک‌چهارم نهایی';
+  if (fromEnd === 3) return 'یک‌شانزدهم نهایی';
+  if (fromEnd === 4) return 'یک‌سی‌ودوم نهایی';
   return `دور ${roundIndex + 1}`;
 }
 
@@ -57,6 +59,18 @@ export function generateBracket(
     }
   }
 
+  // Show bye teams too (they auto-advance), so the preview isn't missing teams.
+  for (const bt of byeTeams) {
+    matches.push({
+      id: `br-${Date.now()}-bye-${matchId++}`,
+      round: 0,
+      roundName,
+      team1: bt.name,
+      team2: 'استراحت',
+      winner: bt.name,
+    });
+  }
+
   return matches;
 }
 
@@ -78,6 +92,8 @@ export function bracketToDisplay(
   getTeamName: (id: string | null) => string
 ): BracketMatch[] {
   const roundOrder: Record<string, number> = {
+    round64: -2,
+    round32: -1,
     round16: 0,
     quarterfinal: 1,
     semifinal: 2,

@@ -89,8 +89,8 @@ export const FriendlyTournamentView: React.FC = () => {
     if (!selected) return;
     const inp = scoreInputs[matchId];
     if (!inp) return;
-    const s1 = parseInt(inp.s1);
-    const s2 = parseInt(inp.s2);
+    const s1 = Math.max(0, parseInt(inp.s1));
+    const s2 = Math.max(0, parseInt(inp.s2));
     if (isNaN(s1) || isNaN(s2)) return;
     recordFriendlyScore(selected.id, matchId, s1, s2);
     setScoreInputs((prev) => {

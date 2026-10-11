@@ -4,7 +4,7 @@ import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
 import { ConfirmDialog } from './ConfirmDialog';
 import GradeBadge from './GradeBadge';
-import { levelToGrade } from '../utils/skillGrades';
+import { levelToGrade, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
 import {
   Users,
   Plus,
@@ -231,8 +231,8 @@ export const MatchmakingView: React.FC = () => {
           const filledSlotsCount = match.slots.filter((s) => s.playerId).length;
           const isUserInMatch = match.slots.some((s) => s.playerId === playerProfile.id);
           const isLevelCompatible =
-            playerProfile.level >= match.minLevel - 0.25 &&
-            playerProfile.level <= match.maxLevel + 0.25;
+            playerProfile.level >= match.minLevel - LEVEL_JOIN_TOLERANCE &&
+            playerProfile.level <= match.maxLevel + LEVEL_JOIN_TOLERANCE;
           const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
@@ -469,7 +469,7 @@ export const MatchmakingView: React.FC = () => {
                 return (
                   <div className="mt-4 p-3 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
                     <p className="text-xs font-bold text-emerald-300 mb-2">
-                      🎯 {compatible.length} بازیکن آزاد هم‌سطح برای {emptySlots} جای خالی
+                      🎯 {compatible.length.toLocaleString('fa-IR')} بازیکن آزاد هم‌سطح برای {emptySlots.toLocaleString('fa-IR')} جای خالی
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {compatible.slice(0, 4).map((a) => (
@@ -634,7 +634,7 @@ export const MatchmakingView: React.FC = () => {
                       max="6.0"
                       step="0.1"
                       value={newMinLevel}
-                      onChange={(e) => setNewMinLevel(Number(e.target.value))}
+                      onChange={(e) => setNewMinLevel(Math.min(Number(e.target.value), newMaxLevel))}
                       className="w-full accent-[#ff2d55]"
                     />
                   </div>
@@ -646,7 +646,7 @@ export const MatchmakingView: React.FC = () => {
                       max="7.0"
                       step="0.1"
                       value={newMaxLevel}
-                      onChange={(e) => setNewMaxLevel(Number(e.target.value))}
+                      onChange={(e) => setNewMaxLevel(Math.max(Number(e.target.value), newMinLevel))}
                       className="w-full accent-[#ff2d55]"
                     />
                   </div>
@@ -793,8 +793,8 @@ const GroupSessionsTab: React.FC = () => {
             c.slots.some((s) => s.playerId === playerProfile.id)
           );
           const isLevelOk =
-            playerProfile.level >= session.minLevel - 0.25 &&
-            playerProfile.level <= session.maxLevel + 0.25;
+            playerProfile.level >= session.minLevel - LEVEL_JOIN_TOLERANCE &&
+            playerProfile.level <= session.maxLevel + LEVEL_JOIN_TOLERANCE;
           const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
@@ -1120,7 +1120,7 @@ const GroupSessionsTab: React.FC = () => {
                       max="6.0"
                       step="0.1"
                       value={gMinLevel}
-                      onChange={(e) => setGMinLevel(Number(e.target.value))}
+                      onChange={(e) => setGMinLevel(Math.min(Number(e.target.value), gMaxLevel))}
                       className="w-full accent-[#ff2d55]"
                     />
                   </div>
@@ -1132,7 +1132,7 @@ const GroupSessionsTab: React.FC = () => {
                       max="7.0"
                       step="0.1"
                       value={gMaxLevel}
-                      onChange={(e) => setGMaxLevel(Number(e.target.value))}
+                      onChange={(e) => setGMaxLevel(Math.max(Number(e.target.value), gMinLevel))}
                       className="w-full accent-[#ff2d55]"
                     />
                   </div>

@@ -56,3 +56,8 @@ export function levelLabel(level: number): string {
   const g = levelToGrade(level);
   return `${g} · ${gradeBandFa(g)}`;
 }
+
+/** Canonical tolerance (in numeric level units) applied around a match or
+ *  group session's advertised level band when a player joins. UI warnings
+ *  and join checks must both use this value so they never disagree. */
+export const LEVEL_JOIN_TOLERANCE = 0.2;

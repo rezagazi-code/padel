@@ -104,16 +104,30 @@ export async function fetchMyBookings(userId: string): Promise<Booking[]> {
 // Public availability: time slots already booked for a court on a given date
 // (YYYY-MM-DD). The bookings_select_all RLS policy permits public SELECT,
 // so any visitor can see real availability without signing in.
-export async function fetchBookedTimeSlots(courtId: string, dateISO: string): Promise<string[]> {
+export interface BookedInterval {
+  timeSlot: string;
+  durationMinutes: number;
+}
+
+// Bookings for a court+date, with their durations, so the caller can compute
+// real availability from [start, start + durationMinutes) intervals instead
+// of matching exact slot strings.
+export async function fetchBookedIntervals(
+  courtId: string,
+  dateISO: string
+): Promise<BookedInterval[]> {
   const sb = getSupabase();
   if (!sb) return [];
   const { data, error } = await sb
     .from('bookings')
-    .select('time_slot')
+    .select('time_slot, duration_minutes')
     .eq('court_id', courtId)
     .eq('date', dateISO);
   if (error) throw error;
-  return (data ?? []).map((r: Row) => String(r.time_slot));
+  return (data ?? []).map((r: Row) => ({
+    timeSlot: String(r.time_slot),
+    durationMinutes: Number(r.duration_minutes ?? 90) || 90,
+  }));
 }
 
 // Patch for the signed-in user's own profiles row. Only non-privileged
