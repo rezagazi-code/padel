@@ -17,6 +17,7 @@ import {
 } from '../types';
 import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
+import { Bubbles } from './Bubbles';
 
 const CATEGORY_ICONS: Record<ShopCategory, string> = {
   racket: '🎾',
@@ -211,7 +212,10 @@ export const ShopView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 relative">
+      {/* Underwater ambiance: rising + bursting bubbles behind the content */}
+      <Bubbles count={14} className="z-0" />
+      <div className="relative z-10 space-y-5">
       {/* Distinct shop header — warm bazaar feel */}
       <div className="rounded-3xl p-6 bg-gradient-to-br from-amber-500/20 via-[#1c1410] to-[#14100c] border border-amber-400/25 shadow-xl relative overflow-hidden">
         <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
@@ -220,7 +224,7 @@ export const ShopView: React.FC = () => {
             <ShoppingBag className="w-7 h-7 text-amber-300" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-stone-100">فروشگاه پدل</h1>
+            <h1 className="text-xl font-black text-stone-100 underwater-shimmer rounded-lg">فروشگاه پدل</h1>
             <p className="text-xs text-stone-400 mt-1">
               بهترین قیمت راکت، توپ، کفش و لباس از فروشگاه‌های ایران
             </p>
@@ -310,6 +314,7 @@ export const ShopView: React.FC = () => {
       {openProduct && (
         <ProductSheet p={openProduct} onClose={() => setOpenProduct(null)} />
       )}
+      </div>
     </div>
   );
 };

@@ -596,3 +596,72 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
+
+/* Underwater ambient bubbles: rise, wobble, then burst */
+.bubble {
+  position: absolute;
+  bottom: -30px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(186, 240, 255, 0.35);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(186, 240, 255, 0.12) 40%,
+    transparent 70%
+  );
+  box-shadow: inset -2px -3px 6px rgba(186, 240, 255, 0.18);
+  animation-name: bubble-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+@keyframes bubble-rise {
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+    transform: translate(calc(var(--wobble, 16px) * 0.4), -12vh) scale(0.85);
+  }
+  45% {
+    transform: translate(calc(var(--wobble, 16px) * -0.6), -45vh) scale(1);
+  }
+  75% {
+    opacity: 0.85;
+    transform: translate(calc(var(--wobble, 16px) * 0.5), -72vh) scale(1.05);
+  }
+  /* burst */
+  88% {
+    opacity: 0.9;
+    transform: translate(0, -82vh) scale(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -88vh) scale(1.6);
+  }
+}
+
+/* Submerged-text shimmer: a slow light sweep, like sun through water */
+.underwater-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.underwater-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(186, 240, 255, 0.22) 50%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  animation: underwater-sweep 5s ease-in-out infinite;
+}
+@keyframes underwater-sweep {
+  0% { background-position: 120% 0; }
+  60%, 100% { background-position: -120% 0; }
+}
