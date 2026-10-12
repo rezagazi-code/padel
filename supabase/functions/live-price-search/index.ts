@@ -1,7 +1,7 @@
 // Supabase Edge Function: live-price-search
-// Live cheapest-price search across Torob + tennisfa.com.
-// Deploy: Supabase Dashboard → Edge Functions → New function → paste this file → Deploy.
-// Invoke: supabase.functions.invoke('smooth-action', { body: { query: 'راکت پدل' } })
+// Live cheapest-price search across Torob + tennisfa.com + tennisshop.ir + alo-varzesh.
+// Auto-deployed via Supabase ↔ GitHub integration.
+// Invoke: supabase.functions.invoke('live-price-search', { body: { query: 'راکت پدل' } })
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -189,6 +189,101 @@ async function searchTennisfa(query: string): Promise<LiveOffer[]> {
   }
 }
 
+/** Generic Woodmart shop (tennisshop.ir: Toman-direct, divisor=1) */
+async function searchWoodmart(
+  query: string, baseUrl: string, storeName: string, priceDivisor: number,
+): Promise<LivePriceOffer[]> {
+  try {
+    let html: string | null = null;
+    for (const u of [
+      `${baseUrl}/shop/?s=${encodeURIComponent(query)}&post_type=product`,
+      `${baseUrl}/?s=${encodeURIComponent(query)}&post_type=product`,
+    ]) {
+      const r = await fetch(u, { headers: { 'User-Agent': UA } });
+      if (r.ok) {
+        const t = await r.text();
+        if (t.includes('product-image-link')) {
+          html = t;
+          break;
+        }
+      }
+    }
+    if (!html) return [];
+    const host = baseUrl.replace('https://', '');
+    const linkRe = new RegExp(
+      `<a[^>]*href="(https:\\/\\/${host.replace(/\./g, '\\.')}\\/[^"]*?)"[^>]*class="product-image-link"[^>]*>`,
+      'g',
+    );
+    const offers: LivePriceOffer[] = [];
+    const seen = new Set<string>();
+    let lm: RegExpExecArray | null;
+    while ((lm = linkRe.exec(html)) && offers.length < 10) {
+      const url = lm[1];
+      if (seen.has(url)) continue;
+      seen.add(url);
+      const chunk = html.slice(lm.index, lm.index + 8000);
+      const titleM = chunk.match(/<h3 class="wd-entities-title"><a[^>]*>([\s\S]*?)<\/a>/);
+      const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
+      const priceM = chunk.match(/woocommerce-Price-amount[^>]*>([\s\S]*?)<\/span>/);
+      const raw = priceM ? priceM[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
+      const numM = raw ? raw.match(/([\d,]+)/) : null;
+      const toman = numM ? Math.round(parseInt(numM[1].replace(/,/g, ''), 10) / priceDivisor) : 0;
+      if (title && toman > 0 && isPadelRelevant(title, query)) {
+        offers.push({ store: storeName, title, priceToman: toman, url, verified: true });
+      }
+    }
+    return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+async function searchAlovarzesh(query: string): Promise<LivePriceOffer[]> {
+  try {
+    const res = await fetch(
+      `https://shop.alo-varzesh.com/?s=${encodeURIComponent(query)}&post_type=product`,
+      { headers: { 'User-Agent': UA } },
+    );
+    if (!res.ok) return [];
+    const html = await res.text();
+    const linkRe = /<a[^>]*href="(https:\/\/shop\.alo-varzesh\.com\/product\/[^"]+)"[^>]*>/g;
+    const seen = new Set<string>();
+    const urls: string[] = [];
+    let lm: RegExpExecArray | null;
+    while ((lm = linkRe.exec(html)) && urls.length < 6) {
+      if (!seen.has(lm[1])) {
+        seen.add(lm[1]);
+        urls.push(lm[1]);
+      }
+    }
+    const offers: LivePriceOffer[] = [];
+    await Promise.all(
+      urls.map(async (url) => {
+        try {
+          const r = await fetch(url, { headers: { 'User-Agent': UA } });
+          if (!r.ok) return;
+          const ph = await r.text();
+          const titleM =
+            ph.match(/<h1[^>]*class="[^"]*product_title[^"]*"[^>]*>([\s\S]*?)<\/h1>/) ||
+            ph.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+          const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
+          const priceM = ph.match(/woocommerce-Price-amount[^>]*><bdi>([\d,]+)/);
+          const toman = priceM ? parseInt(priceM[1].replace(/,/g, ''), 10) : 0;
+          const outOfStock = /ناموجود/.test(ph.slice(0, 30000));
+          if (title && toman > 0 && !outOfStock && isPadelRelevant(title, query)) {
+            offers.push({ store: 'الو ورزش', title, priceToman: toman, url, verified: true });
+          }
+        } catch {
+          /* skip */
+        }
+      }),
+    );
+    return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -200,8 +295,13 @@ serve(async (req) => {
       return Response.json({ offers: [] }, { headers: corsHeaders });
     }
 
-    const [torob, tennisfa] = await Promise.all([searchTorob(q), searchTennisfa(q)]);
-    const offers = [...torob, ...tennisfa]
+    const [torob, tennisfa, tennisshop, alovarzesh] = await Promise.all([
+      searchTorob(q),
+      searchTennisfa(q),
+      searchWoodmart(q, 'https://tennisshop.ir', 'تنیس‌شاپ', 1),
+      searchAlovarzesh(q),
+    ]);
+    const offers = [...torob, ...tennisfa, ...tennisshop, ...alovarzesh]
       .sort((a, b) => a.priceToman - b.priceToman)
       .slice(0, 10);
 
