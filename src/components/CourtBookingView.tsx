@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
-import { ClubDetailSheet } from './ClubDetailSheet';
+import { ClubDetailInline } from './ClubDetailInline';
 import { BookingSheet } from './BookingSheet';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
@@ -54,7 +54,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
-  const [sheetClub, setSheetClub] = useState<Club | null>(null);
+  const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
   // Booking bottom-sheet: opened from ClubDetailSheet's CTA (court tap → sheet, not page)
   const [bookingSheet, setBookingSheet] = useState<{ clubId: string; courtId: string } | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
@@ -412,18 +412,15 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             {filteredClubs.map((club) => {
               const isSelected = club.id === selectedClubId;
               return (
+                <React.Fragment key={club.id}>
                 <div
-                  key={club.id}
                   onClick={() => {
                     setSelectedClubId(club.id);
                     if (club.courts.length > 0) {
                       setSelectedCourtId(club.courts[0].id);
                     }
-                    // On phones the detail sits far below the list: open the
-                    // courts bottom-sheet instead so no scrolling is needed.
-                    if (window.matchMedia('(max-width: 1023.5px)').matches) {
-                      setSheetClub(club);
-                    }
+                    // Expand inline panel directly beneath the tapped card
+                    setExpandedClubId(expandedClubId === club.id ? null : club.id);
                   }}
                   className={`court-card group overflow-hidden p-4 transition cursor-pointer ${
                     isSelected
@@ -473,6 +470,28 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     </div>
                   </div>
                 </div>
+                {expandedClubId === club.id && (
+                  <ClubDetailInline
+                    club={club}
+                    selectedCourtId={selectedCourtId}
+                    onSelectCourt={(courtId) => {
+                      setSelectedClubId(club.id);
+                      setSelectedCourtId(courtId);
+                    }}
+                    onBookCourt={(courtId) => {
+                      setSelectedClubId(club.id);
+                      setSelectedCourtId(courtId);
+                      setBookingSheet({ clubId: club.id, courtId });
+                      setExpandedClubId(null);
+                    }}
+                    onCollapse={() => setExpandedClubId(null)}
+                    myRating={myClubRatings[club.id] ?? 0}
+                    onRate={(n) => {
+                      void rateClub(club.id, n).catch(() => {});
+                    }}
+                  />
+                )}
+                </React.Fragment>
               );
             })}
           </div>
@@ -1013,39 +1032,6 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       />
 
       {/* Club detail bottom-sheet (mobile): full info slides up on tap */}
-      {sheetClub && (
-        <ClubDetailSheet
-          club={sheetClub}
-          selectedCourtId={selectedCourtId}
-          onSelectCourt={(courtId) => {
-            setSelectedClubId(sheetClub.id);
-            setSelectedCourtId(courtId);
-          }}
-          onContinue={() => {
-            setSheetClub(null);
-            // Bring the date/time booking controls into view
-            requestAnimationFrame(() => {
-              document
-                .getElementById('booking-detail')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-          }}
-          onBookCourt={(courtId) => {
-            // Chic flow: tapping "رزرو" opens the booking bottom-sheet
-            // instead of scrolling the page.
-            setSelectedClubId(sheetClub.id);
-            setSelectedCourtId(courtId);
-            setBookingSheet({ clubId: sheetClub.id, courtId });
-            setSheetClub(null);
-          }}
-          onClose={() => setSheetClub(null)}
-          myRating={myClubRatings[sheetClub.id] ?? 0}
-          onRate={(n) => {
-            void rateClub(sheetClub.id, n).catch(() => {});
-          }}
-        />
-      )}
-
       {/* Booking bottom-sheet: full booking form in a sliding sheet */}
       {(() => {
         const bClub = bookingSheet ? clubs.find((c) => c.id === bookingSheet.clubId) : undefined;

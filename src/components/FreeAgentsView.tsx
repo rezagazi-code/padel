@@ -156,10 +156,10 @@ export const FreeAgentsView: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => toggleFreeAgentStatus(!playerProfile.isFreeAgent, freeAgentNoteInput)}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer border ${
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer border ${
                 playerProfile.isFreeAgent
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
-                  : 'btn-fire border-[#ff2d55]/60 hover:bg-[#8fd126]'
+                  : 'bubble-btn-fire rounded-2xl'
               }`}
             >
               {playerProfile.isFreeAgent ? 'غیرفعال‌سازی وضعیت آزاد' : 'من آماده بازی هستم (فعال‌سازی)'}
@@ -173,7 +173,7 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('requests')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'requests'
-                ? 'btn-fire shadow-sm'
+                ? 'bubble-btn-fire rounded-2xl'
                 : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
@@ -184,7 +184,7 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('market')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'market'
-                ? 'btn-fire shadow-sm'
+                ? 'bubble-btn-fire rounded-2xl'
                 : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
@@ -204,7 +204,7 @@ export const FreeAgentsView: React.FC = () => {
               onClick={() => setSelectedProvinceFilter(prov)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${
                 selectedProvinceFilter === prov
-                  ? 'btn-fire font-black'
+                  ? 'bubble-btn-fire rounded-2xl font-black'
                   : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >

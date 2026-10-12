@@ -44,7 +44,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <div className="flex gap-2 pt-1">
           <button
             onClick={onConfirm}
-            className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#e11d48] text-white font-black text-sm rounded-xl transition cursor-pointer flex items-center justify-center gap-2"
+            className="flex-1 py-3 bubble-btn-fire text-white font-black text-sm rounded-2xl transition cursor-pointer flex items-center justify-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
             {confirmLabel}

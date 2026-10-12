@@ -432,7 +432,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl btn-fire font-black hover:bg-[#8fd126] transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-2xl bubble-btn-fire font-black transition cursor-pointer"
                 >
                   ثبت رسمی نتیجه مسابقه و صعود تیم
                 </button>

@@ -203,7 +203,7 @@ export const FriendlyTournamentView: React.FC = () => {
             {tourn.teams.length >= 2 && (
               <button
                 onClick={() => { drawFriendlyBracket(tourn.id); }}
-                className="w-full mt-4 py-3 rounded-xl btn-fire text-white font-black flex items-center justify-center gap-2"
+                className="w-full mt-4 py-3 rounded-2xl bubble-btn-fire text-white font-black flex items-center justify-center gap-2"
               >
                 <Shuffle className="w-5 h-5" />قرعه‌کشی بر اساس رنک
               </button>
@@ -269,7 +269,7 @@ export const FriendlyTournamentView: React.FC = () => {
         <h2 className="text-xl font-black text-slate-100">مسابقات دوستانه</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-4 py-2 rounded-xl btn-fire text-white text-sm font-bold flex items-center gap-1"
+          className="px-4 py-2 rounded-2xl bubble-btn-fire text-white text-sm font-bold flex items-center gap-1"
         >
           <Plus className="w-4 h-4" />جدید
         </button>
@@ -317,12 +317,12 @@ export const FriendlyTournamentView: React.FC = () => {
               <div>
                 <p className="text-xs text-slate-400 mb-2">تقسیم جایزه (اول - دوم):</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setFSplit('70-30')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '70-30' ? 'bg-[#ff2d55] border-[#ff2d55] text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۷۰ - ۳۰</button>
-                  <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bg-[#ff2d55] border-[#ff2d55] text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
+                  <button type="button" onClick={() => setFSplit('70-30')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '70-30' ? 'bubble-btn-fire border-transparent text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۷۰ - ۳۰</button>
+                  <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bubble-btn-fire border-transparent text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
                 </div>
               </div>
               <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(fCourts) || 2) * (parseFloat(fHours) || 4) * 60 / 90)} بازی برگزار کنید.</p>
-              <button type="submit" className="w-full py-3 rounded-xl btn-fire text-white font-black">ساخت مسابقه</button>
+              <button type="submit" className="w-full py-3 rounded-2xl bubble-btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
         </div>

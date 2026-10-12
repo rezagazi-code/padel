@@ -81,7 +81,7 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({ onOpenManual
             <>
               <button
                 onClick={handleInstallClick}
-                className="btn-fire glow-btn-fire flex items-center justify-center gap-1.5 text-white font-black text-xs px-4 py-2 rounded-xl transition cursor-pointer flex-1 sm:flex-initial"
+                className="bubble-btn-fire flex items-center justify-center gap-1.5 text-white font-black text-xs px-4 py-2 rounded-2xl transition cursor-pointer flex-1 sm:flex-initial"
               >
                 {isIos ? (
                   <>

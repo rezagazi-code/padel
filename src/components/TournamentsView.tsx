@@ -208,7 +208,7 @@ export const TournamentsView: React.FC = () => {
             {canCreateTournament ? (
               <button
                 onClick={() => setShowCreateTournModal(true)}
-                className="btn-fire glow-btn-fire flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl cursor-pointer"
+                className="bubble-btn-fire flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl cursor-pointer"
               >
                 <PlusCircle className="w-5 h-5" />
                 <span>
@@ -404,7 +404,7 @@ export const TournamentsView: React.FC = () => {
                           className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
                             isFull
                               ? 'bg-white/[0.04] text-slate-500 cursor-not-allowed'
-                              : 'btn-fire glow-btn-fire text-white font-black'
+                              : 'bubble-btn-fire text-white font-black rounded-2xl'
                           }`}
                         >
                           <Users className="w-4 h-4" />

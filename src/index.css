@@ -1008,3 +1008,19 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
   .img-loading::after { animation: none; }
   .bubble { animation: none; }
 }
+
+/* Slide-down animation for inline club detail (accordion beneath card) */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+  transform-origin: top;
+}

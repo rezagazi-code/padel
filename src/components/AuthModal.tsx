@@ -158,7 +158,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full py-3 bg-[#ff2d55] hover:bg-[#e0264b] disabled:opacity-60 text-white font-black rounded-xl flex items-center justify-center gap-2 transition"
+                className="w-full py-3 bubble-btn-fire disabled:opacity-60 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition"
               >
                 {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'signin' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                 <span>{mode === 'signin' ? 'ورود' : 'ساخت حساب'}</span>

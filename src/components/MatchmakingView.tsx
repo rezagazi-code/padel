@@ -191,7 +191,7 @@ export const MatchmakingView: React.FC = () => {
               onClick={() => setFilterType('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 filterType === 'all'
-                  ? 'btn-fire'
+                  ? 'bubble-btn-fire rounded-2xl'
                   : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >
