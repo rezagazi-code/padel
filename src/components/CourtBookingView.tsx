@@ -102,6 +102,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   // each with its duration, so availability is computed from
   // [start, start + durationMinutes) intervals.
   const [booked, setBooked] = useState<BookedInterval[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   // Tracks whether the user has manually picked a slot; the auto-select
   // effect must not clobber a manual pick when bookings load later.
@@ -173,8 +174,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     const dateISO = selectedDate?.raw;
     if (!courtId || !dateISO) {
       setBooked([]);
+      setSlotsLoading(false);
       return;
     }
+    setSlotsLoading(true);
     (async () => {
       try {
         if (getSupabase()) {
@@ -192,6 +195,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         }
       } catch {
         if (!cancelled) setBooked([]);
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
       }
     })();
     return () => {
@@ -216,8 +221,33 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
     const open = toMinutes(currentClub?.openingHour || '08:00');
     const close = toMinutes(currentClub?.closingHour || '24:00');
+    // Past slots are never bookable: when the selected date is today
+    // (Tehran local date; `raw` is a Gregorian YYYY-MM-DD), drop every slot
+    // whose start time has already passed. Auto-select skips them too,
+    // because they are simply absent from this list.
+    const tehranToday = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const isToday = selectedDate?.raw === tehranToday;
+    let nowMinutes = -1;
+    if (isToday) {
+      const [hh, mm] = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Tehran',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+        .format(new Date())
+        .split(':')
+        .map(Number);
+      nowMinutes = (hh || 0) * 60 + (mm || 0);
+    }
     const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
     for (let start = open; start + duration <= close; start += duration) {
+      if (isToday && start <= nowMinutes) continue; // slot already passed today
       const h = Math.floor(start / 60);
       const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + duration))}`;
       slots.push({
@@ -230,7 +260,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       });
     }
     return slots;
-  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour, bookedIntervals, duration]);
+  }, [currentClub?.id, currentClub?.openingHour, currentClub?.closingHour, bookedIntervals, duration, selectedDate?.raw]);
 
   // Auto-select the first free slot on a fresh selection (club/court/date),
   // but never clobber a manual pick when availability loads/updates later.
@@ -268,14 +298,32 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     setBookingError(null);
     setIsSubmitting(true);
     try {
-      // Fresh overlap re-check against the latest known bookings: the chosen
-      // interval [slotStart, slotStart + duration) must not collide with any
-      // existing booking, even when that booking sits on a different
-      // 90-min grid cell.
+      // Fresh availability pull before the overlap check: the cached
+      // intervals may be stale, and a server-side UNIQUE(court_id,date,time_slot)
+      // does not catch a 90-min booking overlapping our 60-min slot with the
+      // same start.
+      let freshIntervals: { start: number; end: number }[];
+      try {
+        if (getSupabase() && selectedDate?.raw) {
+          const fresh = await fetchBookedIntervals(currentCourt.id, selectedDate.raw);
+          freshIntervals = fresh
+            .map((b) => {
+              const start = slotStartMinutes(b.timeSlot);
+              if (start === null) return null;
+              return { start, end: start + (b.durationMinutes || 90) };
+            })
+            .filter((iv): iv is { start: number; end: number } => iv !== null);
+        } else {
+          freshIntervals = bookedIntervals;
+        }
+      } catch {
+        freshIntervals = bookedIntervals;
+      }
+
       const slotStart = slotStartMinutes(selectedTimeSlot);
       if (
         slotStart !== null &&
-        intervalsOverlap(slotStart, slotStart + duration, bookedIntervals)
+        intervalsOverlap(slotStart, slotStart + duration, freshIntervals)
       ) {
         setBookingError('این سانس با یک رزرو موجود تداخل دارد. لطفاً سانس دیگری انتخاب کنید.');
         return;
@@ -383,7 +431,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               onClick={() => setSelectedProvince(prov)}
               className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 cursor-pointer transition border ${
                 selectedProvince === prov
-                  ? 'bubble-btn-fire rounded-full'
+                  ? 'bubble-ghost rounded-full'
                   : 'bg-white/[0.07] border-white/15 text-slate-300 hover:bg-white/[0.12]'
               }`}
             >
@@ -680,6 +728,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <div className="court-title text-xs font-bold text-slate-400 mb-2">
                   <span>۴. انتخاب سانس ساعت</span>
                 </div>
+                {slotsLoading && (
+                  <div className="flex items-center justify-center gap-2 py-3 text-[11px] font-bold text-slate-400">
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-[#ff6b81] rounded-full animate-spin" />
+                    <span>در حال بارگذاری سانس‌ها…</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {timeSlots.map((slot, index) => {
                     const isSlotSelected = selectedTimeSlot === slot.time;
@@ -914,7 +968,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 {/* Final CTA Button */}
                 <button
                   onClick={handleConfirmBooking}
-                  disabled={isSubmitting || !selectedTimeSlot}
+                  disabled={isSubmitting || !selectedTimeSlot || slotsLoading}
                   className="bubble-btn-fire rounded-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <CreditCard className="w-5 h-5" />

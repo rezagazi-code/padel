@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Search,
   ShoppingBag,
@@ -218,6 +218,9 @@ export const ShopView: React.FC = () => {
   const [liveOffers, setLiveOffers] = useState<LivePriceOffer[] | null>(null);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
+  // Stale-query guard: a slow earlier search must never overwrite the results
+  // of a newer one — only the latest token may touch state when it resolves.
+  const searchTokenRef = useRef(0);
 
   const runLiveSearch = async () => {
     const q = query.trim();
@@ -225,7 +228,9 @@ export const ShopView: React.FC = () => {
     setLiveLoading(true);
     setLiveError(null);
     setLiveOffers(null);
+    const token = ++searchTokenRef.current;
     const offers = await livePriceSearch(q);
+    if (searchTokenRef.current !== token) return; // stale: a newer search took over
     setLiveLoading(false);
     if (offers === null) {
       setLiveError('جستجوی زنده فعلاً فعال نیست');

@@ -1044,7 +1044,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSyncNotification(`تیم «${team.teamName}» اضافه شد.`);
   };
 
-  // Seeded draw: sort by rank (lower = stronger), then snake-seed into bracket
+  // Seeded draw: sort by rank (lower = stronger), then snake-seed into a true
+  // bracket — seeds 1&2 can only meet in the final.
   const drawFriendlyBracket = (tournId: string) => {
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
@@ -1056,8 +1057,19 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const seeded: (FriendlyTeam | null)[] = [...sorted];
         while (seeded.length < size) seeded.push(null);
 
-        // Standard seeding: 1 vs last, 2 vs second-last, etc.
-        const matches: FriendlyMatch[] = [];
+        // True snake seeding: order the bracket positions so the halves stay
+        // balanced — seeds 1&2 can only meet in the final. For 8 teams the
+        // quarterfinals are 1v8, 4v5, 2v7, 3v6 (halves {1,4,5,8} vs {2,3,6,7}).
+        // Byes (nulls) are appended after the real seeds, so they land on the
+        // top seeds (e.g. 1v8 and 2v7 in a 6-team draw).
+        const seedOrder = (n: number): number[] => {
+          if (n <= 2) return [1, 2];
+          const prev = seedOrder(n / 2);
+          const out: number[] = [];
+          for (const s of prev) out.push(s, n + 1 - s);
+          return out;
+        };
+        const order = seedOrder(size);
         // Round key must match the true bracket depth: size 8 -> quarterfinal,
         // size 16 -> round16, size 32 -> round32. (Sizes 2/4 -> final/semifinal.)
         // Using a key shallower than the true depth makes recordFriendlyScore
@@ -1073,9 +1085,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         const roundName = firstRound[size]?.key ?? 'round16';
         const roundFa = firstRound[size]?.fa ?? 'یک‌هشتم نهایی';
+        const matches: FriendlyMatch[] = [];
         for (let i = 0; i < size / 2; i++) {
-          const t1 = seeded[i];
-          const t2 = seeded[size - 1 - i];
+          const t1 = seeded[order[2 * i] - 1];
+          const t2 = seeded[order[2 * i + 1] - 1];
           matches.push({
             id: `fm-${Date.now()}-${i}`,
             round: roundName,
@@ -1101,7 +1114,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId) return t;
-        
+
+        const roundOrder: Record<string, number> = {
+          round64: -2, round32: -1, round16: 0, quarterfinal: 1, semifinal: 2, final: 3,
+        };
+
         // 1. Record the score
         const bracket = t.bracket.map((m) => {
           if (m.id !== matchId) return m;
@@ -1109,12 +1126,25 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return { ...m, score1, score2, winnerId };
         });
 
+        // 1b. Corrected scores must propagate: if this recording CHANGES the
+        //     match's winner (or scores a previously-unscored match feeding an
+        //     existing later round), drop every later round — they were built
+        //     from the old winner and are rebuilt below from the corrected
+        //     one. An unchanged winner keeps the append-only forward path.
+        const before = t.bracket.find((m) => m.id === matchId);
+        const after = bracket.find((m) => m.id === matchId);
+        const recOrder = roundOrder[before?.round ?? ''] ?? -3;
+        const winnerChanged = !!before && !!after && before.winnerId !== after.winnerId;
+        let workingBracket = bracket;
+        let downstreamInvalidated = false;
+        if (winnerChanged && bracket.some((m) => (roundOrder[m.round] ?? -3) > recOrder)) {
+          workingBracket = bracket.filter((m) => (roundOrder[m.round] ?? -3) <= recOrder);
+          downstreamInvalidated = true;
+        }
+
         // 2. Group by round to find the LATEST round
-        const roundOrder: Record<string, number> = {
-          round64: -2, round32: -1, round16: 0, quarterfinal: 1, semifinal: 2, final: 3,
-        };
-        const byRound = new Map<string, typeof bracket>();
-        bracket.forEach((m) => {
+        const byRound = new Map<string, typeof workingBracket>();
+        workingBracket.forEach((m) => {
           if (!byRound.has(m.round)) byRound.set(m.round, []);
           byRound.get(m.round)!.push(m);
         });
@@ -1133,10 +1163,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const latestMatches = byRound.get(latestRound) || [];
         const allWinnersDecided = latestMatches.length > 0 && latestMatches.every((m) => m.winnerId);
         
-        let newBracket = [...bracket];
-        let status = t.status;
-        let winnerTeamId = t.winnerTeamId;
-        let runnerUpTeamId = t.runnerUpTeamId;
+        let newBracket = [...workingBracket];
+        // A corrected earlier-round winner invalidates the crowned champion
+        // and runner-up: they will be re-decided as the rebuilt rounds play out.
+        let status = downstreamInvalidated ? ('in_progress' as const) : t.status;
+        let winnerTeamId = downstreamInvalidated ? undefined : t.winnerTeamId;
+        let runnerUpTeamId = downstreamInvalidated ? undefined : t.runnerUpTeamId;
 
         if (allWinnersDecided) {
           if (latestRound === 'final') {
@@ -1177,7 +1209,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 });
               }
               if (nextMatches.length > 0) {
-                newBracket = [...bracket, ...nextMatches];
+                newBracket = [...workingBracket, ...nextMatches];
                 status = 'in_progress';
               }
             } else if (winners.length === 1) {

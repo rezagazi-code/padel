@@ -171,8 +171,33 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
     const open = toMinutes(club.openingHour || '08:00');
     const close = toMinutes(club.closingHour || '24:00');
+    // Past slots are never bookable: when the selected date is today
+    // (Tehran local date; `raw` is a Gregorian YYYY-MM-DD), drop every slot
+    // whose start time has already passed. Auto-select skips them too,
+    // because they are simply absent from this list.
+    const tehranToday = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const isToday = selectedDate?.raw === tehranToday;
+    let nowMinutes = -1;
+    if (isToday) {
+      const [hh, mm] = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Tehran',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+        .format(new Date())
+        .split(':')
+        .map(Number);
+      nowMinutes = (hh || 0) * 60 + (mm || 0);
+    }
     const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
     for (let start = open; start + duration <= close; start += duration) {
+      if (isToday && start <= nowMinutes) continue; // slot already passed today
       const h = Math.floor(start / 60);
       const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + duration))}`;
       slots.push({
@@ -183,7 +208,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       });
     }
     return slots;
-  }, [club.openingHour, club.closingHour, bookedIntervals, duration]);
+  }, [club.openingHour, club.closingHour, bookedIntervals, duration, selectedDate?.raw]);
 
   // Auto-select the first free slot on a fresh selection.
   // If the whole day is booked, no fallback to a booked slot: leave it empty
