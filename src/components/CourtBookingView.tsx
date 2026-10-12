@@ -202,12 +202,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     };
   }, [currentCourt?.id, selectedDate?.raw, bookings]);
 
-  // A new club/court/date starts a fresh selection: the user hasn't picked yet.
+  // A new club/court/date/duration starts a fresh selection: the user hasn't picked yet.
   useEffect(() => {
     userPickedSlotRef.current = false;
-  }, [selectedClubId, selectedCourtId, selectedDate?.raw]);
+  }, [selectedClubId, selectedCourtId, selectedDate?.raw, duration]);
 
-  // Time slots generated from the club's working hours (90-min slots).
+  // Time slots generated from the club's working hours (grid follows the selected duration).
   // Persian-digit display, e.g. '۱۸:۰۰ - ۱۹:۳۰'.
   const timeSlots = useMemo(() => {
     const faDigits = (s: string) => s.replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
@@ -220,15 +220,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     const open = toMinutes(currentClub?.openingHour || '08:00');
     const close = toMinutes(currentClub?.closingHour || '24:00');
     const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
-    for (let start = open; start + 90 <= close; start += 90) {
+    for (let start = open; start + duration <= close; start += duration) {
       const h = Math.floor(start / 60);
       const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + duration))}`;
       slots.push({
         time,
         isPeak: h >= 18,
         // A slot is bookable only if [slotStart, slotStart + selected duration)
-        // overlaps no existing booking interval (a 60/120-min booking may cover
-        // more than its own 90-min grid cell).
+        // overlaps no existing booking interval.
         isBooked: intervalsOverlap(start, start + duration, bookedIntervals),
         period: h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night',
       });
@@ -266,6 +265,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
   const handleConfirmBooking = async () => {
     if (isSubmitting) return; // double-submit guard
+    if (!selectedTimeSlot) return; // no empty-slot bookings on fully-booked days
     if (!currentClub || !currentCourt) return;
     setBookingError(null);
     setIsSubmitting(true);
@@ -903,7 +903,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 {/* Final CTA Button */}
                 <button
                   onClick={handleConfirmBooking}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !selectedTimeSlot}
                   className="bubble-btn-fire rounded-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <CreditCard className="w-5 h-5" />

@@ -150,12 +150,12 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
     };
   }, [court?.id, selectedDate?.raw, bookings]);
 
-  // A new court/date starts a fresh selection.
+  // A new court/date/duration starts a fresh selection.
   useEffect(() => {
     userPickedSlotRef.current = false;
-  }, [activeCourtId, selectedDate?.raw]);
+  }, [activeCourtId, selectedDate?.raw, duration]);
 
-  // Time slots generated from the club's working hours (90-min grid).
+  // Time slots generated from the club's working hours (grid follows the selected duration).
   const timeSlots = useMemo(() => {
     const faDigits = (s: string) => s.replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
     const toMinutes = (hhmm: string) => {
@@ -167,7 +167,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
     const open = toMinutes(club.openingHour || '08:00');
     const close = toMinutes(club.closingHour || '24:00');
     const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
-    for (let start = open; start + 90 <= close; start += 90) {
+    for (let start = open; start + duration <= close; start += duration) {
       const h = Math.floor(start / 60);
       const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + duration))}`;
       slots.push({

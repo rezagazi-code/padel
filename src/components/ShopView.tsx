@@ -292,7 +292,7 @@ export const ShopView: React.FC = () => {
                 setLiveError(null);
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') runLiveSearch();
+                if (e.key === 'Enter' && Capacitor.isNativePlatform()) runLiveSearch();
               }}
               placeholder="جستجو: راکت بولپدل، توپ، کفش..."
             />
