@@ -26,6 +26,69 @@ function faToInt(s: string): number | null {
   return /^\d+$/.test(norm) ? parseInt(norm, 10) : null;
 }
 
+/** Normalize Persian text: ي→ی, ك→ک, remove tatweel/diacritics. */
+function normalizeFa(s: string): string {
+  return s
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ً-ٖـ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+/** Latin ↔ Persian equivalents for common padel brands/models. */
+const TERM_EQUIVS: Record<string, string[]> = {
+  'viper': ['وایپر'], 'وایپر': ['viper'],
+  'bullpadel': ['بولپدل', 'بول پدل'], 'بولپدل': ['bullpadel'],
+  'vertex': ['ورتکس'], 'ورتکس': ['vertex'],
+  'head': ['هد'], 'هد': ['head'],
+  'adidas': ['آدیداس'], 'آدیداس': ['adidas'],
+  'metalbone': ['متالبون'], 'متالبون': ['metalbone'],
+  'babolat': ['بابولات'], 'بابولات': ['babolat'],
+  'nox': ['ناکس'], 'ناکس': ['nox'],
+  'siux': ['سیوکس'], 'سیوکس': ['siux'],
+  'dunlop': ['دانلوپ'], 'دانلوپ': ['dunlop'],
+  'boost': ['بوست'], 'بوست': ['boost'],
+  'wilson': ['ویلسون'], 'ویلسون': ['wilson'],
+  'yonex': ['یونکس'], 'یونکس': ['yonex'],
+  'kuikma': ['کوئیکما', 'کویکما'],
+  'artengo': ['آرتنگو'], 'آرتنگو': ['artengo'],
+  'drop shot': ['دراپ شات'], 'hack': ['هک'],
+  'flow': ['فلو'], 'indiga': ['ایندیگا'],
+};
+
+function termInTitle(title: string, term: string): boolean {
+  if (title.includes(term)) return true;
+  const equivs = TERM_EQUIVS[term] ?? [];
+  return equivs.some((e) => title.includes(e));
+}
+
+/**
+ * Relevance filter: a live-search hit must actually be padel gear.
+ * Requires (1) a padel indicator in the title and (2) at least one
+ * distinctive query term (brand/model) in the title — so "viper" no
+ * longer matches a Razer mouse or a wiper blade.
+ */
+export function isPadelRelevant(titleRaw: string, queryRaw: string): boolean {
+  const title = normalizeFa(titleRaw);
+  const query = normalizeFa(queryRaw);
+
+  // 1. Must be padel-related
+  if (!title.includes('پدل') && !title.includes('padel')) return false;
+
+  // 2. Must match at least one distinctive (non-generic) query term
+  const GENERIC = new Set([
+    'پدل', 'padel', 'راکت', 'racket', 'راکت‌ها', 'توپ', 'ball', 'balls',
+    'کفش', 'shoe', 'shoes', 'قیمت', 'خرید', 'جدید', 'اصل', 'اورجینال',
+    'مردانه', 'زنانه', 'بچگانه', 'کودکان',
+  ]);
+  const terms = query.split(/\s+/).filter((t) => t.length > 1 && !GENERIC.has(t));
+  if (terms.length === 0) return true;
+
+  return terms.some((t) => termInTitle(title, t));
+}
+
 /** Native HTTP GET (bypasses CORS on Android/iOS). Returns body text or null. */
 async function nativeGet(url: string): Promise<string | null> {
   try {
@@ -67,7 +130,7 @@ async function searchTorobNative(query: string): Promise<LivePriceOffer[]> {
     const price = priceM ? faToInt(priceM[1]) : null;
     const sellerM = card.match(/در\s+([۰-۹\d]+)\s*فروشگاه/);
     const sellers = sellerM ? faToInt(sellerM[1]) ?? 1 : 1;
-    if (title && price && price > 0) {
+    if (title && price && price > 0 && isPadelRelevant(title, query)) {
       offers.push({ store: 'ترب', title, priceToman: price, url, sellers, verified: false });
     }
   }
@@ -116,7 +179,7 @@ async function searchTennisfaNative(query: string): Promise<LivePriceOffer[]> {
     const raw = priceM ? priceM[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
     const rialM = raw ? raw.match(/([\d,]+)/) : null;
     const toman = rialM ? Math.round(parseInt(rialM[1].replace(/,/g, ''), 10) / 10) : 0;
-    if (title && toman > 0) {
+    if (title && toman > 0 && isPadelRelevant(title, query)) {
       offers.push({ store: 'تنیسفا', title, priceToman: toman, url, verified: true });
     }
   }

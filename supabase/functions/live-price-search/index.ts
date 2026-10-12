@@ -35,6 +35,54 @@ interface LiveOffer {
   verified: boolean; // true = availability confirmed on product page
 }
 
+function normalizeFa(s: string): string {
+  return s
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[ً-ٖـ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+const TERM_EQUIVS: Record<string, string[]> = {
+  'viper': ['وایپر'], 'وایپر': ['viper'],
+  'bullpadel': ['بولپدل', 'بول پدل'], 'بولپدل': ['bullpadel'],
+  'vertex': ['ورتکس'], 'ورتکس': ['vertex'],
+  'head': ['هد'], 'هد': ['head'],
+  'adidas': ['آدیداس'], 'آدیداس': ['adidas'],
+  'metalbone': ['متالبون'], 'متالبون': ['metalbone'],
+  'babolat': ['بابولات'], 'بابولات': ['babolat'],
+  'nox': ['ناکس'], 'ناکس': ['nox'],
+  'siux': ['سیوکس'], 'سیوکس': ['siux'],
+  'dunlop': ['دانلوپ'], 'دانلوپ': ['dunlop'],
+  'boost': ['بوست'], 'بوست': ['boost'],
+  'wilson': ['ویلسون'], 'ویلسون': ['wilson'],
+  'yonex': ['یونکس'], 'یونکس': ['yonex'],
+  'kuikma': ['کوئیکما', 'کویکما'],
+  'artengo': ['آرتنگو'], 'آرتنگو': ['artengo'],
+};
+
+function termInTitle(title: string, term: string): boolean {
+  if (title.includes(term)) return true;
+  return (TERM_EQUIVS[term] ?? []).some((e) => title.includes(e));
+}
+
+/** Relevance filter: hit must be padel gear with a distinctive query term. */
+function isPadelRelevant(titleRaw: string, queryRaw: string): boolean {
+  const title = normalizeFa(titleRaw);
+  const query = normalizeFa(queryRaw);
+  if (!title.includes('پدل') && !title.includes('padel')) return false;
+  const GENERIC = new Set([
+    'پدل', 'padel', 'راکت', 'racket', 'توپ', 'ball', 'balls',
+    'کفش', 'shoe', 'shoes', 'قیمت', 'خرید', 'جدید', 'اصل', 'اورجینال',
+    'مردانه', 'زنانه', 'بچگانه', 'کودکان',
+  ]);
+  const terms = query.split(/\s+/).filter((t) => t.length > 1 && !GENERIC.has(t));
+  if (terms.length === 0) return true;
+  return terms.some((t) => termInTitle(title, t));
+}
+
 /** Parse Torob search page → top product cards */
 async function searchTorob(query: string): Promise<LiveOffer[]> {
   try {
@@ -64,7 +112,7 @@ async function searchTorob(query: string): Promise<LiveOffer[]> {
       const price = priceM ? faToInt(priceM[1]) : null;
       const sellerM = card.match(/در\s+([۰-۹\d]+)\s*فروشگاه/);
       const sellers = sellerM ? faToInt(sellerM[1]) ?? 1 : 1;
-      if (title && price && price > 0) {
+      if (title && price && price > 0 && isPadelRelevant(title, query)) {
         offers.push({ store: 'ترب', title, priceToman: price, url, sellers, verified: false });
       }
     }
@@ -131,7 +179,7 @@ async function searchTennisfa(query: string): Promise<LiveOffer[]> {
       const rialM = rawPrice ? rawPrice.match(/([\d,]+)/) : null;
       const rial = rialM ? parseInt(rialM[1].replace(/,/g, ''), 10) : 0;
       const toman = Math.round(rial / 10);
-      if (title && toman > 0) {
+      if (title && toman > 0 && isPadelRelevant(title, query)) {
         offers.push({ store: 'تنیسفا', title, priceToman: toman, url, verified: true });
       }
     }
