@@ -7,6 +7,9 @@ import {
   ExternalLink,
   Store,
   Tag,
+  Zap,
+  BadgeCheck,
+  Loader2,
 } from 'lucide-react';
 import {
   ShopProduct,
@@ -17,6 +20,7 @@ import {
 import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
 import { Bubbles } from './Bubbles';
+import { livePriceSearch, LivePriceOffer } from '../lib/liveSearch';
 
 /** Normalize Persian text for search: ي→ی, ك→ک, remove tatweel/diacritics. */
 function normalizeFa(s: string): string {
@@ -206,6 +210,25 @@ export const ShopView: React.FC = () => {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<'all' | ShopCategory>('all');
   const [openProduct, setOpenProduct] = useState<ShopProduct | null>(null);
+  // Live price search (Torob + tennisfa, availability-verified)
+  const [liveOffers, setLiveOffers] = useState<LivePriceOffer[] | null>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+  const runLiveSearch = async () => {
+    const q = query.trim();
+    if (q.length < 2 || liveLoading) return;
+    setLiveLoading(true);
+    setLiveError(null);
+    setLiveOffers(null);
+    const offers = await livePriceSearch(q);
+    setLiveLoading(false);
+    if (offers === null) {
+      setLiveError('جستجوی زنده فعلاً فعال نیست');
+    } else {
+      setLiveOffers(offers);
+    }
+  };
 
   const results = useMemo(() => {
     const q = normalizeFa(query);
@@ -262,12 +285,23 @@ export const ShopView: React.FC = () => {
             <Search className="w-5 h-5 text-[#0EA5E9] shrink-0" />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setLiveOffers(null);
+                setLiveError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') runLiveSearch();
+              }}
               placeholder="جستجو: راکت بولپدل، توپ، کفش..."
             />
             {query && (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => {
+                  setQuery('');
+                  setLiveOffers(null);
+                  setLiveError(null);
+                }}
                 className="p-1.5 rounded-full text-[#8CA0B3] hover:text-[#0E1B2C] cursor-pointer shrink-0"
                 aria-label="پاک کردن جستجو"
               >
@@ -275,7 +309,89 @@ export const ShopView: React.FC = () => {
               </button>
             )}
           </div>
+          {/* Live cheapest-price search */}
+          {query.trim().length >= 2 && (
+            <div className="mt-2">
+              <button
+                onClick={runLiveSearch}
+                disabled={liveLoading}
+                className="bubble-btn w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs disabled:opacity-70 cursor-pointer"
+              >
+                {liveLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4" />
+                )}
+                {liveLoading ? 'در حال جستجوی زنده...' : '⚡ جستجوی زنده ارزون‌ترین قیمت'}
+              </button>
+              <p className="text-center text-[10px] text-[#8CA0B3] mt-1">
+                قیمت لحظه‌ای از ترب و تنیسفا — فقط کالاهای موجود
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Live results */}
+        {liveLoading && (
+          <div className="space-y-2 mt-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-16 rounded-2xl bg-white/60 animate-pulse border border-[#E3EDF5]" />
+            ))}
+          </div>
+        )}
+        {liveError && (
+          <p className="text-center text-xs text-[#8CA0B3] mt-2">{liveError}</p>
+        )}
+        {liveOffers && !liveLoading && (
+          <div className="mt-2">
+            <p className="shop-section-label">
+              ⚡ نتایج زنده ({liveOffers.length.toLocaleString('fa-IR')})
+            </p>
+            {liveOffers.length === 0 ? (
+              <p className="text-center text-xs text-[#5B6B7F] py-6">
+                قیمت زنده‌ای پیدا نشد — عبارت دیگه‌ای رو امتحان کن
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {liveOffers.map((o, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-[#E3EDF5] p-3 flex items-center gap-3 shadow-sm"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[#0E1B2C] truncate">{o.title}</p>
+                      <p className="text-[10px] text-[#8CA0B3] mt-0.5 flex items-center gap-1">
+                        <Store className="w-3 h-3" />
+                        {o.store}
+                        {o.sellers ? ` (${o.sellers.toLocaleString('fa-IR')} فروشگاه)` : ''}
+                        {o.verified && (
+                          <span className="inline-flex items-center gap-0.5 text-emerald-600 font-bold">
+                            <BadgeCheck className="w-3 h-3" />
+                            موجود
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p className="text-sm font-black text-[#0E1B2C]">
+                        {(o.priceToman / 1000000).toLocaleString('fa-IR', { maximumFractionDigits: 1 })} میلیون تومان
+                      </p>
+                      <a
+                        href={o.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bubble-btn inline-flex items-center gap-1 px-3 py-1.5 text-[11px] mt-1"
+                      >
+                        خرید
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Category chips */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x">
