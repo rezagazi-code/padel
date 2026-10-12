@@ -26,7 +26,6 @@ import {
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { InlineBooking } from './InlineBooking';
-import { BookingSheet } from './BookingSheet';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
@@ -471,14 +470,19 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     </div>
                   </div>
                 </div>
-                {expandedClubId === club.id && (
-                  <InlineBooking
-                    club={club}
-                    courtId={selectedCourtId || club.courts[0]?.id || ''}
-                    onClose={() => setExpandedClubId(null)}
-                    onBooked={() => setExpandedClubId(null)}
-                  />
-                )}
+                {expandedClubId === club.id &&
+                  (club.courts.length === 0 ? (
+                    <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
+                      برای این باشگاه هنوز زمینی ثبت نشده است
+                    </div>
+                  ) : (
+                    <InlineBooking
+                      club={club}
+                      courtId={selectedCourtId || club.courts[0]?.id || ''}
+                      onClose={() => setExpandedClubId(null)}
+                      onBooked={() => setExpandedClubId(null)}
+                    />
+                  ))}
                 </React.Fragment>
               );
             })}

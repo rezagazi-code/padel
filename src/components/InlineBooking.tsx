@@ -88,8 +88,10 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [lastBookingInfo, setLastBookingInfo] = useState<any>(null);
   const [booked, setBooked] = useState<BookedInterval[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const userPickedSlotRef = useRef(false);
+  const notifiedOnBookedRef = useRef(false);
 
   const faDigitsToEn = (s: string) =>
     s.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
@@ -125,8 +127,10 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     const dateISO = selectedDate?.raw;
     if (!cid || !dateISO) {
       setBooked([]);
+      setSlotsLoading(false);
       return;
     }
+    setSlotsLoading(true);
     (async () => {
       try {
         if (getSupabase()) {
@@ -142,6 +146,8 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         }
       } catch {
         if (!cancelled) setBooked([]);
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
       }
     })();
     return () => {
@@ -209,13 +215,35 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   const handleConfirmBooking = async () => {
     if (isSubmitting) return;
     if (!court) return;
+    if (!selectedTimeSlot) return;
     setBookingError(null);
     setIsSubmitting(true);
     try {
+      // Fresh availability pull before the overlap check: the cached intervals
+      // may be stale, and a server-side UNIQUE(court_id,date,time_slot) does
+      // not catch a 90-min booking overlapping our 60-min slot with the same start.
+      let freshIntervals: { start: number; end: number }[];
+      try {
+        if (getSupabase() && selectedDate?.raw) {
+          const fresh = await fetchBookedIntervals(court.id, selectedDate.raw);
+          freshIntervals = fresh
+            .map((b) => {
+              const start = slotStartMinutes(b.timeSlot);
+              if (start === null) return null;
+              return { start, end: start + (b.durationMinutes || 90) };
+            })
+            .filter((iv): iv is { start: number; end: number } => iv !== null);
+        } else {
+          freshIntervals = bookedIntervals;
+        }
+      } catch {
+        freshIntervals = bookedIntervals;
+      }
+
       const slotStart = slotStartMinutes(selectedTimeSlot);
       if (
         slotStart !== null &&
-        intervalsOverlap(slotStart, slotStart + duration, bookedIntervals)
+        intervalsOverlap(slotStart, slotStart + duration, freshIntervals)
       ) {
         setBookingError('این سانس با یک رزرو موجود تداخل دارد. لطفاً سانس دیگری انتخاب کنید.');
         return;
@@ -243,6 +271,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       }
 
       setLastBookingInfo(newBooking);
+      notifiedOnBookedRef.current = false;
       setShowConfirmation(true);
 
       if (dongiEnabled) {
@@ -261,9 +290,20 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         setDongiNames(['', '', '']);
       }
 
-      onBooked?.();
+      // NOTE: onBooked is fired from dismissReceipt, not here — calling it here
+      // unmounts the panel before the receipt modal can paint.
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Receipt dismissal also notifies the parent (fires once) so the panel
+  // closes only after the user has seen the receipt.
+  const dismissReceipt = () => {
+    setShowConfirmation(false);
+    if (!notifiedOnBookedRef.current) {
+      notifiedOnBookedRef.current = true;
+      onBooked?.();
     }
   };
 
@@ -353,6 +393,12 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         {/* Time slots */}
         <div>
           <p className="text-[11px] font-bold text-slate-400 mb-1.5">سانس ساعت</p>
+          {slotsLoading && (
+            <div className="flex items-center justify-center gap-2 py-3 text-[11px] font-bold text-slate-400">
+              <div className="w-4 h-4 border-2 border-white/20 border-t-[#ff6b81] rounded-full animate-spin" />
+              <span>در حال بارگذاری سانس‌ها…</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             {timeSlots.map((slot, index) => {
               const isSelected = selectedTimeSlot === slot.time;
@@ -557,7 +603,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
 
           <button
             onClick={handleConfirmBooking}
-            disabled={isSubmitting || !selectedTimeSlot}
+            disabled={isSubmitting || !selectedTimeSlot || slotsLoading}
             className="bubble-btn-fire rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
           >
             <CreditCard className="w-5 h-5" />
@@ -570,7 +616,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
 
       {/* Receipt modal */}
       {showConfirmation && lastBookingInfo && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={() => setShowConfirmation(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={dismissReceipt}>
           <div
             className="w-full max-w-md rounded-3xl bg-[#0d1424] border border-[#ff2d55]/50 p-6 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
@@ -627,7 +673,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
 
             <button
               onClick={() => {
-                setShowConfirmation(false);
+                dismissReceipt();
                 onClose();
               }}
               className="bubble-btn-fire rounded-full w-full py-3.5 text-sm"

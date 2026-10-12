@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, UserPlus, X, AlertCircle, CheckCircle2, Loader2, Mail, Download, RefreshCw } from 'lucide-react';
-import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from '../lib/appUpdate';
+import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME, isUpdateEndpointReachable } from '../lib/appUpdate';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,18 +22,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
   const [notice, setNotice] = useState<string | null>(null);
   const [updateRequired, setUpdateRequired] = useState<AppUpdateInfo | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(true);
+  // True when the native update check failed (network/timeout) — distinct from
+  // "no update available". Never shown on web: checkForAppUpdate short-circuits
+  // to null there, which is not a failure.
+  const [checkFailed, setCheckFailed] = useState(false);
 
   // Mandatory update check before login: guest users must update first
-  useEffect(() => {
-    let cancelled = false;
-    checkForAppUpdate().then((info) => {
-      if (!cancelled) {
+  const runUpdateCheck = useCallback(() => {
+    setCheckingUpdate(true);
+    setCheckFailed(false);
+    checkForAppUpdate()
+      .then(async (info) => {
         setUpdateRequired(info);
+        // A failed native check resolves null just like "up to date", so probe
+        // the endpoint to tell them apart. On web this never runs (see above).
+        if (info === null && Capacitor.isNativePlatform()) {
+          const reachable = await isUpdateEndpointReachable();
+          if (!reachable) setCheckFailed(true);
+        }
         setCheckingUpdate(false);
-      }
-    });
-    return () => { cancelled = true; };
+      })
+      .catch(() => {
+        if (Capacitor.isNativePlatform()) setCheckFailed(true);
+        setCheckingUpdate(false);
+      });
   }, []);
+
+  useEffect(() => {
+    runUpdateCheck();
+  }, [runUpdateCheck]);
 
   if (!isOpen) return null;
 
@@ -65,13 +83,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
             دانلود و نصب نسخه جدید
           </button>
           <button
-            onClick={() => {
-              setCheckingUpdate(true);
-              checkForAppUpdate().then((info) => {
-                setUpdateRequired(info);
-                setCheckingUpdate(false);
-              });
-            }}
+            onClick={runUpdateCheck}
             className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-300 flex items-center justify-center gap-1.5 transition"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -80,6 +92,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
           <p className="text-[11px] text-slate-600">
             بعد از نصب، اپ رو باز کنید و دوباره وارد شوید.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check failed on native (no internet / CDN unreachable): offer explicit
+  // retry or continue to login without the version check. The mandatory
+  // blocking screen above (real newer version) is untouched.
+  if (!checkingUpdate && checkFailed && !updateRequired) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="w-full max-w-md rounded-3xl glass-strong p-6 shadow-2xl space-y-5 text-center">
+          <div className="w-14 h-14 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7 text-amber-400" />
+          </div>
+          <p className="text-sm text-slate-300 font-bold leading-relaxed">
+            بررسی نسخه ناموفق بود. اتصال اینترنت را بررسی کنید.
+          </p>
+          <div className="space-y-2">
+            <button
+              onClick={runUpdateCheck}
+              className="bubble-btn-fire rounded-full w-full py-3 text-sm font-black text-white flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              تلاش مجدد
+            </button>
+            <button
+              onClick={() => {
+                setCheckFailed(false);
+                setUpdateRequired(null);
+                setCheckingUpdate(false);
+              }}
+              className="w-full py-3 bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 font-black rounded-xl transition text-xs"
+            >
+              ورود بدون بررسی نسخه
+            </button>
+          </div>
         </div>
       </div>
     );

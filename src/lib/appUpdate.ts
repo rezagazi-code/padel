@@ -9,14 +9,19 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 62;
-export const CURRENT_VERSION_NAME = '3.15.9';
+export const CURRENT_VERSION_CODE = 63;
+export const CURRENT_VERSION_NAME = '3.15.10';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   // Only check in native app
   if (!Capacitor.isNativePlatform()) return null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const res = await fetch(UPDATE_CHECK_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    const res = await fetch(UPDATE_CHECK_URL + '?t=' + Date.now(), {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     if (!res.ok) return null;
     const info: AppUpdateInfo = await res.json();
     if (info.versionCode > CURRENT_VERSION_CODE) {
@@ -24,7 +29,34 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
     }
     return null;
   } catch {
+    // Abort, network error, or bad JSON: fail silent (null = no update).
     return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
+ * HEAD probe of the update endpoint. checkForAppUpdate intentionally swallows
+ * failures and returns null, which is indistinguishable from "up to date".
+ * AuthModal uses this on native to tell "check failed" (offline/jsDelivr
+ * down) apart from "no newer version" so it can offer retry/explicit-continue.
+ */
+export async function isUpdateEndpointReachable(timeoutMs = 8000): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(UPDATE_CHECK_URL, {
+      method: 'HEAD',
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

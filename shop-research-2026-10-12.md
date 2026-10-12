@@ -141,3 +141,31 @@ Emalls, Digikala, padeliran.ir, sportstations.ir, @tennisfa_shop, @echs.store,
 - **تنوع کوئری:** جست‌وجوهای فارسی/انگلیسی جدید (فروشگاه اینترنتی راکت پدل،
   site:.ir، قیمت خرید کتونی پدل) جز تنیس‌شاپ‌های قبلاً پوشش‌داده‌شده نتیجهٔ
   جدیدی نداشتند.
+
+## دور جدید — 2026-10-12 ~23:30 (شب، یک یافتهٔ جدید تأییدشده)
+
+### ✅ RECOMMENDED — سین دال (Seendaal Shop) — seendaalshop.ir
+- **URL:** https://seendaalshop.ir
+- **Padel sections:** «راکت ها» (راکت‌های پدل و تنیس)، توپ، ساک/کیف
+- **City:** روی سایت درج نشده — ارسال به سراسر کشور («ارسال فوری، ارسال به سراسر کشور»، پرداخت امن درگاه شاپرک)
+- **Padel inventory:** YES — راکت‌های پدل هد (Coello Vibe / Motion / Team / Pro 2026، Bolt، Evo Extreme، Radical)، ناکس (AT10 Genius 12K Xtrem 2026)، بول‌پدل (Hack 04 2026)، سیوکس (Fenix Pro، Electra Pro)، توپ پدل (Head Padel Pro+، Head Padel Team، Quicksand)، ساک پدل (Nox ML10 Competition / Team)، اورگریپ و گارد راکت
+- **Price visibility:** PUBLIC — صفحات دسته‌بندی ایندکس‌شدهٔ گوگل قیمت تومان را عمومی نشان می‌دهند. نمونهٔ تأییدشده (2026-10-12):
+  - Head Coello Vibe 2026 — 32,000,000 تومان
+  - Head Coello Motion 2026 — 64,000,000 تومان
+  - HEAD Coello Pro Padel 2026 — 66,000,000 تومان
+  - Nox AT10 Genius 12K Xtrem 2026 — 85,000,000 تومان
+  - Head Evo Extreme 2025 — 25,000,000 تومان
+  - Siux Fenix Pro / Electra Pro — 75,000,000 تومان
+  - Head Padel Pro+ (توپ) — 1,500,000 تومان
+  - Head Padel Team (توپ) — 1,400,000 تومان
+- **Scrapability:** PARTIAL — curl از این محیط HTTP 503 می‌گیرد (WAF) و fetch متنی فقط پوستهٔ JS برمی‌گرداند (سایت روی پلتفرم Sotoon، احتمالاً client-rendered). دادهٔ کامل قیمت‌ها از اسنپ‌شات‌های کراول گوگل تأیید شد — هم‌ردهٔ tennis24shop.com: با پایپ‌لاین fetch متنی/مرورگر قابل خواندن است، با curl خام خیر.
+- **نکته:** دورهای قبل @seendaal_shop را به‌عنوان فروشگاه اینستاگرامیِ «قیمت در دایرکت» رد کرده بودند — آن ارزیابی مربوط به اکانت اینستاگرام بود؛ وب‌سایت مستقل seendaalshop.ir با قیمت‌های عمومی قبلاً در فایل ثبت نشده و یافتهٔ جدیدِ واقعی این دور است. سایت بلاگ راهنمای خرید راکت پدل هم دارد (بخش پدل فعال و نگهداری‌شده).
+
+### ❌ ردشده‌های این دور
+- **sellr.ir** — فروشندهٔ «سلر» ترب سایت مستقل دارد (www.sellr.ir، SPA روی پلتفرم Sotoon)؛ از این محیط fetch متنی ناموفق (upstream 500) و هیچ مدرکی از موجودی پدل روی سایت خودش نیست — ناکافی، رد شد
+- **tehrantennis.ir** — از این محیط غیرقابل دسترسی (curl 503، fetch timeout)
+- **sportkala.ir، varzeshkala.ir، padeltennis.ir، sportshop.ir، padelshoponline.ir** — همگی غیرقابل دسترسی (000)
+- **astsportshop.com** — قبلاً رد شده (کتونی مستر/رپلیکا)؛ در نتایج این دور هم تنها اشارهٔ پدل-کفش بود
+- **foreign shops** (runkd.com، temu، beymen ترکیه، shopee/tokopedia اندونزی، sportsnextdoor هند) — غیرایرانی، رد شدند
+- فروشگاه‌های پوشش‌داده‌شدهٔ قبلی (tennisshop.ir، tennisfa.com، iranjsport.com، hivapadel.com، tennis24shop.com، emalls.ir) در نتایج ظاهر شدند اما تکراری‌اند
+- **محدودیت محیط:** torob.com همچنان کاملاً مسدود (exit 52) — امکان مرور فروشنده‌های جدید ترب در این دور نبود
