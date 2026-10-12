@@ -192,7 +192,7 @@ async function searchTennisfa(query: string): Promise<LiveOffer[]> {
 /** Generic Woodmart shop (tennisshop.ir: Toman-direct, divisor=1) */
 async function searchWoodmart(
   query: string, baseUrl: string, storeName: string, priceDivisor: number,
-): Promise<LivePriceOffer[]> {
+): Promise<LiveOffer[]> {
   try {
     let html: string | null = null;
     for (const u of [
@@ -214,7 +214,7 @@ async function searchWoodmart(
       `<a[^>]*href="(https:\\/\\/${host.replace(/\./g, '\\.')}\\/[^"]*?)"[^>]*class="product-image-link"[^>]*>`,
       'g',
     );
-    const offers: LivePriceOffer[] = [];
+    const offers: LiveOffer[] = [];
     const seen = new Set<string>();
     let lm: RegExpExecArray | null;
     while ((lm = linkRe.exec(html)) && offers.length < 10) {
@@ -238,7 +238,7 @@ async function searchWoodmart(
   }
 }
 
-async function searchAlovarzesh(query: string): Promise<LivePriceOffer[]> {
+async function searchAlovarzesh(query: string): Promise<LiveOffer[]> {
   try {
     const res = await fetch(
       `https://shop.alo-varzesh.com/?s=${encodeURIComponent(query)}&post_type=product`,
@@ -256,7 +256,7 @@ async function searchAlovarzesh(query: string): Promise<LivePriceOffer[]> {
         urls.push(lm[1]);
       }
     }
-    const offers: LivePriceOffer[] = [];
+    const offers: LiveOffer[] = [];
     await Promise.all(
       urls.map(async (url) => {
         try {

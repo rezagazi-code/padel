@@ -169,7 +169,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
     const slots: { time: string; isPeak: boolean; isBooked: boolean; period: 'morning' | 'afternoon' | 'night' }[] = [];
     for (let start = open; start + 90 <= close; start += 90) {
       const h = Math.floor(start / 60);
-      const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + 90))}`;
+      const time = `${faDigits(toHHMM(start))} - ${faDigits(toHHMM(start + duration))}`;
       slots.push({
         time,
         isPeak: h >= 18,
@@ -181,9 +181,11 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
   }, [club.openingHour, club.closingHour, bookedIntervals, duration]);
 
   // Auto-select the first free slot on a fresh selection.
+  // If the whole day is booked, no fallback to a booked slot: leave it empty
+  // so the confirm CTA stays disabled.
   useEffect(() => {
     if (userPickedSlotRef.current) return;
-    const first = timeSlots.find((s) => !s.isBooked) || timeSlots[0];
+    const first = timeSlots.find((s) => !s.isBooked);
     setSelectedTimeSlot(first ? first.time : '');
   }, [timeSlots]);
 
@@ -201,7 +203,8 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
   const dongiOthers = dongiNames
     .map((n) => n.trim())
     .filter(Boolean)
-    .filter((n) => n !== playerProfile.name);
+    .filter((n) => n !== playerProfile.name)
+    .filter((n, i, arr) => arr.indexOf(n) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
   const handleConfirmBooking = async () => {

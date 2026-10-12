@@ -789,6 +789,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    // Drop auto-created "need player" ads for the cancelled booking
+    // (manual posts have no bookingId, so they're unaffected).
+    setNeedPlayerPosts((prev) => prev.filter((p) => p.bookingId !== bookingId));
     setSyncNotification('رزرو سانس با موفقیت لغو گردید.');
   };
 
@@ -1118,9 +1121,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         
         // Find latest round (highest order)
         let latestRound = '';
-        let latestOrder = -1;
+        let latestOrder = -3; // below round64 (-2) so round32 (-1)/round64 (-2) win the comparison
         byRound.forEach((_, round) => {
-          const order = roundOrder[round] ?? -1;
+          const order = roundOrder[round] ?? -3;
           if (order > latestOrder) {
             latestOrder = order;
             latestRound = round;
