@@ -1,3 +1,4 @@
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { getSupabase } from './supabase';
 
 export interface LivePriceOffer {
@@ -9,15 +10,121 @@ export interface LivePriceOffer {
   verified: boolean;
 }
 
-/**
- * Live cheapest-price search via the `smooth-action` Edge Function.
- * (Deployed name in Supabase dashboard; code lives at
- * supabase/functions/live-price-search/index.ts in the repo.)
- * Searches Torob + tennisfa.com in real time, verifies availability,
- * returns cheapest-first.
- * Returns null when the function is not deployed / unreachable.
- */
-export async function livePriceSearch(query: string): Promise<LivePriceOffer[] | null> {
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+
+const FA_DIGITS: Record<string, string> = {
+  '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+  '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+};
+function faToInt(s: string): number | null {
+  const norm = s
+    .split('')
+    .map((c) => FA_DIGITS[c] ?? c)
+    .join('')
+    .replace(/[٫,٬\s]/g, '');
+  return /^\d+$/.test(norm) ? parseInt(norm, 10) : null;
+}
+
+/** Native HTTP GET (bypasses CORS on Android/iOS). Returns body text or null. */
+async function nativeGet(url: string): Promise<string | null> {
+  try {
+    const res = await CapacitorHttp.get({
+      url,
+      headers: { 'User-Agent': UA },
+      connectTimeout: 15000,
+      readTimeout: 20000,
+    });
+    if (res.status >= 200 && res.status < 300 && typeof res.data === 'string') {
+      return res.data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function searchTorobNative(query: string): Promise<LivePriceOffer[]> {
+  const html = await nativeGet(`https://torob.com/search/?query=${encodeURIComponent(query)}`);
+  if (!html) return [];
+
+  const cardStarts: number[] = [];
+  const re = /<div data-testid="product-card">/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) && cardStarts.length < 12) cardStarts.push(m.index);
+
+  const offers: LivePriceOffer[] = [];
+  for (const start of cardStarts) {
+    const back = html.slice(Math.max(0, start - 2000), start);
+    const hrefs = [...back.matchAll(/href="(\/p\/[a-f0-9-]{36}\/[^"]*)"/g)];
+    if (!hrefs.length) continue;
+    const url = 'https://torob.com' + hrefs[hrefs.length - 1][1];
+
+    const card = html.slice(start, start + 4000);
+    const titleM = card.match(/<h2[^>]*>(.*?)<\/h2>/s);
+    const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
+    const priceM = card.match(/(?:از\s+)?([۰-۹٫,\d]+)\s*تومان/);
+    const price = priceM ? faToInt(priceM[1]) : null;
+    const sellerM = card.match(/در\s+([۰-۹\d]+)\s*فروشگاه/);
+    const sellers = sellerM ? faToInt(sellerM[1]) ?? 1 : 1;
+    if (title && price && price > 0) {
+      offers.push({ store: 'ترب', title, priceToman: price, url, sellers, verified: false });
+    }
+  }
+
+  // Verify availability for the 5 cheapest (skip ناموجود sellers)
+  const top = offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
+  await Promise.all(
+    top.map(async (o) => {
+      const ph = await nativeGet(o.url);
+      if (!ph) return;
+      const sellerRe = /"price":(\d+),"price_text":"([^"]+)","price_text_striked":"[^"]*","price_text_mode":"([^"]+)"/g;
+      let sm: RegExpExecArray | null;
+      let best: number | null = null;
+      while ((sm = sellerRe.exec(ph))) {
+        const p = parseInt(sm[1], 10);
+        if (p > 0 && sm[3] === 'active' && (best === null || p < best)) best = p;
+      }
+      if (best !== null) {
+        o.priceToman = best;
+        o.verified = true;
+      }
+    }),
+  );
+
+  return top.filter((o) => o.verified).sort((a, b) => a.priceToman - b.priceToman);
+}
+
+async function searchTennisfaNative(query: string): Promise<LivePriceOffer[]> {
+  const html = await nativeGet(
+    `https://tennisfa.com/shop/?s=${encodeURIComponent(query)}&post_type=product`,
+  );
+  if (!html) return [];
+
+  const offers: LivePriceOffer[] = [];
+  const linkRe = /<a[^>]*href="(https:\/\/tennisfa\.com\/shop\/product\/[^"]+)"[^>]*class="product-image-link"[^>]*>/g;
+  const seen = new Set<string>();
+  let lm: RegExpExecArray | null;
+  while ((lm = linkRe.exec(html)) && offers.length < 10) {
+    const url = lm[1];
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const chunk = html.slice(lm.index, lm.index + 8000);
+    const titleM = chunk.match(/<h3 class="wd-entities-title"><a[^>]*>([\s\S]*?)<\/a>/);
+    const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
+    const priceM = chunk.match(/woocommerce-Price-amount[^>]*>([\s\S]*?)<\/span>/);
+    const raw = priceM ? priceM[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
+    const rialM = raw ? raw.match(/([\d,]+)/) : null;
+    const toman = rialM ? Math.round(parseInt(rialM[1].replace(/,/g, ''), 10) / 10) : 0;
+    if (title && toman > 0) {
+      offers.push({ store: 'تنیسفا', title, priceToman: toman, url, verified: true });
+    }
+  }
+  return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
+}
+
+/** Edge Function fallback (for web build / when native HTTP unavailable). */
+async function searchViaEdgeFunction(query: string): Promise<LivePriceOffer[] | null> {
   const sb = getSupabase();
   if (!sb) return null;
   try {
@@ -30,4 +137,34 @@ export async function livePriceSearch(query: string): Promise<LivePriceOffer[] |
   } catch {
     return null;
   }
+}
+
+/**
+ * Live cheapest-price search.
+ * On the native app: fetches Torob + tennisfa directly (no CORS in native layer),
+ * verifies availability, cheapest-first. No Supabase deploy needed.
+ * On web: falls back to the `smooth-action` Edge Function if deployed.
+ * Returns null when unavailable.
+ */
+export async function livePriceSearch(query: string): Promise<LivePriceOffer[] | null> {
+  const q = query.trim();
+  if (q.length < 2) return [];
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const [torob, tennisfa] = await Promise.all([
+        searchTorobNative(q),
+        searchTennisfaNative(q),
+      ]);
+      const offers = [...torob, ...tennisfa]
+        .sort((a, b) => a.priceToman - b.priceToman)
+        .slice(0, 10);
+      if (offers.length > 0) return offers;
+      // Native returned nothing — try edge function as backup
+    } catch {
+      /* fall through to edge function */
+    }
+  }
+
+  return searchViaEdgeFunction(q);
 }
