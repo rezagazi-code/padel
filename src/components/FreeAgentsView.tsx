@@ -375,7 +375,7 @@ export const FreeAgentsView: React.FC = () => {
                     <div className="relative">
                       <img
                         src={agent.avatar}
-                        alt={agent.name}
+                        alt="" aria-hidden="true"
                         className="w-16 h-16 rounded-2xl object-cover ring-2"
                         style={{ borderColor: agent.themeColor }}
                       />
@@ -592,7 +592,7 @@ export const FreeAgentsView: React.FC = () => {
             <div className="text-center space-y-2">
               <img
                 src={showInviteModal.avatar}
-                alt={showInviteModal.name}
+                alt="" aria-hidden="true"
                 className="w-16 h-16 rounded-2xl mx-auto object-cover ring-2"
                 style={{ borderColor: showInviteModal.themeColor }}
               />

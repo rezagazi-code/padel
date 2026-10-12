@@ -21,6 +21,7 @@ import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
 import { Bubbles } from './Bubbles';
 import { livePriceSearch, LivePriceOffer } from '../lib/liveSearch';
+import { Capacitor } from '@capacitor/core';
 
 /** Normalize Persian text for search: ي→ی, ك→ک, remove tatweel/diacritics. */
 function normalizeFa(s: string): string {
@@ -210,7 +211,7 @@ export const ShopView: React.FC = () => {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<'all' | ShopCategory>('all');
   const [openProduct, setOpenProduct] = useState<ShopProduct | null>(null);
-  // Live price search (Torob + tennisfa, availability-verified)
+  // Live price search (native APK only: Torob + tennisfa + tennisshop + alo-varzesh)
   const [liveOffers, setLiveOffers] = useState<LivePriceOffer[] | null>(null);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
@@ -310,7 +311,7 @@ export const ShopView: React.FC = () => {
             )}
           </div>
           {/* Live cheapest-price search */}
-          {query.trim().length >= 2 && (
+          {Capacitor.isNativePlatform() && query.trim().length >= 2 && (
             <div className="mt-2">
               <button
                 onClick={runLiveSearch}

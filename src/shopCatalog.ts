@@ -120,7 +120,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     category: 'racket',
     offers: [
       { store: 'تنیس شاپ (tennisshop.ir)', priceToman: 59950000, url: 'http://tennisshop.ir/shop/%D8%AE%D8%B1%DB%8C%D8%AF-%D9%84%D9%88%D8%A7%D8%B2%D9%85-%D9%BE%D8%AF%D9%84/padel-racket-shop/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-bullpadel-%D9%85%D8%AF%D9%84-vertex-05-w-2026/', condition: 'نو', note: 'ناموجود در انبار (آخرین قیمت ثبت‌شده)' },
-      { store: 'echs.store@ (اینستاگرام)', priceToman: null, url: 'https://www.instagram.com/echs.store/', condition: 'نو', note: 'فروشگاه تخصصی پدل؛ قیمت در دایرکت' },
+      { store: '@echs.store (اینستاگرام)', priceToman: null, url: 'https://www.instagram.com/echs.store/', condition: 'نو', note: 'فروشگاه تخصصی پدل؛ قیمت در دایرکت' },
       { store: 'متین‌اسپرت (اینستاگرام)', priceToman: null, url: 'https://www.instagram.com/matinsport/', condition: 'نو', note: 'قیمت در دایرکت؛ نماینده رسمی بول‌پدل در ایران' },
     ],
   },
@@ -147,8 +147,8 @@ export const SHOP_CATALOG: ShopProduct[] = [
   {
     id: 'shop-qicksand-qicksand-14',
     image: '/shop/shop-qicksand-qicksand-14.jpg',
-    name: 'توپ پدل qicksand (بسته ۳ عددی)',
-    brand: 'qicksand',
+    name: 'توپ پدل (بسته ۳ عددی)',
+    brand: 'متفرقه',
     category: 'balls',
     offers: [
       { store: 'ویلسون (ترب)', priceToman: 1400000, url: 'https://torob.com/price-list/2554/%D8%AA%D9%88%D9%BE-%D8%AA%D9%86%DB%8C%D8%B3-%D9%88-%D9%BE%DB%8C%D9%86%DA%AF-%D9%BE%D9%86%DA%AF-%D9%84%DB%8C%D8%B3%D8%AA-%D9%82%DB%8C%D9%85%D8%AA/', condition: 'نو' },
@@ -438,7 +438,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     description: 'فوق‌سبک، مناسب بازیکن‌های تکنیکی.',
     offers: [
       { store: 'اینستاگرام @tennisfa_shop', priceToman: 25000000, url: 'https://www.instagram.com/tennisfa_shop', condition: 'نو', note: 'قیمت تقریبی از روی پست' },
-      { store: 'tennisfa_shop@ (اینستاگرام)', priceToman: null, url: 'https://www.instagram.com/tennisfa_shop/', condition: 'نو', note: 'قیمت در دایرکت؛ قیمت‌های پست‌ها معمولاً به هزار تومان است' },
+      { store: '@tennisfa_shop (اینستاگرام)', priceToman: null, url: 'https://www.instagram.com/tennisfa_shop/', condition: 'نو', note: 'قیمت در دایرکت؛ قیمت‌های پست‌ها معمولاً به هزار تومان است' },
     ],
   },
   {

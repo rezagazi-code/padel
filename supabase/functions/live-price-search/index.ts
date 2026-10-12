@@ -1,7 +1,7 @@
 // Supabase Edge Function: live-price-search
 // Live cheapest-price search across Torob + tennisfa.com.
 // Deploy: Supabase Dashboard → Edge Functions → New function → paste this file → Deploy.
-// Invoke: supabase.functions.invoke('live-price-search', { body: { query: 'راکت پدل' } })
+// Invoke: supabase.functions.invoke('smooth-action', { body: { query: 'راکت پدل' } })
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 

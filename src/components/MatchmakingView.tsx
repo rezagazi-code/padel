@@ -345,7 +345,7 @@ export const MatchmakingView: React.FC = () => {
                               <div className="space-y-1">
                                 <img
                                   src={slot.playerAvatar}
-                                  alt={slot.playerName}
+                                  alt="" aria-hidden="true"
                                   className="w-8 h-8 rounded-full mx-auto object-cover ring-1 ring-slate-600"
                                 />
                                 <p className="text-[11px] font-bold text-slate-100 truncate">{slot.playerName}</p>
@@ -400,7 +400,7 @@ export const MatchmakingView: React.FC = () => {
                               <div className="space-y-1">
                                 <img
                                   src={slot.playerAvatar}
-                                  alt={slot.playerName}
+                                  alt="" aria-hidden="true"
                                   className="w-8 h-8 rounded-full mx-auto object-cover ring-1 ring-slate-600"
                                 />
                                 <p className="text-[11px] font-bold text-slate-100 truncate">{slot.playerName}</p>
@@ -486,7 +486,7 @@ export const MatchmakingView: React.FC = () => {
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition text-xs"
                           title={`دعوت ${a.name}`}
                         >
-                          <img src={a.avatar} alt={a.name} className="w-6 h-6 rounded-full object-cover" />
+                          <img src={a.avatar} alt="" aria-hidden="true" className="w-6 h-6 rounded-full object-cover" />
                           <span className="text-slate-200 font-bold">{a.name}</span>
                           <span className="text-emerald-400">+ دعوت</span>
                         </button>
@@ -900,7 +900,8 @@ const GroupSessionsTab: React.FC = () => {
                                 {slot.playerAvatar ? (
                                   <img
                                     src={slot.playerAvatar}
-                                    alt={slot.playerName}
+                                    alt=""
+                                    aria-hidden="true"
                                     className="w-8 h-8 rounded-full object-cover"
                                   />
                                 ) : (

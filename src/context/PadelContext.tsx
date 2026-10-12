@@ -300,13 +300,21 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let cancelled = false;
     (async () => {
       try {
-        const [remoteClubs, remoteTournaments] = await Promise.all([
+        const [remoteClubs, remoteTournaments, remoteCoaches] = await Promise.all([
           fetchClubs(),
           fetchTournaments(),
+          fetchCoaches(),
         ]);
         if (!cancelled) {
           if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
           if (remoteTournaments.length > 0) setTournaments(remoteTournaments);
+        }
+        if (remoteCoaches.length > 0) {
+          setCoaches((prev) => {
+            const localOnly = prev.filter((c) => c.id.startsWith('coach-'));
+            const ids = new Set(remoteCoaches.map((c) => c.id));
+            return [...remoteCoaches, ...localOnly.filter((c) => !ids.has(c.id))];
+          });
         }
       } catch (err) {
         console.warn('Supabase catalog load failed, using local data:', err);
@@ -400,6 +408,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'rankings', JSON.stringify(rankings));
   }, [rankings]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'coaches', JSON.stringify(coaches));
+  }, [coaches]);
 
   const updatePlayerProfile = (updates: Partial<PlayerProfile>) => {
     setPlayerProfile((prev) => {
@@ -1079,6 +1091,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const recordFriendlyScore = (tournId: string, matchId: string, score1: number, score2: number) => {
+    if (score1 === score2) {
+      setSyncNotification('نتیجه مساوی معتبر نیست؛ لطفاً برنده را مشخص کنید.');
+      return;
+    }
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId) return t;
@@ -1211,6 +1227,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
           if (p.spotsNeeded <= p.joinedPlayers.length) {
             setSyncNotification('ظرفیت این درخواست تکمیل شده است.');
+            return p;
+          }
+          if (playerProfile.level < p.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > p.maxLevel + LEVEL_JOIN_TOLERANCE) {
+            setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این آگهی (${levelToGrade(p.minLevel)} - ${levelToGrade(p.maxLevel)}) منطبق نیست.`);
             return p;
           }
 
@@ -1382,6 +1402,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     winnerTeamName: string,
     runnerUpTeamName: string
   ) => {
+    const tourn = tournaments.find((t) => t.id === tournId);
     setTournaments((prev) =>
       prev.map((t) => {
         if (t.id === tournId) {
@@ -1398,33 +1419,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Update provincial rankings: add points
     setRankings((prev) => {
-      return prev
-        .map((player) => {
-          let extraPoints = 0;
-          let wonTourn = 0;
-          if (winnerTeamName.includes(player.name)) {
-            extraPoints = 250;
-            wonTourn = 1;
-          } else if (runnerUpTeamName.includes(player.name)) {
-            extraPoints = 150;
-          } else {
-            extraPoints = 50; // participation
-          }
-
-          const newPoints = player.points + extraPoints;
-          return {
-            ...player,
-            points: newPoints,
-            tournamentsPlayed: player.tournamentsPlayed + 1,
-            tournamentsWon: player.tournamentsWon + wonTourn,
-            form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]),
-          };
-        })
-        .sort((a, b) => b.points - a.points)
-        .map((p, idx) => ({
-          ...p,
-          rank: idx + 1,
-        }));
+      const norm = (s: string) => s.trim();
+      const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
+      const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
+      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
+      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
+      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]));
+      if (!winnerTeam) {
+        setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
+      }
+      return prev.map((player) => {
+        if (winnerNames.includes(player.name)) {
+          return { ...player, points: player.points + 250, tournamentsPlayed: player.tournamentsPlayed + 1, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        if (runnerUpNames.includes(player.name)) {
+          return { ...player, points: player.points + 150, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        if (participantNames.has(player.name)) {
+          return { ...player, points: player.points + 50, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        return player; // non-participants: completely untouched
+      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
     });
 
     setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);

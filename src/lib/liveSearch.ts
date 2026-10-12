@@ -54,7 +54,7 @@ const TERM_EQUIVS: Record<string, string[]> = {
   'yonex': ['یونکس'], 'یونکس': ['yonex'],
   'kuikma': ['کوئیکما', 'کویکما'],
   'artengo': ['آرتنگو'], 'آرتنگو': ['artengo'],
-  'drop shot': ['دراپ شات'], 'hack': ['هک'],
+  'hack': ['هک'],
   'flow': ['فلو'], 'indiga': ['ایندیگا'],
 };
 
@@ -155,7 +155,8 @@ async function searchTorobNative(query: string): Promise<LivePriceOffer[]> {
     }),
   );
 
-  return top.filter((o) => o.verified).sort((a, b) => a.priceToman - b.priceToman);
+  const verified = top.filter((o) => o.verified);
+  return (verified.length > 0 ? verified : top).sort((a, b) => a.priceToman - b.priceToman);
 }
 
 async function searchTennisfaNative(query: string): Promise<LivePriceOffer[]> {
