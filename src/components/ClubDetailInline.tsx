@@ -169,6 +169,7 @@ export const ClubDetailInline: React.FC<ClubDetailInlineProps> = ({
         </div>
 
         {/* CTA — opens the booking bottom-sheet */}
+        {club.courts.length > 0 && (
         <button
           onClick={() => {
             const cid = selectedCourtId || club.courts[0]?.id;
@@ -179,6 +180,7 @@ export const ClubDetailInline: React.FC<ClubDetailInlineProps> = ({
           <CalendarDays className="w-4 h-4" />
           انتخاب سانس و ادامه رزرو
         </button>
+        )}
       </div>
     </div>
   );

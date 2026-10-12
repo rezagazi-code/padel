@@ -94,6 +94,29 @@ export const PlayerProfileView: React.FC = () => {
     }, 2500);
   };
 
+  // Form State
+  const [name, setName] = useState(playerProfile.name);
+  const [phone, setPhone] = useState(playerProfile.phone);
+  const [city, setCity] = useState(playerProfile.city);
+  const [province, setProvince] = useState(playerProfile.province);
+  const [level, setLevel] = useState<number>(playerProfile.level);
+  const [themeColor, setThemeColor] = useState(playerProfile.themeColor);
+
+  // Lighten a hex color so theme-colored text stays readable on the dark card
+  const lighten = (hex: string, amt = 0.45) => {
+    const h = hex.replace('#', '');
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    const n = parseInt(full, 16);
+    const f = (v: number) => Math.min(255, Math.round(v + (255 - v) * amt));
+    return `#${((1 << 24) + (f((n >> 16) & 255) << 16) + (f((n >> 8) & 255) << 8) + f(n & 255)).toString(16).slice(1)}`;
+  };
+  const themeColorLight = lighten(themeColor);
+  const [preferredSide, setPreferredSide] = useState<PlayingSide>(playerProfile.preferredSide);
+  const [hand, setHand] = useState<PlayingHand>(playerProfile.hand);
+  const [racketBrand, setRacketBrand] = useState(playerProfile.racketBrand);
+  const [racketModel, setRacketModel] = useState(playerProfile.racketModel);
+  const [bio, setBio] = useState(playerProfile.bio || '');
+
   // Auth gate: anonymous visitors must not see or edit any profile
   // (local residue included). Matches the native-app login gate in App.tsx.
   if (!user) {
@@ -118,29 +141,6 @@ export const PlayerProfileView: React.FC = () => {
       </div>
     );
   }
-
-  // Form State
-  const [name, setName] = useState(playerProfile.name);
-  const [phone, setPhone] = useState(playerProfile.phone);
-  const [city, setCity] = useState(playerProfile.city);
-  const [province, setProvince] = useState(playerProfile.province);
-  const [level, setLevel] = useState<number>(playerProfile.level);
-  const [themeColor, setThemeColor] = useState(playerProfile.themeColor);
-
-  // Lighten a hex color so theme-colored text stays readable on the dark card
-  const lighten = (hex: string, amt = 0.45) => {
-    const h = hex.replace('#', '');
-    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
-    const n = parseInt(full, 16);
-    const f = (v: number) => Math.min(255, Math.round(v + (255 - v) * amt));
-    return `#${((1 << 24) + (f((n >> 16) & 255) << 16) + (f((n >> 8) & 255) << 8) + f(n & 255)).toString(16).slice(1)}`;
-  };
-  const themeColorLight = lighten(themeColor);
-  const [preferredSide, setPreferredSide] = useState<PlayingSide>(playerProfile.preferredSide);
-  const [hand, setHand] = useState<PlayingHand>(playerProfile.hand);
-  const [racketBrand, setRacketBrand] = useState(playerProfile.racketBrand);
-  const [racketModel, setRacketModel] = useState(playerProfile.racketModel);
-  const [bio, setBio] = useState(playerProfile.bio || '');
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();

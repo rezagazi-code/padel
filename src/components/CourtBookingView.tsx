@@ -55,7 +55,6 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
-  // Booking bottom-sheet: opened from ClubDetailSheet's CTA (court tap → sheet, not page)
   const [bookingSheet, setBookingSheet] = useState<{ clubId: string; courtId: string } | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
@@ -260,7 +259,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const dongiOthers = dongiNames
     .map((n) => n.trim())
     .filter(Boolean)
-    .filter((n) => n !== playerProfile.name);
+    .filter((n) => n !== playerProfile.name)
+    .filter((n, i, arr) => arr.indexOf(n) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
   const handleConfirmBooking = async () => {

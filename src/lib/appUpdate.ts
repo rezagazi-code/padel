@@ -9,8 +9,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 58;
-export const CURRENT_VERSION_NAME = '3.15.5';
+export const CURRENT_VERSION_CODE = 59;
+export const CURRENT_VERSION_NAME = '3.15.6';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   // Only check in native app
@@ -32,4 +32,4 @@ export function openApkDownload(url: string) {
   // Open in system browser - user will get install prompt after download
   window.open(url, '_system');
 }
-// retrigger 3.15.4 build (infra flake retry)
+// retrigger 3.15.5 build (infra flake retry)

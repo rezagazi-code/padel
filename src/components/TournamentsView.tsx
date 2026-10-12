@@ -575,7 +575,7 @@ export const TournamentsView: React.FC = () => {
                           />
                           <div>
                             <span className="font-bold text-slate-100 block">
-                              {player.name} {isMe && <span className="text-[#ff6b81] text-[10px]">(شما)</span>}
+                              {player.name.replace(/\s*\(شما\)\s*$/, '')} {isMe && <span className="text-[#ff6b81] text-[10px]">(شما)</span>}
                             </span>
                             <span className="text-[10px] text-slate-500">رنک استان #{player.provinceRank}</span>
                           </div>

@@ -97,3 +97,47 @@ Emalls, Digikala, padeliran.ir, sportstations.ir, @tennisfa_shop, @echs.store,
 - شیپور (sheypoor.com) بررسی شد — فقط آگهی‌های دست‌دوم/شخصی، فروشگاه نیست.
 - نتیجه: هیچ فروشگاه جدید و تأییدشده‌ای برای اضافه شدن به جست‌وجوی زندهٔ
   قیمت در این دور پیدا نشد.
+
+## دور جدید — 2026-10-12 ~19:30 (عصر، یک یافتهٔ جدید تأییدشده)
+
+### ✅ RECOMMENDED — تنیس ۲۴ (Tennis24Shop) — tennis24shop.com
+- **URL:** https://tennis24shop.com
+- **Padel category:** https://tennis24shop.com/product-category/padel-%d9%be%d8%af%d9%84/ (نمایش ۱–۱۲ از ۴۳ نتیجه)
+- **City:** تهران (تلفن 02191693524 در فوتر صفحهٔ اصلی؛ شعبهٔ تهران)
+- **Padel inventory:** YES — فروشگاه تخصصی لوازم تنیس/پدل اورجینال: راکت‌های
+  دکتلون/کویکما، آدیداس (Metalbone Team، RX Green، Drive Light 3.2، Match 3.2)،
+  هد (Vibe 2026، Bolt 2025، Coello Team/Motion/Pro، Radical Team/Motion/Pro)،
+  کفش پدل اسیکس (GEL-Dedicate 9، Game FF)، ساک و کیف پدل.
+- **Price visibility:** PUBLIC — همهٔ محصولات با قیمت تومان + افزودن به سبد خرید.
+  نمونهٔ تأییدشده (2026-10-12، از متن صفحه):
+  - Kuikma PR Comfort Soft — 12,249,000 تومان
+  - Kuikma Power Carbon — 32,449,000 تومان
+  - Adidas Match 3.2 — 21,399,000 تومان
+  - Adidas Metalbone Team — 65,399,000 تومان
+  - Head Coello Motion 2026 — 66,880,000 تومان (تخفیف از 70,400,000)
+  - Head Vibe 2026 — 28,215,000 تومان (تخفیف از 29,700,000)
+  - Asics GEL-Dedicate 9 Padel (زنانه) — 35,099,000 تومان
+- **Scrapability:** PARTIAL — curl از این محیط مسدود است (چالش JS/WAF، پاسخ
+  HTTP 418 روی همهٔ هدرها و UAها؛ wp-json هم به چالش می‌خورد). اما fetch متنی
+  صفحه (از طریق browser.open) دادهٔ کامل قیمت‌ها را برمی‌گرداند — یعنی با
+  پایپ‌لاین fetch متنی/مرورگر قابل خواندن است، با curl ساده خیر.
+- **تفاوت با دورهای قبل:** tennis24shop.com دامین متفاوتی از tennis24.ir است
+  (قبلاً dead بود) — هم‌پوشانی ندارد.
+- **Integration cost:** MEDIUM — قیمت‌ها عمومی‌اند اما پارسر باید از fetch
+  متنی استفاده کند، نه curl خام.
+
+### ❌ ردشده‌های این دور
+- **astsportshop.com (AST Sport Shop)** — فروشگاه کتونی تهران (09214746430)؛
+  فقط ۱ اشاره به پدل (یک محصول کتونی پدل/تنیس)، و کفش‌هایش سطح «مستر»
+  (رپلیکا) است — فروشگاه لوازم پدل واقعی نیست.
+- **sportland.ir** — فروشگاه پوشاک زنانه؛ فقط یک دستهٔ جست‌وجوی «تنیس و پدل»
+  برای لباس، بدون راکت یا لوازم پدل — رد شد.
+- **~۲۴ دامین مرده:** padelworld.ir، padelplus.ir، irantenisshop.ir،
+  sportkadeh.ir، tennisarena.ir، racketcity.ir، raketcity.ir، iransportland.com،
+  padelhouse.ir، sportline.ir، raketshop.ir، sportbazar.ir، varzeshshop.ir،
+  padelcenter.ir، clubpadel.ir، parstennis.ir، padeltehran.ir، sportpadel.ir،
+  racketland.ir، varzeshland.ir، padelmarketshop.ir، iranracket.ir، zitazi.ir،
+  peymansport.ir، racketrun.ir، tenisfardis.ir — همگی غیرقابل دسترسی (000).
+- **تنوع کوئری:** جست‌وجوهای فارسی/انگلیسی جدید (فروشگاه اینترنتی راکت پدل،
+  site:.ir، قیمت خرید کتونی پدل) جز تنیس‌شاپ‌های قبلاً پوشش‌داده‌شده نتیجهٔ
+  جدیدی نداشتند.
