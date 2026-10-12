@@ -159,13 +159,46 @@ async function searchTorobNative(query: string): Promise<LivePriceOffer[]> {
 }
 
 async function searchTennisfaNative(query: string): Promise<LivePriceOffer[]> {
-  const html = await nativeGet(
-    `https://tennisfa.com/shop/?s=${encodeURIComponent(query)}&post_type=product`,
-  );
-  if (!html) return [];
+  return searchWoodmartShop(query, 'https://tennisfa.com', 'تنیسفا', 10);
+}
 
+/**
+ * Generic Woodmart/WooCommerce shop search.
+ * @param baseUrl shop base URL
+ * @param storeName Persian display name
+ * @param priceDivisor divide raw price by this to get Toman (tennisfa stores Rial → 10; tennisshop.ir is already Toman → 1)
+ */
+async function searchWoodmartShop(
+  query: string,
+  baseUrl: string,
+  storeName: string,
+  priceDivisor: number,
+): Promise<LivePriceOffer[]> {
+  const html = await nativeGet(
+    `${baseUrl}/shop/?s=${encodeURIComponent(query)}&post_type=product`,
+  );
+  if (!html) {
+    // tennisshop.ir uses ?s= at root instead of /shop/
+    const alt = await nativeGet(`${baseUrl}/?s=${encodeURIComponent(query)}&post_type=product`);
+    if (!alt) return [];
+    return parseWoodmartHtml(alt, baseUrl, storeName, priceDivisor, query);
+  }
+  return parseWoodmartHtml(html, baseUrl, storeName, priceDivisor, query);
+}
+
+function parseWoodmartHtml(
+  html: string,
+  baseUrl: string,
+  storeName: string,
+  priceDivisor: number,
+  query: string,
+): LivePriceOffer[] {
   const offers: LivePriceOffer[] = [];
-  const linkRe = /<a[^>]*href="(https:\/\/tennisfa\.com\/shop\/product\/[^"]+)"[^>]*class="product-image-link"[^>]*>/g;
+  const host = baseUrl.replace('https://', '').replace('http://', '');
+  const linkRe = new RegExp(
+    `<a[^>]*href="(https:\\/\\/${host.replace(/\./g, '\\.')}\\/[^"]*?)"[^>]*class="product-image-link"[^>]*>`,
+    'g',
+  );
   const seen = new Set<string>();
   let lm: RegExpExecArray | null;
   while ((lm = linkRe.exec(html)) && offers.length < 10) {
@@ -177,12 +210,55 @@ async function searchTennisfaNative(query: string): Promise<LivePriceOffer[]> {
     const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
     const priceM = chunk.match(/woocommerce-Price-amount[^>]*>([\s\S]*?)<\/span>/);
     const raw = priceM ? priceM[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
-    const rialM = raw ? raw.match(/([\d,]+)/) : null;
-    const toman = rialM ? Math.round(parseInt(rialM[1].replace(/,/g, ''), 10) / 10) : 0;
+    const numM = raw ? raw.match(/([\d,]+)/) : null;
+    const toman = numM ? Math.round(parseInt(numM[1].replace(/,/g, ''), 10) / priceDivisor) : 0;
     if (title && toman > 0 && isPadelRelevant(title, query)) {
-      offers.push({ store: 'تنیسفا', title, priceToman: toman, url, verified: true });
+      offers.push({ store: storeName, title, priceToman: toman, url, verified: true });
     }
   }
+  return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
+}
+
+async function searchTennisshopNative(query: string): Promise<LivePriceOffer[]> {
+  return searchWoodmartShop(query, 'https://tennisshop.ir', 'تنیس‌شاپ', 1);
+}
+
+/** Alovarzesh: WooCommerce; search page lists products but prices need product-page fetch. */
+async function searchAlovarzeshNative(query: string): Promise<LivePriceOffer[]> {
+  const html = await nativeGet(
+    `https://shop.alo-varzesh.com/?s=${encodeURIComponent(query)}&post_type=product`,
+  );
+  if (!html) return [];
+
+  const linkRe = /<a[^>]*href="(https:\/\/shop\.alo-varzesh\.com\/product\/[^"]+)"[^>]*>/g;
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  let lm: RegExpExecArray | null;
+  while ((lm = linkRe.exec(html)) && urls.length < 6) {
+    if (!seen.has(lm[1])) {
+      seen.add(lm[1]);
+      urls.push(lm[1]);
+    }
+  }
+
+  const offers: LivePriceOffer[] = [];
+  await Promise.all(
+    urls.map(async (url) => {
+      const ph = await nativeGet(url);
+      if (!ph) return;
+      const titleM =
+        ph.match(/<h1[^>]*class="[^"]*product_title[^"]*"[^>]*>([\s\S]*?)<\/h1>/) ||
+        ph.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+      const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : null;
+      // First in-stock price on the page (variable products list a price range)
+      const priceM = ph.match(/woocommerce-Price-amount[^>]*><bdi>([\d,]+)/);
+      const toman = priceM ? parseInt(priceM[1].replace(/,/g, ''), 10) : 0;
+      const outOfStock = /ناموجود/.test(ph.slice(0, 30000));
+      if (title && toman > 0 && !outOfStock && isPadelRelevant(title, query)) {
+        offers.push({ store: 'الو ورزش', title, priceToman: toman, url, verified: true });
+      }
+    }),
+  );
   return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
 }
 
@@ -215,11 +291,13 @@ export async function livePriceSearch(query: string): Promise<LivePriceOffer[] |
 
   if (Capacitor.isNativePlatform()) {
     try {
-      const [torob, tennisfa] = await Promise.all([
+      const [torob, tennisfa, tennisshop, alovarzesh] = await Promise.all([
         searchTorobNative(q),
         searchTennisfaNative(q),
+        searchTennisshopNative(q),
+        searchAlovarzeshNative(q),
       ]);
-      const offers = [...torob, ...tennisfa]
+      const offers = [...torob, ...tennisfa, ...tennisshop, ...alovarzesh]
         .sort((a, b) => a.priceToman - b.priceToman)
         .slice(0, 10);
       if (offers.length > 0) return offers;
