@@ -32,3 +32,4 @@ export function openApkDownload(url: string) {
   // Open in system browser - user will get install prompt after download
   window.open(url, '_system');
 }
+// retrigger 3.15.4 build (infra flake retry)
