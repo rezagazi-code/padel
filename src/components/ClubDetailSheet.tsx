@@ -20,6 +20,8 @@ interface ClubDetailSheetProps {
   onSelectCourt: (courtId: string) => void;
   /** Called when the user taps "continue to booking" — sheet closes, parent scrolls */
   onContinue: () => void;
+  /** When provided, the CTA opens the booking bottom-sheet for the selected court instead of scrolling */
+  onBookCourt?: (courtId: string) => void;
   onClose: () => void;
   myRating: number;
   onRate: (n: number) => void;
@@ -38,6 +40,7 @@ export const ClubDetailSheet: React.FC<ClubDetailSheetProps> = ({
   selectedCourtId,
   onSelectCourt,
   onContinue,
+  onBookCourt,
   onClose,
   myRating,
   onRate,
@@ -160,10 +163,14 @@ export const ClubDetailSheet: React.FC<ClubDetailSheetProps> = ({
         )}
       </div>
 
-      {/* CTA */}
+      {/* CTA — opens the booking bottom-sheet when onBookCourt is wired, else the legacy scroll */}
       <button
-        onClick={onContinue}
-        className="btn-fire w-full mt-4 py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 cursor-pointer"
+        onClick={() => {
+          const cid = selectedCourtId || club.courts[0]?.id;
+          if (onBookCourt && cid) onBookCourt(cid);
+          else onContinue();
+        }}
+        className="bubble-btn-fire w-full mt-4 py-3.5 text-sm flex items-center justify-center gap-2"
       >
         <CalendarDays className="w-4 h-4" />
         انتخاب سانس و ادامه رزرو

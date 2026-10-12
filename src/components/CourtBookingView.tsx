@@ -26,6 +26,7 @@ import {
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ClubDetailSheet } from './ClubDetailSheet';
+import { BookingSheet } from './BookingSheet';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
@@ -54,6 +55,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [sheetClub, setSheetClub] = useState<Club | null>(null);
+  // Booking bottom-sheet: opened from ClubDetailSheet's CTA (court tap → sheet, not page)
+  const [bookingSheet, setBookingSheet] = useState<{ clubId: string; courtId: string } | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -1025,6 +1028,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
           }}
+          onBookCourt={(courtId) => {
+            // Chic flow: tapping "رزرو" opens the booking bottom-sheet
+            // instead of scrolling the page.
+            setSelectedClubId(sheetClub.id);
+            setSelectedCourtId(courtId);
+            setBookingSheet({ clubId: sheetClub.id, courtId });
+            setSheetClub(null);
+          }}
           onClose={() => setSheetClub(null)}
           myRating={myClubRatings[sheetClub.id] ?? 0}
           onRate={(n) => {
@@ -1032,6 +1043,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           }}
         />
       )}
+
+      {/* Booking bottom-sheet: full booking form in a sliding sheet */}
+      {(() => {
+        const bClub = bookingSheet ? clubs.find((c) => c.id === bookingSheet.clubId) : undefined;
+        return bClub ? (
+          <BookingSheet
+            club={bClub}
+            courtId={bookingSheet!.courtId}
+            onClose={() => setBookingSheet(null)}
+          />
+        ) : null;
+      })()}
 
     </div>
   );
