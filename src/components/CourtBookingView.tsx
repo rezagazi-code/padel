@@ -383,8 +383,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             <button
               key={prov}
               onClick={() => setSelectedProvince(prov)}
-              className={`chip px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 cursor-pointer ${
-                selectedProvince === prov ? 'chip-on' : ''
+              className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 cursor-pointer transition border ${
+                selectedProvince === prov
+                  ? 'bubble-btn-fire rounded-full'
+                  : 'bg-white/[0.07] border-white/15 text-slate-300 hover:bg-white/[0.12]'
               }`}
             >
               {prov}
