@@ -23,6 +23,11 @@ import { Bubbles } from './Bubbles';
 import { livePriceSearch, LivePriceOffer } from '../lib/liveSearch';
 import { Capacitor } from '@capacitor/core';
 
+/** Open external URL in system browser (reliable in Capacitor, avoids _blank issues). */
+function openExternal(url: string) {
+  window.open(url, '_system', 'noopener');
+}
+
 /** Normalize Persian text for search: ي→ی, ك→ک, remove tatweel/diacritics. */
 function normalizeFa(s: string): string {
   return s
@@ -189,16 +194,14 @@ const ProductSheet: React.FC<{ p: ShopProduct; onClose: () => void }> = ({ p, on
               ) : (
                 <p className="text-[11px] font-bold text-[#5B6B7F] shrink-0">دایرکت</p>
               )}
-              <a
-                href={o.url}
-                target="_blank"
-                rel="noreferrer"
-                className="bubble-btn shrink-0 h-9 px-4 flex items-center gap-1.5 text-[12px]"
+              <button
+                onClick={() => openExternal(o.url)}
+                className="bubble-btn shrink-0 h-9 px-4 flex items-center gap-1.5 text-[12px] cursor-pointer"
                 aria-label={`مشاهده در ${o.store}`}
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 خرید
-              </a>
+              </button>
             </div>
           ))}
         </div>
@@ -377,15 +380,13 @@ export const ShopView: React.FC = () => {
                       <p className="text-sm font-black text-[#0E1B2C]">
                         {(o.priceToman / 1000000).toLocaleString('fa-IR', { maximumFractionDigits: 1 })} میلیون تومان
                       </p>
-                      <a
-                        href={o.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bubble-btn inline-flex items-center gap-1 px-3 py-1.5 text-[11px] mt-1"
+                      <button
+                        onClick={() => openExternal(o.url)}
+                        className="bubble-btn inline-flex items-center gap-1 px-3 py-1.5 text-[11px] mt-1 cursor-pointer"
                       >
                         خرید
                         <ExternalLink className="w-3 h-3" />
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}

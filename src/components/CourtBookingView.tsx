@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
-import { ClubDetailInline } from './ClubDetailInline';
+import { InlineBooking } from './InlineBooking';
 import { BookingSheet } from './BookingSheet';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
@@ -55,7 +55,6 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
-  const [bookingSheet, setBookingSheet] = useState<{ clubId: string; courtId: string } | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -473,24 +472,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </div>
                 </div>
                 {expandedClubId === club.id && (
-                  <ClubDetailInline
+                  <InlineBooking
                     club={club}
-                    selectedCourtId={selectedCourtId}
-                    onSelectCourt={(courtId) => {
-                      setSelectedClubId(club.id);
-                      setSelectedCourtId(courtId);
-                    }}
-                    onBookCourt={(courtId) => {
-                      setSelectedClubId(club.id);
-                      setSelectedCourtId(courtId);
-                      setBookingSheet({ clubId: club.id, courtId });
-                      setExpandedClubId(null);
-                    }}
-                    onCollapse={() => setExpandedClubId(null)}
-                    myRating={myClubRatings[club.id] ?? 0}
-                    onRate={(n) => {
-                      void rateClub(club.id, n).catch(() => {});
-                    }}
+                    courtId={selectedCourtId || club.courts[0]?.id || ''}
+                    onClose={() => setExpandedClubId(null)}
+                    onBooked={() => setExpandedClubId(null)}
                   />
                 )}
                 </React.Fragment>
@@ -1033,18 +1019,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         onCancel={() => setClubToDelete(null)}
       />
 
-      {/* Club detail bottom-sheet (mobile): full info slides up on tap */}
-      {/* Booking bottom-sheet: full booking form in a sliding sheet */}
-      {(() => {
-        const bClub = bookingSheet ? clubs.find((c) => c.id === bookingSheet.clubId) : undefined;
-        return bClub ? (
-          <BookingSheet
-            club={bClub}
-            courtId={bookingSheet!.courtId}
-            onClose={() => setBookingSheet(null)}
-          />
-        ) : null;
-      })()}
+      {/* Booking is now inline via InlineBooking (slide-down under club card) */}
 
     </div>
   );
