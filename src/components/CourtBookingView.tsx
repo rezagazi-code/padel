@@ -356,7 +356,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={onOpenClubOwnerModal}
-              className="flex items-center gap-2 bubble-btn-fire font-black text-sm px-6 py-3.5"
+              className="flex items-center gap-2 bubble-btn-fire rounded-full font-black text-sm px-6 py-3.5"
             >
               <PlusCircle className="w-5 h-5" />
               <span>افزودن باشگاه و زمین (ویژه باشگاه‌داران)</span>
@@ -650,7 +650,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <button
                       key={dur.mins}
                       onClick={() => setDuration(dur.mins)}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer ${
                         duration === dur.mins
                           ? 'bubble-btn-fire'
                           : 'text-slate-400 hover:text-slate-100'
@@ -675,7 +675,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         key={index}
                         disabled={slot.isBooked}
                         onClick={() => handleSlotPick(slot.time)}
-                        className={`p-3 rounded-xl text-center border transition relative cursor-pointer ${
+                        className={`p-3 rounded-2xl text-center border transition relative cursor-pointer ${
                           slot.isBooked
                             ? 'bg-white/[0.03] border-white/10 text-slate-400 cursor-not-allowed opacity-50'
                             : isSlotSelected
@@ -902,7 +902,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <button
                   onClick={handleConfirmBooking}
                   disabled={isSubmitting}
-                  className="bubble-btn-fire flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                  className="bubble-btn-fire rounded-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <CreditCard className="w-5 h-5" />
                   <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>

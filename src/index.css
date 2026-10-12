@@ -736,13 +736,14 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
     0 2px 6px rgba(14, 165, 233, 0.25);
 }
 
-/* Bubble button — fire/dark theme (booking, dark UI). Same gloss, red gradient. */
+/* Bubble button — fire/dark theme (booking, dark UI). Same gloss, red gradient.
+   Border-radius is NOT set here — control it per-usage with Tailwind
+   (rounded-2xl for selection buttons like time slots, rounded-full for pills). */
 .bubble-btn-fire {
   --btn-top: #ff6b81;
   --btn-mid: #ff2d55;
   --btn-bot: #b3122e;
   position: relative;
-  border-radius: 999px;
   color: #fff;
   font-weight: 800;
   text-shadow: 0 1px 2px rgba(80, 1, 15, 0.4);

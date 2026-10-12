@@ -170,7 +170,7 @@ export const ClubDetailSheet: React.FC<ClubDetailSheetProps> = ({
           if (onBookCourt && cid) onBookCourt(cid);
           else onContinue();
         }}
-        className="bubble-btn-fire w-full mt-4 py-3.5 text-sm flex items-center justify-center gap-2"
+        className="bubble-btn-fire rounded-full w-full mt-4 py-3.5 text-sm flex items-center justify-center gap-2"
       >
         <CalendarDays className="w-4 h-4" />
         انتخاب سانس و ادامه رزرو

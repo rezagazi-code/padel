@@ -289,7 +289,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
                 <button
                   key={c.id}
                   onClick={() => setActiveCourtId(c.id)}
-                  className={`shrink-0 px-3.5 py-2 rounded-full text-xs font-bold transition cursor-pointer border ${
+                  className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold transition cursor-pointer border ${
                     c.id === activeCourtId
                       ? 'bubble-btn-fire'
                       : 'bg-white/[0.05] border-white/10 text-slate-400'
@@ -338,7 +338,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
               <button
                 key={dur.mins}
                 onClick={() => setDuration(dur.mins)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition cursor-pointer ${
+                className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer ${
                   duration === dur.mins ? 'bubble-btn-fire' : 'text-slate-400'
                 }`}
               >
@@ -422,7 +422,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
                 <button
                   key={count}
                   onClick={() => setPlayersNeededCount(count)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition cursor-pointer ${
                     playersNeededCount === count
                       ? 'bubble-btn-fire'
                       : 'bg-white/[0.04] border-white/10 text-slate-400'
@@ -520,7 +520,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setSplitPayment(true)}
-                className={`text-[11px] px-3 py-1.5 rounded-full font-bold transition cursor-pointer border ${
+                className={`text-[11px] px-3 py-1.5 rounded-2xl font-bold transition cursor-pointer border ${
                   splitPayment
                     ? 'bubble-btn-fire'
                     : 'bg-white/[0.04] text-slate-500 border-white/10'
@@ -530,7 +530,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
               </button>
               <button
                 onClick={() => setSplitPayment(false)}
-                className={`text-[11px] px-3 py-1.5 rounded-full font-bold transition cursor-pointer border ${
+                className={`text-[11px] px-3 py-1.5 rounded-2xl font-bold transition cursor-pointer border ${
                   !splitPayment
                     ? 'bubble-btn-fire'
                     : 'bg-white/[0.04] text-slate-500 border-white/10'
@@ -556,7 +556,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
           <button
             onClick={handleConfirmBooking}
             disabled={isSubmitting || !selectedTimeSlot}
-            className="bubble-btn-fire w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
+            className="bubble-btn-fire rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
           >
             <CreditCard className="w-5 h-5" />
             <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>
@@ -628,7 +628,7 @@ export const BookingSheet: React.FC<BookingSheetProps> = ({
                 setShowConfirmation(false);
                 onClose();
               }}
-              className="bubble-btn-fire w-full py-3.5 text-sm"
+              className="bubble-btn-fire rounded-full w-full py-3.5 text-sm"
             >
               بستن
             </button>
