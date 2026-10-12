@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, UserPlus, X, AlertCircle, CheckCircle2, Loader2, Mail } from 'lucide-react';
+import { LogIn, UserPlus, X, AlertCircle, CheckCircle2, Loader2, Mail, Download, RefreshCw } from 'lucide-react';
+import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from '../lib/appUpdate';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,8 +19,71 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [updateRequired, setUpdateRequired] = useState<AppUpdateInfo | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(true);
+
+  // Mandatory update check before login: guest users must update first
+  useEffect(() => {
+    let cancelled = false;
+    checkForAppUpdate().then((info) => {
+      if (!cancelled) {
+        setUpdateRequired(info);
+        setCheckingUpdate(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   if (!isOpen) return null;
+
+  // Blocking update screen — user must update before logging in
+  if (!checkingUpdate && updateRequired) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#060a13]/95 backdrop-blur-md p-4">
+        <div className="w-full max-w-md rounded-3xl bg-[#0a0f1c] border border-[#ff2d55]/30 p-6 shadow-2xl space-y-5 text-center">
+          <div className="w-16 h-16 rounded-full bubble-btn-fire flex items-center justify-center mx-auto">
+            <Download className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-100">آپدیت جدید اومده! 🎉</h3>
+            <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+              نسخه {updateRequired.versionName} منتشر شده (شما روی {CURRENT_VERSION_NAME} هستید).
+              <br />
+              برای ورود به حساب، اول باید اپ رو آپدیت کنید.
+            </p>
+            {updateRequired.changelog && (
+              <p className="text-xs text-slate-500 mt-3 leading-relaxed bg-white/[0.04] rounded-xl p-3 border border-white/10">
+                {updateRequired.changelog}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => openApkDownload(updateRequired.apkUrl)}
+            className="bubble-btn-fire rounded-full w-full py-4 text-base font-black text-white flex items-center justify-center gap-2"
+          >
+            <Download className="w-5 h-5" />
+            دانلود و نصب نسخه جدید
+          </button>
+          <button
+            onClick={() => {
+              setCheckingUpdate(true);
+              checkForAppUpdate().then((info) => {
+                setUpdateRequired(info);
+                setCheckingUpdate(false);
+              });
+            }}
+            className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-300 flex items-center justify-center gap-1.5 transition"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            دوباره بررسی کن
+          </button>
+          <p className="text-[11px] text-slate-600">
+            بعد از نصب، اپ رو باز کنید و دوباره وارد شوید.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +111,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
       setBusy(false);
     }
   };
+
+  // While checking for update, show loading (avoid login form flash)
+  if (checkingUpdate) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="w-full max-w-md rounded-3xl glass-strong p-8 shadow-2xl flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-[#ff2d55] animate-spin" />
+          <p className="text-sm text-slate-400">در حال بررسی نسخه...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto menu-fade">
