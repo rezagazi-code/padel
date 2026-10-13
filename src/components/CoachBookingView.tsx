@@ -147,7 +147,7 @@ export const CoachBookingView: React.FC = () => {
           <div className="relative z-10 mt-4">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 rounded-2xl bubble-btn-fire text-white text-sm font-bold transition"
+              className="px-4 py-2 rounded-2xl bubble-btn text-white text-sm font-bold transition"
             >
               + افزودن مربی جدید
             </button>
@@ -258,7 +258,7 @@ export const CoachBookingView: React.FC = () => {
 
               <button
                 onClick={() => handleOpenBookingModal(coach)}
-                className="px-6 py-3 bubble-btn-fire text-white font-black text-xs rounded-2xl transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-3 bubble-btn text-white font-black text-xs rounded-2xl transition active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" />
                 <span>رزرو جلسه تمرینی</span>
@@ -371,7 +371,7 @@ export const CoachBookingView: React.FC = () => {
               <div className="pt-2 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bubble-btn-fire text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bubble-btn text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-4 h-4" />
                   <span>تایید و ثبت جلسه تمرینی</span>
@@ -471,7 +471,7 @@ export const CoachBookingView: React.FC = () => {
               <button
                 type="submit"
                 disabled={formSaving}
-                className="w-full py-2.5 bubble-btn-fire disabled:opacity-50 text-white font-black rounded-2xl"
+                className="w-full py-2.5 bubble-btn disabled:opacity-50 text-white font-black rounded-2xl"
               >
                 {formSaving ? 'در حال ذخیره...' : 'ثبت مربی'}
               </button>

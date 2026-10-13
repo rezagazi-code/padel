@@ -357,7 +357,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-3.5 bubble-btn-fire disabled:opacity-50 text-white font-black text-sm rounded-2xl transition active:scale-95 cursor-pointer"
+              className="flex-1 py-3.5 bubble-btn disabled:opacity-50 text-white font-black text-sm rounded-2xl transition active:scale-95 cursor-pointer"
             >
               {submitting ? 'در حال ثبت روی سرور…' : 'ثبت نهایی باشگاه و قرارگیری در لیست رزرو'}
             </button>

@@ -77,7 +77,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
           </div>
           <button
             onClick={() => openApkDownload(updateRequired.apkUrl)}
-            className="bubble-btn-fire rounded-full w-full py-4 text-base font-black text-white flex items-center justify-center gap-2"
+            className="bubble-btn rounded-full w-full py-4 text-base font-black text-white flex items-center justify-center gap-2"
           >
             <Download className="w-5 h-5" />
             دانلود و نصب نسخه جدید
@@ -113,7 +113,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
           <div className="space-y-2">
             <button
               onClick={runUpdateCheck}
-              className="bubble-btn-fire rounded-full w-full py-3 text-sm font-black text-white flex items-center justify-center gap-2"
+              className="bubble-btn rounded-full w-full py-3 text-sm font-black text-white flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               تلاش مجدد
@@ -283,7 +283,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full py-3 bubble-btn-fire disabled:opacity-60 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition"
+                className="w-full py-3 bubble-btn disabled:opacity-60 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition"
               >
                 {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'signin' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                 <span>{mode === 'signin' ? 'ورود' : 'ساخت حساب'}</span>

@@ -608,7 +608,7 @@ export const PlayerProfileView: React.FC = () => {
                     onClick={() => setPreferredSide(s.id as PlayingSide)}
                     className={`flex-1 py-2.5 rounded-xl border font-bold transition cursor-pointer ${
                       preferredSide === s.id
-                        ? 'bubble-btn-fire rounded-2xl'
+                        ? 'bubble-btn rounded-2xl'
                         : 'bg-white/[0.05] border-white/10 text-slate-400'
                     }`}
                   >
@@ -632,7 +632,7 @@ export const PlayerProfileView: React.FC = () => {
                     onClick={() => setHand(h.id as PlayingHand)}
                     className={`flex-1 py-2.5 rounded-xl border font-bold transition cursor-pointer ${
                       hand === h.id
-                        ? 'bubble-btn-fire rounded-2xl'
+                        ? 'bubble-btn rounded-2xl'
                         : 'bg-white/[0.05] border-white/10 text-slate-400'
                     }`}
                   >

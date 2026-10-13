@@ -145,10 +145,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                     {/* Team 1 */}
                     <div
-                      className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition ${
+                      className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition border-r-2 ${
                         team1Win
-                          ? 'bg-emerald-500/10 border-r-2 border-r-emerald-400 text-slate-100 font-black'
-                          : 'bg-white/[0.03] text-slate-400'
+                          ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+                          : team2Win
+                            ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+                            : 'bg-white/[0.03] border-r-transparent text-slate-400'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -177,10 +179,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                     {/* Team 2 */}
                     <div
-                      className={`flex items-center justify-between p-2 rounded-xl transition ${
+                      className={`flex items-center justify-between p-2 rounded-xl transition border-r-2 ${
                         team2Win
-                          ? 'bg-emerald-500/10 border-r-2 border-r-emerald-400 text-slate-100 font-black'
-                          : 'bg-white/[0.03] text-slate-400'
+                          ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+                          : team1Win
+                            ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+                            : 'bg-white/[0.03] border-r-transparent text-slate-400'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -262,10 +266,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                 {/* Team 1 Finalist */}
                 <div
-                  className={`flex items-center justify-between p-3 rounded-2xl mb-2 transition ${
+                  className={`flex items-center justify-between p-3 rounded-2xl mb-2 transition border-r-2 ${
                     finalMatch.team1?.isWinner
-                      ? 'bg-amber-500/10 border-r-2 border-r-amber-400 text-slate-100 font-black'
-                      : 'bg-white/[0.04] text-slate-300'
+                      ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+                      : finalMatch.team2?.isWinner
+                        ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+                        : 'bg-white/[0.04] border-r-transparent text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -273,7 +279,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                       {finalMatch.team1?.name || 'برنده نیمه‌نهایی ۱'}
                     </span>
                     {finalMatch.team1?.isWinner && (
-                      <span className="px-2 py-0.5 rounded bg-amber-400 text-white text-[10px] font-black flex items-center gap-1 shadow">
+                      <span className="px-2 py-0.5 rounded bg-blue-500 text-white text-[10px] font-black flex items-center gap-1 shadow">
                         <Crown className="w-3 h-3" />
                         قهرمان
                       </span>
@@ -294,10 +300,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                 {/* Team 2 Finalist */}
                 <div
-                  className={`flex items-center justify-between p-3 rounded-2xl transition ${
+                  className={`flex items-center justify-between p-3 rounded-2xl transition border-r-2 ${
                     finalMatch.team2?.isWinner
-                      ? 'bg-amber-500/10 border-r-2 border-r-amber-400 text-slate-100 font-black'
-                      : 'bg-white/[0.04] text-slate-300'
+                      ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+                      : finalMatch.team1?.isWinner
+                        ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+                        : 'bg-white/[0.04] border-r-transparent text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -305,7 +313,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                       {finalMatch.team2?.name || 'برنده نیمه‌نهایی ۲'}
                     </span>
                     {finalMatch.team2?.isWinner && (
-                      <span className="px-2 py-0.5 rounded bg-amber-400 text-white text-[10px] font-black flex items-center gap-1 shadow">
+                      <span className="px-2 py-0.5 rounded bg-blue-500 text-white text-[10px] font-black flex items-center gap-1 shadow">
                         <Crown className="w-3 h-3" />
                         قهرمان
                       </span>
@@ -438,7 +446,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-2xl bubble-btn-fire font-black transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-2xl bubble-btn font-black transition cursor-pointer"
                 >
                   ثبت رسمی نتیجه مسابقه و صعود تیم
                 </button>

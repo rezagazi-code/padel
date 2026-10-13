@@ -45,7 +45,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
             <p className="font-bold text-slate-100 text-xs">مرورگر شما آماده نصب مستقیم با یک کلیک است!</p>
             <button
               onClick={handleTriggerInstall}
-              className="w-full py-3 bubble-btn-fire text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3 bubble-btn text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
               <span>نصب فوری اپلیکیشن روی گوشی / سیستم</span>

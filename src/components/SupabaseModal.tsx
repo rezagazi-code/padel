@@ -115,7 +115,7 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ isOpen, onClose })
             <button
               type="submit"
               disabled={testing}
-              className="flex-1 py-3 bubble-btn-fire text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2 transition"
+              className="flex-1 py-3 bubble-btn text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2 transition"
             >
               {testing ? (
                 <>

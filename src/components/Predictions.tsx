@@ -99,7 +99,7 @@ export const Predictions: React.FC<PredictionsProps> = ({
           />
           <button
             onClick={commitName}
-            className="bubble-btn-fire px-4 py-2 rounded-2xl text-xs font-black text-white flex items-center gap-1 cursor-pointer"
+            className="bubble-btn px-4 py-2 rounded-2xl text-xs font-black text-white flex items-center gap-1 cursor-pointer"
           >
             <Check className="w-3.5 h-3.5" />
             ثبت نام

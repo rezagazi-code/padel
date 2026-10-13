@@ -27,8 +27,8 @@ interface InlineBookingProps {
  * Court booking as a bottom sheet: slides up when a court's "رزرو" is tapped.
  * Contains the full booking form — court switcher, date (7 days), duration,
  * time slots (booked/peak), free-agent toggle, dongi panel, confirm CTA.
- * Glossy red bubble buttons (`.bubble-btn-fire`) to match the store feel
- * in the dark theme.
+ * Glossy blue bubble buttons (`.bubble-btn`) for primary actions,
+ * red (`.bubble-btn-fire`) for secondary/close.
  */
 export const InlineBooking: React.FC<InlineBookingProps> = ({
   club,
@@ -410,7 +410,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                   onClick={() => setActiveCourtId(c.id)}
                   className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold transition cursor-pointer border ${
                     c.id === activeCourtId
-                      ? 'bubble-btn-fire'
+                      ? 'bubble-btn'
                       : 'bg-white/[0.05] border-white/10 text-slate-400'
                   }`}
                 >
@@ -433,7 +433,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                   onClick={() => setSelectedDate(d)}
                   className={`min-w-[76px] py-2.5 px-2 rounded-2xl text-center transition cursor-pointer border shrink-0 ${
                     isSelected
-                      ? 'bubble-btn-fire'
+                      ? 'bubble-btn'
                       : 'bg-white/[0.05] text-slate-400 border-white/10'
                   }`}
                 >
@@ -458,7 +458,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                 key={dur.mins}
                 onClick={() => setDuration(dur.mins)}
                 className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer ${
-                  duration === dur.mins ? 'bubble-btn-fire' : 'text-slate-400'
+                  duration === dur.mins ? 'bubble-btn' : 'text-slate-400'
                 }`}
               >
                 {dur.label}
@@ -488,7 +488,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                     slot.isBooked
                       ? 'bg-white/[0.03] border-white/10 text-slate-500 cursor-not-allowed opacity-50'
                       : isSelected
-                      ? 'bubble-btn-fire border-transparent'
+                      ? 'bubble-btn border-transparent'
                       : 'bg-white/[0.05] border-white/10 text-slate-300'
                   }`}
                 >
@@ -549,7 +549,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                   onClick={() => setPlayersNeededCount(count)}
                   className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition cursor-pointer ${
                     playersNeededCount === count
-                      ? 'bubble-btn-fire'
+                      ? 'bubble-btn'
                       : 'bg-white/[0.04] border-white/10 text-slate-400'
                   }`}
                 >
@@ -647,7 +647,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                 onClick={() => setSplitPayment(true)}
                 className={`text-[11px] px-3 py-1.5 rounded-2xl font-bold transition cursor-pointer border ${
                   splitPayment
-                    ? 'bubble-btn-fire'
+                    ? 'bubble-btn'
                     : 'bg-white/[0.04] text-slate-500 border-white/10'
                 }`}
               >
@@ -657,7 +657,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                 onClick={() => setSplitPayment(false)}
                 className={`text-[11px] px-3 py-1.5 rounded-2xl font-bold transition cursor-pointer border ${
                   !splitPayment
-                    ? 'bubble-btn-fire'
+                    ? 'bubble-btn'
                     : 'bg-white/[0.04] text-slate-500 border-white/10'
                 }`}
               >
@@ -681,7 +681,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           <button
             onClick={handleConfirmBooking}
             disabled={isSubmitting || !selectedTimeSlot || slotsLoading}
-            className="bubble-btn-fire rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
+            className="bubble-btn rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
           >
             <CreditCard className="w-5 h-5" />
             <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>

@@ -159,7 +159,7 @@ export const FreeAgentsView: React.FC = () => {
               className={`px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer border ${
                 playerProfile.isFreeAgent
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
-                  : 'bubble-btn-fire rounded-2xl'
+                  : 'bubble-btn rounded-2xl'
               }`}
             >
               {playerProfile.isFreeAgent ? 'غیرفعال‌سازی وضعیت آزاد' : 'من آماده بازی هستم (فعال‌سازی)'}
@@ -173,7 +173,7 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('requests')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'requests'
-                ? 'bubble-btn-fire rounded-2xl'
+                ? 'bubble-btn rounded-2xl'
                 : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
@@ -184,7 +184,7 @@ export const FreeAgentsView: React.FC = () => {
             onClick={() => setActiveSubTab('market')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               activeSubTab === 'market'
-                ? 'bubble-btn-fire rounded-2xl'
+                ? 'bubble-btn rounded-2xl'
                 : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
             }`}
           >
@@ -204,7 +204,7 @@ export const FreeAgentsView: React.FC = () => {
               onClick={() => setSelectedProvinceFilter(prov)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${
                 selectedProvinceFilter === prov
-                  ? 'bubble-btn-fire rounded-2xl font-black'
+                  ? 'bubble-btn rounded-2xl font-black'
                   : 'bg-white/[0.04] text-slate-400 hover:bg-white/10'
               }`}
             >

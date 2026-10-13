@@ -450,7 +450,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               onClick={onOpenClubOwnerModal}
-              className="flex items-center gap-2 bubble-btn-fire rounded-full font-black text-sm px-6 py-3.5"
+              className="flex items-center gap-2 bubble-btn rounded-full font-black text-sm px-6 py-3.5"
             >
               <PlusCircle className="w-5 h-5" />
               <span>افزودن باشگاه و زمین (ویژه باشگاه‌داران)</span>
@@ -763,7 +763,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         onClick={() => setSelectedDate(d)}
                         className={`min-w-[90px] py-3 px-3 rounded-2xl text-center transition cursor-pointer border shrink-0 ${
                           isDateSelected
-                            ? 'bubble-btn-fire font-black'
+                            ? 'bubble-btn font-black'
                             : 'bg-white/[0.05] text-slate-400 border-white/10 hover:bg-white/10'
                         }`}
                       >
@@ -791,7 +791,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       onClick={() => setDuration(dur.mins)}
                       className={`px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer ${
                         duration === dur.mins
-                          ? 'bubble-btn-fire'
+                          ? 'bubble-btn'
                           : 'text-slate-400 hover:text-slate-100'
                       }`}
                     >
@@ -824,7 +824,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                           slot.isBooked
                             ? 'bg-white/[0.03] border-white/10 text-slate-400 cursor-not-allowed opacity-50'
                             : isSlotSelected
-                            ? 'bubble-btn-fire font-black'
+                            ? 'bubble-btn font-black'
                             : 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/10'
                         }`}
                       >
@@ -1047,7 +1047,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <button
                   onClick={handleConfirmBooking}
                   disabled={isSubmitting || !selectedTimeSlot || slotsLoading}
-                  className="bubble-btn-fire rounded-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                  className="bubble-btn rounded-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-3.5 transition cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <CreditCard className="w-5 h-5" />
                   <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>

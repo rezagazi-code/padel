@@ -95,7 +95,7 @@ const MainContent: React.FC = () => {
 
   if (showAuthGate) {
     return (
-      <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col items-center justify-center p-6 selection:bg-[#ff2d55] selection:text-black">
+      <div className="min-h-screen bg-[#1e2128] text-slate-200 flex flex-col items-center justify-center p-6 selection:bg-[#ff2d55] selection:text-black">
         <div className="mb-6 flex items-center gap-2">
           <span className="text-2xl font-black tracking-tight">
             PADEL<span className="text-[#ff2d55]">PRO</span>
@@ -135,7 +135,7 @@ const MainContent: React.FC = () => {
   };
 
   const appBody = (
-    <div className="min-h-screen bg-[#060a13] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black relative overflow-hidden">
+    <div className="min-h-screen bg-[#1e2128] text-slate-200 flex flex-col selection:bg-[#ff2d55] selection:text-black relative overflow-hidden">
       {/* Animated ambient background - chic floating orbs */}
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#ff2d55]/[0.07] blur-3xl animate-[float_12s_ease-in-out_infinite]" />
@@ -237,7 +237,7 @@ const MainContent: React.FC = () => {
   // If mobile simulator device mode is toggled on desktop
   if (isMobileDeviceView) {
     return (
-      <div className="min-h-screen bg-[#060a13] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#1e2128] flex flex-col items-center justify-center p-4">
         {/* Device Switcher Bar */}
         <div className="mb-4 flex items-center justify-between w-full max-w-sm glass p-3 rounded-2xl text-xs">
           <div className="flex items-center gap-2 text-slate-200 font-bold">
@@ -261,7 +261,7 @@ const MainContent: React.FC = () => {
           </div>
 
           {/* Screen Content */}
-          <div className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden bg-[#060a13] text-slate-200 flex flex-col scrollbar-none pt-4">
+          <div className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden bg-[#1e2128] text-slate-200 flex flex-col scrollbar-none pt-4">
             {appBody}
           </div>
         </div>
