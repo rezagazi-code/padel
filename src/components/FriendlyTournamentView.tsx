@@ -89,8 +89,16 @@ export const FriendlyTournamentView: React.FC = () => {
     if (!selected) return;
     const inp = scoreInputs[matchId];
     if (!inp) return;
-    const s1 = Math.max(0, parseInt(inp.s1));
-    const s2 = Math.max(0, parseInt(inp.s2));
+    // Persian/Arabic-Indic digits → Latin, so «۶-۴» on a fa-IR keyboard
+    // parses instead of silently failing (same pattern as InlineBooking's
+    // faDigitsToEn; kept local per codebase convention).
+    const faDigitsToEn = (s: string) =>
+      s.replace(/[۰-۹٠-٩]/g, (d) => {
+        const p = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+        return String(p >= 0 ? p : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+      });
+    const s1 = Math.max(0, parseInt(faDigitsToEn(inp.s1)));
+    const s2 = Math.max(0, parseInt(faDigitsToEn(inp.s2)));
     if (isNaN(s1) || isNaN(s2)) return;
     recordFriendlyScore(selected.id, matchId, s1, s2);
     setScoreInputs((prev) => {

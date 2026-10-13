@@ -181,6 +181,10 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       month: '2-digit',
       day: '2-digit',
     }).format(new Date());
+    // daysList is a mount-time snapshot: if the view stayed open past
+    // midnight, the «امروز» chip's raw date is yesterday — emit no slots at
+    // all for a whole-past day so it can't be booked.
+    if (selectedDate?.raw && selectedDate.raw < tehranToday) return [];
     const isToday = selectedDate?.raw === tehranToday;
     let nowMinutes = -1;
     if (isToday) {

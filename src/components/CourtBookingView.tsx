@@ -231,6 +231,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       month: '2-digit',
       day: '2-digit',
     }).format(new Date());
+    // daysList is a mount-time snapshot: if the view stayed open past
+    // midnight, the «امروز» chip's raw date is yesterday — emit no slots at
+    // all for a whole-past day so it can't be booked.
+    if (selectedDate?.raw && selectedDate.raw < tehranToday) return [];
     const isToday = selectedDate?.raw === tehranToday;
     let nowMinutes = -1;
     if (isToday) {
@@ -633,6 +637,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               </div>
 
+              {/* A 0-court club has no booking form: show the same notice the
+                  inline panel uses, so the dead confirm path is unreachable. */}
+              {currentClub.courts.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
+                  برای این باشگاه هنوز زمینی ثبت نشده است
+                </div>
+              ) : (
+                <>
               {/* Court Selection Tabs */}
               <div>
                 <div className="court-title text-xs font-bold text-slate-400 mb-2">
@@ -975,6 +987,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>
                 </button>
               </div>
+                </>
+              )}
 
             </div>
           )}

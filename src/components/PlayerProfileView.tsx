@@ -56,6 +56,14 @@ export const PlayerProfileView: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
+  // Today's Tehran date (Gregorian YYYY-MM-DD): past bookings can't be cancelled.
+  const tehranToday = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tehran',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+
   // Change-password form state
   const [showPwForm, setShowPwForm] = useState(false);
   const [pwCurrent, setPwCurrent] = useState('');
@@ -715,13 +723,15 @@ export const PlayerProfileView: React.FC = () => {
 
                     <div className="flex items-center justify-between text-slate-500 pt-2 border-t border-white/10">
                       <span>{toJalaliDisplay(b.date)} | {b.timeSlot}</span>
-                      <button
-                        onClick={() => void cancelBooking(b.id)}
-                        className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        لغو سانس
-                      </button>
+                      {b.date >= tehranToday && (
+                        <button
+                          onClick={() => void cancelBooking(b.id)}
+                          className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          لغو سانس
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

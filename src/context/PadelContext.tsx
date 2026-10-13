@@ -776,6 +776,22 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const cancelBooking = async (bookingId: string): Promise<void> => {
+    // Defense in depth: past-date bookings can never be cancelled. The
+    // history view hides the button for past dates; this guards every other
+    // caller of cancelBooking.
+    const target = bookings.find((b) => b.id === bookingId);
+    if (target) {
+      const tehranToday = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
+      if (target.date < tehranToday) {
+        setSyncNotification('رزروهای گذشته قابل لغو نیستند.');
+        return;
+      }
+    }
     // Real backend path: delete from Supabase first (server booking ids are
     // UUIDs; local-only ids start with 'booking-'). RLS allows the owner, a
     // super_admin, or the club's admin to delete.
