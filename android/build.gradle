@@ -28,8 +28,16 @@ allprojects {
         // a jitpack artifact — which broke builds during mirror outages.
         flatDir { dirs "$rootDir/../vendor" }
         // Fast mirrors (google()/mavenCentral() kept as fallback)
-        maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        // NOTE: poolakey must come from local vendor/ (flatDir above), never from
+        // mirrors — they serve corrupt/incomplete AARs that break the build.
+        maven { 
+            url 'https://maven.aliyun.com/repository/google'
+            content { excludeGroup "com.github.cafebazaar.Poolakey" }
+        }
+        maven { 
+            url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/'
+            content { excludeGroup "com.github.cafebazaar.Poolakey" }
+        }
         google()
         mavenCentral()
     }
