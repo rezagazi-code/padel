@@ -46,6 +46,14 @@ repositories {
     }
 }
 
+configurations.all {
+    // Force poolakey to resolve from local vendor AAR, never from Maven mirrors
+    // (mirrors serve corrupt/incomplete AARs that break :app:mergeReleaseNativeLibs).
+    resolutionStrategy.dependencySubstitution {
+        substitute module("com.github.cafebazaar.Poolakey:poolakey:2.2.0") using files("$rootDir/../vendor/poolakey-2.2.0.aar")
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
