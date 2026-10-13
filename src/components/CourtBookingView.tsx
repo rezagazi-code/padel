@@ -54,6 +54,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [selectedClubId, setSelectedClubId] = useState<string>(clubs[0]?.id || '');
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
+  const [expandedCourtId, setExpandedCourtId] = useState<string | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -476,7 +477,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               onClick={() => setSelectedProvince(prov)}
               className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 cursor-pointer transition border ${
                 selectedProvince === prov
-                  ? 'bubble-ghost rounded-full'
+                  ? 'bubble-btn rounded-full'
                   : 'bg-white/[0.07] border-white/15 text-slate-300 hover:bg-white/[0.12]'
               }`}
             >
@@ -513,6 +514,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       setSelectedCourtId(club.courts[0].id);
                     }
                     // Expand inline panel directly beneath the tapped card
+                    setExpandedCourtId(null);
                     setExpandedClubId(expandedClubId === club.id ? null : club.id);
                   }}
                   className={`court-card group overflow-hidden p-4 transition cursor-pointer ${
@@ -568,13 +570,36 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
                       برای این باشگاه هنوز زمینی ثبت نشده است
                     </div>
-                  ) : (
+                  ) : expandedCourtId ? (
                     <InlineBooking
                       club={club}
-                      courtId={selectedCourtId || club.courts[0]?.id || ''}
-                      onClose={() => setExpandedClubId(null)}
-                      onBooked={() => setExpandedClubId(null)}
+                      courtId={expandedCourtId}
+                      onClose={() => {
+                        setExpandedCourtId(null);
+                        setExpandedClubId(null);
+                      }}
+                      onBooked={() => {
+                        setExpandedCourtId(null);
+                        setExpandedClubId(null);
+                      }}
                     />
+                  ) : (
+                    <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4">
+                      <div className="mb-3 text-xs font-bold text-slate-300">
+                        زمین‌ها ({String(club.courts.length).replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)])}) — یکی رو انتخاب کن:
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {club.courts.map((court) => (
+                          <button
+                            key={court.id}
+                            onClick={() => setExpandedCourtId(court.id)}
+                            className="bubble-btn rounded-2xl px-4 py-3 text-xs font-bold text-white"
+                          >
+                            {court.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </React.Fragment>
               );
