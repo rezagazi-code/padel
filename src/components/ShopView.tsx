@@ -266,9 +266,16 @@ export const ShopView: React.FC = () => {
       const hay = normalizeFa(
         `${p.name} ${p.brand} ${SHOP_CATEGORY_LABELS[p.category]} ${p.description ?? ''}`
       );
-      return q
-        .split(' ')
-        .every((w) => searchTermEquivalents(w).some((t) => hay.includes(t)));
+      // Per-word match, plus a whole-query fallback so spaced Persian input
+      // like «بول پدل» reaches the space-compacted branch in
+      // searchTermEquivalents (which per-word calls never exercise). The
+      // whole-query branch only adds matches when its equivalents hit, so
+      // Latin queries behave exactly as before.
+      const wholeMatches = searchTermEquivalents(q).some((t) => hay.includes(t));
+      return (
+        wholeMatches ||
+        q.split(' ').every((w) => searchTermEquivalents(w).some((t) => hay.includes(t)))
+      );
     });
   }, [query, category]);
 

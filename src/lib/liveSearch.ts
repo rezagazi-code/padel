@@ -58,11 +58,30 @@ const TERM_EQUIVS: Record<string, string[]> = {
   'flow': ['فلو'], 'indiga': ['ایندیگا'],
 };
 
+// Reverse entries: every Persian alias also maps back to its Latin key
+// (e.g. «کوئیکما» → 'kuikma'), so Persian queries match Latin catalog brands.
+// Built once; searchTermEquivalents stays a pure map lookup (no recursion).
+{
+  const reverse: Record<string, string[]> = {};
+  for (const [key, aliases] of Object.entries(TERM_EQUIVS)) {
+    for (const alias of aliases) {
+      if (TERM_EQUIVS[alias]) {
+        if (!TERM_EQUIVS[alias].includes(key)) TERM_EQUIVS[alias].push(key);
+      } else {
+        (reverse[alias] ??= []).push(key);
+      }
+    }
+  }
+  Object.assign(TERM_EQUIVS, reverse);
+}
+
 /**
  * Expand a search term with its Latin↔Persian equivalents, so e.g. «بولپدل»
  * matches catalog products branded "Bullpadel". The input is normalized first
- * (TERM_EQUIVS keys are stored normalized); a space-compacted lookup handles
- * multi-word Persian input like «بول پدل». The term itself is always included,
+ * (TERM_EQUIVS keys are stored normalized); a space-compacted lookup covers
+ * multi-word Persian input like «بول پدل» (compacted to «بولپدل»). Callers
+ * match per-word and fall back to whole-query equivalents, which is what
+ * keeps this compacted branch reachable. The term itself is always included,
  * so matching behavior for all other words is unchanged.
  */
 export function searchTermEquivalents(term: string): string[] {
@@ -72,7 +91,8 @@ export function searchTermEquivalents(term: string): string[] {
     ...(TERM_EQUIVS[key] ?? []),
     ...(compact !== key ? (TERM_EQUIVS[compact] ?? []) : []),
   ];
-  return [key, ...equivs.filter((e) => e !== key)];
+  // Dedupe: reverse entries and the compacted branch can yield the same term.
+  return [...new Set([key, ...equivs.filter((e) => e !== key)])];
 }
 
 function termInTitle(title: string, term: string): boolean {

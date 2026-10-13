@@ -330,3 +330,82 @@ Fresh angle: social.search for Iranian padel shops surfaced @amir_sport_ir,
   shop, JSON-LD Toman prices, verified InStock). mizanpadel.ir would qualify
   on all criteria except the suspicious uniform pricing — needs a recheck
   before integration.
+
+
+---
+
+# Update — 23:00 Tehran run (sixth store-research pass today)
+
+Fresh angle: harvested new Torob seller names from Google's Torob crawl of the
+padel racket + padel ball price lists («در تنیس پرو شاپ», «در رنسو شاپ»,
+«در دامپنرز شاپ», «در ویلسون», «در اسپرت ایرانیان», «در مجموعه دارنیال»,
+«در 6 اسپورتس»), then probed their independent domains; plus one
+"افزودن به سبد خرید" targeted query that surfaced babolatonline.ir and
+paymansport.com. ~8 fresh queries (fa/en) + ~30 curl probes + 2 social.search.
+
+## ✅ NEW RECOMMENDED (add to live cheapest-price search)
+
+### 1. پیمان اسپرت (PaymanSport) — paymansport.com
+- **URL:** https://paymansport.com
+- **Padel categories (curl-verified):**
+  - Rackets: https://paymansport.com/product-category/پدل/ (subcat راکت-پدل)
+  - Balls: https://paymansport.com/product-category/پدل/توپ-پدل/
+- **City:** تهران (landline 02122820939; ships Tehran via الوپیک, provinces via
+  تیپاکس/چاپار). Mobiles: 09121781088, 09355371759.
+- **Identity:** Iranian specialty tennis-equipment shop; meta description says
+  «نماینده محصولات ویلسون و هد در ایران» with long activity history — a real
+  established retailer, not a fly-by-night Instagram seller.
+- **Padel inventory:** REAL & deep — 12+ padel rackets verified on category
+  page: Bullpadel HACK ADVANCE 2026, Elite W 2026, XPLO 2026, Ionic Power 2026,
+  Vertex 05 2026 / Vertex 05 Women 2026; Head Coello Pro/Motion 2026,
+  HEAD Gravity Team/Motion 2024, HEAD COELLO PRO 2025. Plus padel balls:
+  توپ پدل ناسائو (Nassau Padel) — 1,450,000 تومان.
+- **Price visibility:** PUBLIC — every card shows Toman price + SKU, add-to-cart
+  present, no login. Verified samples (2026-10-13):
+  - راکت پدل بول‌پدل HACK ADVANCE 2026 — 72,000,000 تومان
+  - راکت پدل بول‌پدل Elite W / XPLO / Vertex 05 2026 — 105,000,000 تومان
+  - راکت پدل هد Coello Pro 2026 — 79,900,000 تومان
+  - راکت پدل هد Coello Motion 2026 — 77,500,000 تومان
+  - راکت پدل هد HEAD COELLO PRO 2025 — 63,000,000 تومان
+  - توپ پدل ناسائو — 1,450,000 تومان
+- **Scrapability:** FULL via curl — HTTPS 200, server-rendered Woodmart
+  WooCommerce HTML, no JS needed. Title: `h3.wd-entities-title > a`;
+  price: `span.woocommerce-Price-amount > bdi` (Toman directly, comma-separated,
+  no ÷10); currency symbol = تومان. Add-to-cart links use `?add-to-cart=`.
+  Category URL pattern: `/product-category/پدل/`.
+- **Integration cost:** LOW — same WooCommerce pattern family as bapateam.ir /
+  iranjsport.com (already integrated); prices already in Toman.
+
+## ❌ Checked but REJECTED this pass
+- **tennispro-shop.com** (تنیس پرو شاپ — Torob seller name) — live OpenCart shop
+  (1.3MB homepage), but site search for «پدل» returns ZERO products; the
+  /پدل-خرید-آنلاین-بهترین-مدل-ها-قیمت-روز-بررسی page is SEO guide content only.
+  Torob listings «در تنیس پرو شاپ» are all TENNIS balls (Wilson/Dunlop), not
+  padel. Reject — no real padel inventory on the site.
+- **babolatonline.ir** (فروشگاه تنیس بابولات) — real Iranian Babolat specialty
+  shop (021 landline, Tehran), Woodmart WooCommerce, public Toman prices,
+  add-to-cart, fully curl-scrapable — BUT all 23 «راکت پدل» mentions are
+  «ساک راکت پدل» (bags) / «کاور» (covers) and «کفش پدل» (shoes); zero real padel
+  RACKETS and zero padel BALLS. Rejected per the apextennis.ir precedent
+  (accessories-only ≠ padel gear). Noted in case the criteria widen to shoes.
+- **renso.com** (رنسو شاپ?) — 200 but "Under construction" page. renso.ir dead.
+- **iransport.ir** — redirects to a domain-parking marketplace (nam.ir). Dead.
+- **6sports.ir** (شش اسپورتس) — live general sports shop, zero padel mentions.
+- **darnial.ir** (فروشگاه دارنیال) — live general sports shop, zero padel
+  mentions. (Torob ball-seller «مجموعه دارنیال».)
+- **@lovatennisshop** (Instagram, Wilson padel racket post) —
+  lovatennisshop.ir dead → DM-only ordering, no website. Reject per criteria.
+- **@camp_shopping** — camping/water-sports store (SUP paddleboards), not padel
+  rackets. Reject.
+- **padelcenter.ir / padelhouse.ir / irpadel.ir / padelshopiran.ir /
+  padelonlineshop.ir / raketpadel.ir / padelgear.ir / padelstoreonline.ir /
+  noxiran.com / siuxiran.ir / bullpadelshop.ir / wilsonpadel.ir / headpadel.ir**
+  — all dead (000).
+- **Query re-surfaces:** tennis24shop.com, iranjsport.com (covered); noon.com
+  (Qatar/UAE/Kuwait — foreign).
+
+## Notes
+- Only ONE new fully-qualified shop this pass (paymansport.com) — the sixth pass
+  today; the fresh-shop pool is getting thin, as expected.
+- torob.com still blocked from this environment; all seller names came from
+  Torob's Google crawl of the racket/ball price lists.
