@@ -192,3 +192,63 @@ sellers) or foreign stores (Turkey/Indonesia/India/UAE).
 - Both new recommendations (racketstore.ir, zitazi.com) have full curl
   scrapability with public prices and real padel stock — ready for the
   cheapest-price search pipeline.
+
+
+---
+
+# Update — 15:10 Tehran run (fourth store-research pass today)
+
+Fresh angle this pass: harvested NEW Torob seller names from Google's Torob crawl
+(تنیس بان، ورزشی علیرضا شاپ، هیواجت، چنیس، پرشین تنیس) that hadn't appeared before,
+then probed their independent websites. ~8 fresh queries + ~15 domain probes.
+
+## ✅ NEW RECOMMENDED (add to live cheapest-price search)
+
+### 1. تنیس بان (TennisBan) — tennisban.ir
+- **URL:** https://tennisban.ir
+- **Padel categories (curl-verified):**
+  - Rackets: https://tennisban.ir/category/49/راکت-پدل-هد-padel-rocquet/ (also subcats 128 Head, 129 Wilson, 113 junior)
+  - Balls: https://tennisban.ir/category/114/توپ-پدل-padel-ball/
+  - Plus Head padel bags (from Google crawl: ساک پدل هد 20–22.5M)
+- **City:** not published on site (mobile 09202764267, email headbaz@gmail.com) — Torob lists «تنیس بان» as seller with no city either.
+- **Identity:** Iranian `.ir` HEAD specialty racket shop (tennis/squash/padel), Next.js, RTL Persian, prices in Toman.
+- **Padel inventory:** REAL & deep for Head: **23 padel rackets** verified on category page:
+  Extreme Pro 2025 (73.9M), Speed Pro 2025 (73.9M), Radical Pro 2026 (72.7M),
+  Coello Pro 2026 (81.3M), Gravity Team/Pro/Motion 2024, Speed One X (77.2M),
+  Extreme One 2025 (66.5M), One Ultralight (65.3M), Radical Team/Motion 2026,
+  junior Monster Kids / Coello 2026. Balls: 1 (Head Pro+ 1,650,000).
+- **Price visibility:** PUBLIC — every card shows Toman price, no login. Verified samples:
+  - راکت پدل هد اکستریم پرو 2025 — 73,920,000 تومان
+  - راکت پدل هد مدل کولئو پرو 2026 — 81,312,000 تومان
+  - راکت پدل هد مدل اسپید پرو 2025 — 73,920,000 تومان
+  - توپ پدل هد مدل پرو پلاس — 1,650,000 تومان
+- **Scrapability:** FULL via curl — HTTP 200, server-rendered cards, no JS needed.
+  Title: `span.line-clamp-2`, price: `span.ds-h2` (Toman directly, comma-separated).
+  Category URL pattern: `/category/<id>/<slug>/`.
+- **Integration cost:** LOW — static HTML parse, prices already Toman, one category URL = full racket catalog.
+
+### 2. هیوا جت (HivaJet) — hivajet.com
+- **URL:** https://hivajet.com
+- **City:** تهران (021 landline 021-88734879, mobile 09120455368; Instagram @hiva.jet).
+- **Identity:** Iranian general-goods web store (WordPress, Persian, Toman prices) with a small padel section. Distinct from «هیوا پدل» (hivapadel.com, already covered).
+- **Padel inventory:** SMALL but real — 4 padel rackets found on homepage:
+  - راکت پدل Thunder Paddle SportsBlue — 35,970,000 تومان
+  - راکت پدل سیوکس سابزیرو 3 — 58,796,100 تومان
+  - راکت پدل وارلیون بورن Varlion Bourne — 125,884,000 تومان
+  - راکت پدل بولپدل جونیور (کودکان) Bullpadel Indiga Girl 2026
+  No dedicated padel category page found (no `/category/...padel/` link on site).
+- **Price visibility:** PUBLIC — prices in Toman on homepage cards, no login.
+- **Scrapability:** FULL via curl — HTTP 200, server-rendered; title in `<h3>`, price in `.reg-price-wrap` followed by `<em>تومان</em>`. But no padel-only listing URL → crawl homepage or search products individually.
+- **Integration cost:** LOW–MEDIUM — easy parse, but limited padel stock (general store, inventory may grow).
+
+## ❌ Checked but REJECTED this pass
+- **alirezashop.ir** (ورزشی علیرضا شاپ?) — HTTP 200 but only ~4KB homepage, zero padel/«پدل» mentions; likely placeholder. Reject — no padel inventory evidence.
+- **benjuriy.shop** — padel rackets listed but NOT Iranian (contact phone +372 Estonia). Reject per criteria.
+- **چنیس / پرشین تنیس / سرزمین تنیس / وان اسپرت / پیمان اسپرت / tehrantennis.ir** — Torob sellers with no live independent site (000 or unreachable). Torob-only; Torob itself already covered.
+- **هیواجت** was the Torob seller name; hivajet.com above is its verified independent site (distinct from hivapadel.com).
+- **Balls-query re-surfaces:** tennisshop.ir, shop.alo-varzesh.com (both covered); toy shops (delband.com, piccotoys.com) — no padel.
+- **benjuriy / nencinisport.it / fitneeds.sa / shopee.co.th / hepsiburada / alibaba** — foreign, rejected.
+
+## Notes
+- This pass: ~8 fresh queries + ~15 curl probes. torob.com still blocked from this environment; seller names harvested from Torob's Google crawl instead.
+- tennisban.ir is the strongest single new find of the day: dedicated padel categories, 23 rackets, public Toman prices, fully curl-scrapable. Recommend adding both to the live cheapest-price search; hivajet.com flagged as small-inventory source.

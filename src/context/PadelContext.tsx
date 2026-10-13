@@ -837,52 +837,52 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const joinMatchSlot = (matchId: string, slotNumber: number): boolean => {
-    let success = false;
+    // Validate against current state first: the setState updater runs
+    // asynchronously under React 18 batching, so a flag set inside it can
+    // never be returned (the old `success` was always false → toast never fired).
+    const m = openMatches.find((x) => x.id === matchId);
+    if (!m) return false;
+    // Check if player already joined another slot
+    if (m.slots.some((s) => s.playerId === playerProfile.id)) {
+      setSyncNotification('شما قبلاً در این مسابقه شرکت کرده‌اید.');
+      return false;
+    }
+    // Check level
+    if (playerProfile.level < m.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > m.maxLevel + LEVEL_JOIN_TOLERANCE) {
+      setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این مسابقه (${levelToGrade(m.minLevel)} - ${levelToGrade(m.maxLevel)}) منطبق نیست.`);
+      return false;
+    }
+    const target = m.slots.find((s) => s.slotNumber === slotNumber);
+    if (!target || target.playerId) return false;
+
     setOpenMatches((prev) =>
-      prev.map((m) => {
-        if (m.id === matchId) {
-          // Check if player already joined another slot
-          const alreadyIn = m.slots.some((s) => s.playerId === playerProfile.id);
-          if (alreadyIn) {
-            setSyncNotification('شما قبلاً در این مسابقه شرکت کرده‌اید.');
-            return m;
+      prev.map((x) => {
+        if (x.id !== matchId) return x;
+        const updatedSlots = x.slots.map((slot) => {
+          if (slot.slotNumber === slotNumber && !slot.playerId) {
+            return {
+              ...slot,
+              playerId: playerProfile.id,
+              playerName: playerProfile.name,
+              playerAvatar: playerProfile.avatar,
+              playerLevel: playerProfile.level,
+            };
           }
-          // Check level
-          if (playerProfile.level < m.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > m.maxLevel + LEVEL_JOIN_TOLERANCE) {
-            setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این مسابقه (${levelToGrade(m.minLevel)} - ${levelToGrade(m.maxLevel)}) منطبق نیست.`);
-            return m;
-          }
+          return slot;
+        });
 
-          const updatedSlots = m.slots.map((slot) => {
-            if (slot.slotNumber === slotNumber && !slot.playerId) {
-              success = true;
-              return {
-                ...slot,
-                playerId: playerProfile.id,
-                playerName: playerProfile.name,
-                playerAvatar: playerProfile.avatar,
-                playerLevel: playerProfile.level,
-              };
-            }
-            return slot;
-          });
+        const isFull = updatedSlots.every((s) => s.playerId);
 
-          const isFull = updatedSlots.every((s) => s.playerId);
-
-          return {
-            ...m,
-            slots: updatedSlots,
-            status: isFull ? 'full' : 'open',
-          };
-        }
-        return m;
+        return {
+          ...x,
+          slots: updatedSlots,
+          status: isFull ? 'full' : 'open',
+        };
       })
     );
 
-    if (success) {
-      setSyncNotification('شما با موفقیت به مسابقه پیوستید!');
-    }
-    return success;
+    setSyncNotification('شما با موفقیت به مسابقه پیوستید!');
+    return true;
   };
 
   const leaveMatchSlot = (matchId: string, slotNumber: number) => {
@@ -958,27 +958,31 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     courts.every((c) => c.slots.every((s) => s.playerId));
 
   const joinGroupSessionSlot = (sessionId: string, courtNumber: number, slotNumber: number): boolean => {
-    let success = false;
+    // Validate against current state first (same batching reason as joinMatchSlot).
+    const g = groupSessions.find((x) => x.id === sessionId);
+    if (!g) return false;
+    // Player may hold only one slot per session
+    if (g.courts.some((c) => c.slots.some((s) => s.playerId === playerProfile.id))) {
+      setSyncNotification('شما قبلاً در این سانس گروهی شرکت کرده‌اید.');
+      return false;
+    }
+    if (playerProfile.level < g.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > g.maxLevel + LEVEL_JOIN_TOLERANCE) {
+      setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این سانس (${levelToGrade(g.minLevel)} - ${levelToGrade(g.maxLevel)}) منطبق نیست.`);
+      return false;
+    }
+    const targetCourt = g.courts.find((c) => c.courtNumber === courtNumber);
+    const target = targetCourt?.slots.find((s) => s.slotNumber === slotNumber);
+    if (!target || target.playerId) return false;
+
     setGroupSessions((prev) =>
-      prev.map((g) => {
-        if (g.id !== sessionId) return g;
-        // Player may hold only one slot per session
-        const alreadyIn = g.courts.some((c) => c.slots.some((s) => s.playerId === playerProfile.id));
-        if (alreadyIn) {
-          setSyncNotification('شما قبلاً در این سانس گروهی شرکت کرده‌اید.');
-          return g;
-        }
-        if (playerProfile.level < g.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > g.maxLevel + LEVEL_JOIN_TOLERANCE) {
-          setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این سانس (${levelToGrade(g.minLevel)} - ${levelToGrade(g.maxLevel)}) منطبق نیست.`);
-          return g;
-        }
-        const updatedCourts = g.courts.map((c) => {
+      prev.map((x) => {
+        if (x.id !== sessionId) return x;
+        const updatedCourts = x.courts.map((c) => {
           if (c.courtNumber !== courtNumber) return c;
           return {
             ...c,
             slots: c.slots.map((slot) => {
               if (slot.slotNumber === slotNumber && !slot.playerId) {
-                success = true;
                 return {
                   ...slot,
                   playerId: playerProfile.id,
@@ -992,16 +996,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           };
         });
         return {
-          ...g,
+          ...x,
           courts: updatedCourts,
           status: groupSessionIsFull(updatedCourts) ? 'full' : 'open',
         };
       })
     );
-    if (success) {
-      setSyncNotification('شما با موفقیت به سانس گروهی پیوستید!');
-    }
-    return success;
+    setSyncNotification('شما با موفقیت به سانس گروهی پیوستید!');
+    return true;
   };
 
   const leaveGroupSessionSlot = (sessionId: string, courtNumber: number, slotNumber: number) => {
@@ -1264,52 +1266,49 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const joinNeedPlayerPost = (postId: string): boolean => {
-    let success = false;
+    // Validate against current state first (same batching reason as joinMatchSlot).
+    const p = needPlayerPosts.find((x) => x.id === postId);
+    if (!p) return false;
+    if (p.hostPlayerId === playerProfile.id) {
+      setSyncNotification('شما خودتان میزبان این سانس هستید.');
+      return false;
+    }
+    if (p.joinedPlayers.some((j) => j.playerId === playerProfile.id)) {
+      setSyncNotification('شما قبلاً به این بازی پیوسته‌اید.');
+      return false;
+    }
+    if (p.spotsNeeded <= p.joinedPlayers.length) {
+      setSyncNotification('ظرفیت این درخواست تکمیل شده است.');
+      return false;
+    }
+    if (playerProfile.level < p.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > p.maxLevel + LEVEL_JOIN_TOLERANCE) {
+      setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این آگهی (${levelToGrade(p.minLevel)} - ${levelToGrade(p.maxLevel)}) منطبق نیست.`);
+      return false;
+    }
+
+    const newJoin = {
+      playerId: playerProfile.id,
+      playerName: playerProfile.name,
+      avatar: playerProfile.avatar,
+      level: playerProfile.level,
+      side: playerProfile.preferredSide,
+    };
     setNeedPlayerPosts((prev) =>
-      prev.map((p) => {
-        if (p.id === postId) {
-          if (p.hostPlayerId === playerProfile.id) {
-            setSyncNotification('شما خودتان میزبان این سانس هستید.');
-            return p;
-          }
-          if (p.joinedPlayers.some((j) => j.playerId === playerProfile.id)) {
-            setSyncNotification('شما قبلاً به این بازی پیوسته‌اید.');
-            return p;
-          }
-          if (p.spotsNeeded <= p.joinedPlayers.length) {
-            setSyncNotification('ظرفیت این درخواست تکمیل شده است.');
-            return p;
-          }
-          if (playerProfile.level < p.minLevel - LEVEL_JOIN_TOLERANCE || playerProfile.level > p.maxLevel + LEVEL_JOIN_TOLERANCE) {
-            setSyncNotification(`سطح شما (${levelToGrade(playerProfile.level)}) با محدوده این آگهی (${levelToGrade(p.minLevel)} - ${levelToGrade(p.maxLevel)}) منطبق نیست.`);
-            return p;
-          }
-
-          success = true;
-          const updatedJoined = [
-            ...p.joinedPlayers,
-            {
-              playerId: playerProfile.id,
-              playerName: playerProfile.name,
-              avatar: playerProfile.avatar,
-              level: playerProfile.level,
-              side: playerProfile.preferredSide,
-            },
-          ];
-
-          return {
-            ...p,
-            joinedPlayers: updatedJoined,
-            status: updatedJoined.length >= p.spotsNeeded ? 'filled' : 'active',
-          };
-        }
-        return p;
+      prev.map((x) => {
+        if (x.id !== postId) return x;
+        // Defensive: never exceed capacity on rapid clicks.
+        if (x.spotsNeeded <= x.joinedPlayers.length) return x;
+        if (x.joinedPlayers.some((j) => j.playerId === playerProfile.id)) return x;
+        const updatedJoined = [...x.joinedPlayers, newJoin];
+        return {
+          ...x,
+          joinedPlayers: updatedJoined,
+          status: updatedJoined.length >= x.spotsNeeded ? 'filled' : 'active',
+        };
       })
     );
-    if (success) {
-      setSyncNotification('درخواست پیوستن شما به عنوان بازیکن آزاد ثبت شد!');
-    }
-    return success;
+    setSyncNotification('درخواست پیوستن شما به عنوان بازیکن آزاد ثبت شد!');
+    return true;
   };
 
   const toggleFreeAgentStatus = (available: boolean, note?: string) => {
@@ -1406,46 +1405,51 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     partnerName: string,
     partnerLevel: number
   ): boolean => {
-    let success = false;
+    // Validate against current state BEFORE setTournaments: React 18 batches
+    // the updater, so a flag set inside it is never visible at return time
+    // (the old `success` flag was always false → modal never closed, no toast).
+    const t = tournaments.find((x) => x.id === tournId);
+    if (!t) return false;
+    if (t.registeredTeamsCount >= t.maxTeams) {
+      setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
+      return false;
+    }
+    const isRegistered = t.registeredTeams.some(
+      (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
+    );
+    if (isRegistered) {
+      setSyncNotification('شما قبلاً در این تورنومنت تیم ثبت کرده‌اید.');
+      return false;
+    }
+
+    const newTeam = {
+      id: `tm-${Date.now()}`,
+      teamName,
+      player1Name: playerProfile.name,
+      player1Level: playerProfile.level,
+      player2Name: partnerName,
+      player2Level: partnerLevel,
+    };
     setTournaments((prev) =>
-      prev.map((t) => {
-        if (t.id === tournId) {
-          if (t.registeredTeamsCount >= t.maxTeams) {
-            setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
-            return t;
-          }
-          const isRegistered = t.registeredTeams.some(
+      prev.map((x) => {
+        if (x.id !== tournId) return x;
+        // Defensive: never exceed capacity or double-register on rapid clicks.
+        if (x.registeredTeamsCount >= x.maxTeams) return x;
+        if (
+          x.registeredTeams.some(
             (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
-          );
-          if (isRegistered) {
-            setSyncNotification('شما قبلاً در این تورنومنت تیم ثبت کرده‌اید.');
-            return t;
-          }
-
-          success = true;
-          const newTeam = {
-            id: `tm-${Date.now()}`,
-            teamName,
-            player1Name: playerProfile.name,
-            player1Level: playerProfile.level,
-            player2Name: partnerName,
-            player2Level: partnerLevel,
-          };
-
-          return {
-            ...t,
-            registeredTeamsCount: t.registeredTeamsCount + 1,
-            registeredTeams: [...t.registeredTeams, newTeam],
-          };
-        }
-        return t;
+          )
+        )
+          return x;
+        return {
+          ...x,
+          registeredTeamsCount: x.registeredTeamsCount + 1,
+          registeredTeams: [...x.registeredTeams, newTeam],
+        };
       })
     );
-
-    if (success) {
-      setSyncNotification(`تیم «${teamName}» با موفقیت در تورنومنت ثبت شد.`);
-    }
-    return success;
+    setSyncNotification(`تیم «${teamName}» با موفقیت در تورنومنت ثبت شد.`);
+    return true;
   };
 
   const finalizeTournamentResults = (
@@ -1514,6 +1518,46 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const winnerTeam = isTeam1Winner ? currentMatch.team1 : currentMatch.team2;
 
         const updatedMatches = [...t.bracket];
+
+        // Re-recording an earlier round must invalidate every later round that
+        // was built from the old result — otherwise the final keeps its old
+        // scores/winner and the tournament its stale champion (same bug class
+        // as the friendly path fixed in v3.15.11). Only when the winner
+        // actually changed (or a winnerless re-record meets a scored later
+        // round); an unchanged winner keeps the append-only forward path.
+        const roundOrder: Record<string, number> = {
+          round_16: 0,
+          quarter: 1,
+          semi: 2,
+          final: 3,
+        };
+        const recOrder = roundOrder[currentMatch.round] ?? -1;
+        const prevWinnerId = currentMatch.winnerId;
+        const winnerChanged = !!prevWinnerId && prevWinnerId !== winnerId;
+        const downstreamScored = updatedMatches.some(
+          (m) => (roundOrder[m.round] ?? -1) > recOrder && m.winnerId
+        );
+        let downstreamInvalidated = false;
+        if ((winnerChanged || (!prevWinnerId && downstreamScored)) && downstreamScored) {
+          for (let i = 0; i < updatedMatches.length; i++) {
+            const m = updatedMatches[i];
+            if ((roundOrder[m.round] ?? -1) > recOrder) {
+              updatedMatches[i] = {
+                ...m,
+                status: 'pending',
+                winnerId: undefined,
+                team1: m.team1
+                  ? { id: m.team1.id, name: m.team1.name, seed: m.team1.seed }
+                  : undefined,
+                team2: m.team2
+                  ? { id: m.team2.id, name: m.team2.name, seed: m.team2.seed }
+                  : undefined,
+              };
+            }
+          }
+          downstreamInvalidated = true;
+        }
+
         updatedMatches[matchIdx] = {
           ...currentMatch,
           status: 'completed',
@@ -1543,6 +1587,18 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             status: 'completed',
             winnerTeam: winnerTeam.name,
             runnerUpTeam: isTeam1Winner ? currentMatch.team2?.name : currentMatch.team1?.name,
+            bracket: updatedMatches,
+          };
+        }
+
+        // A corrected earlier round uncrowns the champion: the tournament
+        // goes back to ongoing until the rebuilt later rounds play out.
+        if (downstreamInvalidated) {
+          return {
+            ...t,
+            status: 'ongoing',
+            winnerTeam: undefined,
+            runnerUpTeam: undefined,
             bracket: updatedMatches,
           };
         }

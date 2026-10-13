@@ -222,15 +222,29 @@ export const ShopView: React.FC = () => {
   // of a newer one — only the latest token may touch state when it resolves.
   const searchTokenRef = useRef(0);
 
+  // Retire any in-flight live search for the previous query: bump the token so
+  // its late resolve can never overwrite the UI or leave the spinner stuck.
+  const retireLiveSearch = () => {
+    searchTokenRef.current++;
+  };
+
   const runLiveSearch = async () => {
     const q = query.trim();
-    if (q.length < 2 || liveLoading) return;
+    if (q.length < 2) return;
+    // A newer search always wins, even mid-flight: the token bump retires the
+    // in-flight search, whose resolve then discards its result quietly instead
+    // of leaving a mismatched query/results pair on screen.
+    const token = ++searchTokenRef.current;
     setLiveLoading(true);
     setLiveError(null);
     setLiveOffers(null);
-    const token = ++searchTokenRef.current;
     const offers = await livePriceSearch(q);
-    if (searchTokenRef.current !== token) return; // stale: a newer search took over
+    if (searchTokenRef.current !== token) {
+      // Stale: a newer search (or a query edit) took over — never leave the
+      // spinner stuck on a retired search.
+      setLiveLoading(false);
+      return;
+    }
     setLiveLoading(false);
     if (offers === null) {
       setLiveError('جستجوی زنده فعلاً فعال نیست');
@@ -296,6 +310,7 @@ export const ShopView: React.FC = () => {
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
+                retireLiveSearch();
                 setLiveOffers(null);
                 setLiveError(null);
               }}
@@ -308,6 +323,7 @@ export const ShopView: React.FC = () => {
               <button
                 onClick={() => {
                   setQuery('');
+                  retireLiveSearch();
                   setLiveOffers(null);
                   setLiveError(null);
                 }}

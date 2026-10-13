@@ -48,6 +48,13 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   );
   const court = club.courts.find((c) => c.id === activeCourtId) || club.courts[0];
 
+  // Follow court switches made outside the panel (e.g. the detail column's
+  // court tabs): without this the panel keeps showing — and booking — the
+  // previously selected court while the rest of the UI moved on.
+  useEffect(() => {
+    setActiveCourtId(club.courts.some((c) => c.id === courtId) ? courtId : club.courts[0]?.id || '');
+  }, [courtId]);
+
   // Dates: next 7 days, generated live in the Jalali (Persian) calendar
   const daysList = useMemo(() => {
     const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' });

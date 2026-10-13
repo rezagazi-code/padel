@@ -50,6 +50,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     if (!canManage) return;
     setEditingMatch(m);
     setSelectedWinnerId(m.winnerId || m.team1?.id || '');
+    // Always start from defaults: a cancelled edit's typed values must never
+    // leak into the next match's modal.
+    setScoreT1S1(6);
+    setScoreT1S2(6);
+    setScoreT2S1(4);
+    setScoreT2S2(3);
     if (m.team1?.score) {
       setScoreT1S1(m.team1.score[0] ?? 6);
       setScoreT1S2(m.team1.score[1] ?? 6);
