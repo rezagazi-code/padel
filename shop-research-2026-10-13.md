@@ -115,3 +115,80 @@ already rejected earlier for being unreachable/inquiry-priced).
 - Newest unique, verifiable shop this pass: bapateam.ir (full scrapability,
   public Toman prices, dedicated padel categories). tagmond.com (earlier run today)
   remains the second new candidate of the day.
+
+---
+
+# Update — 11:15 Tehran run (third store-research pass today)
+
+Fresh Persian/English queries (~5) + ~20 curl domain probes. All queries re-surfaced
+already-covered shops (tennisshop.ir, padeliran.ir, shop.alo-varzesh.com, Torob
+sellers) or foreign stores (Turkey/Indonesia/India/UAE).
+
+## ✅ NEW RECOMMENDED (add to live cheapest-price search)
+
+### 1. راکت استور (Racket Store) — racketstore.ir
+- **URL:** https://racketstore.ir — search: https://racketstore.ir/search/?q=پدل
+- **City:** جزیره کیش (Kish Island) — «دهکده المپیک ورزشی». Phones:
+  09123106538, 09122232995 (also listed 021-style? no — both 0912 mobiles).
+- **Identity:** Iranian `.ir` Next.js shop (RTL Persian); claims Middle East
+  representation for beach-tennis/padel brands SOL, SHARK, ZAND, KONA.
+- **Padel inventory:** YES — real padel section in search results: پدل سول
+  (Sol brand padel racket, codes 001/002/003/005/006) + padel balls (۳تایی
+  3-packs, ۲۴ عددی boxes).
+- **Price visibility:** PUBLIC — prices embedded in server-rendered HTML as
+  `"price":N` JSON (no login). Verified samples (2026-10-13):
+  - پدل سول rackets: 35,690,000 / 42,320,000 / 42,649,000 / 55,770,000 /
+    62,332,000 / 72,173,000 تومان
+  - padel balls: ~2,054,000 تومان (3-pack range)
+- **Scrapability:** FULL — curl HTTPS 200 (~280KB), prices in raw HTML,
+  no JS required. Product names appear generically («پدل سول», «پدل کد ۰۰۱»)
+  — detail page may carry full model info.
+- **Integration cost:** LOW–MEDIUM — WooCommerce-family-like pattern;
+  verify detail page title carries the exact model before integrating.
+
+### 2. زیتازی (zitazi) — zitazi.com
+- **URL:** https://zitazi.com — padel search via `?s=پدل` (WooCommerce search)
+- **City:** تهران (Tehran) — phones 02191005599, 02166408648, 09120706870.
+- **Identity:** Iranian general sporting-goods web store (Woodmart WooCommerce
+  theme), `.com` but Iranian phone numbers and Toman pricing.
+- **Padel inventory:** YES — real padel rackets + balls:
+  - Babolat: Counter Veron 2.6 (365g), Counter Viper 2.6 (365g),
+    Technical Veron 3.0, Technical Viper 3.0, Veron Juan Lebron 3.0,
+    Alioth Pro Junior (kids)
+  - Joma Tournament 3-ball pack, Wilson Premier Speed (WR8908501001) balls,
+    Kuikma PL Team 20L bag, Kuikma Protect Tape 3-pack
+- **Price visibility:** PUBLIC — no login; price in JSON-LD
+  `Product.offers.priceSpecification[0].price` (IRR ÷ 10 = Toman).
+  Verified sample (2026-10-13): Babolat Counter Veron 2.6 — 909,000,000 IRR =
+  90,900,000 تومان, InStock.
+- **Scrapability:** FULL via curl — HTTPS 200, JSON-LD embedded in raw HTML
+  (product pages). Listing pages are AJAX-driven (prices not in search HTML),
+  so crawl product URLs + parse JSON-LD per product.
+- **Integration cost:** LOW — JSON-LD parse; unit conversion IRR→Toman (÷10).
+
+## ❌ Checked but REJECTED this pass
+- **اپکس تنیس (apextennis.ir)** — live Iranian shop (Torob seller too), but its
+  padel items are accessories only: bags («کیف تنیس و پدل»), keychains,
+  overgrips, pickleball — no real padel rackets or balls. Reject per criteria.
+- **sportland.ir** — «فروشگاه پوشاک ورزشی اسپورت لند»: apparel only, ~2
+  incidental padel mentions. Reject — no padel gear.
+- **raketstore.com** — Turkish WordPress site (noindex), not Iranian. Reject.
+- **zitazi.ir** — dead (000). (zitazi.com above is the live one.)
+- **persiantennis.ir / sarzamintennis.ir / apextennis.ir-probes done /
+  peymansport.ir / vansport.ir / tehrantennis.ir (empty homepage) /
+  noxiran.ir / babolatiran.ir / headiran.ir / padelstore.ir / padeltehran.ir /
+  tennisland.ir / sportshop.ir / tehransport.ir / varzeshshop.ir / toopsport.ir /
+  racketiran.ir / raketstore.ir / racketran.ir** — all dead (000) or empty this
+  pass.
+- **Query re-surfaces:** tennisshop.ir, padeliran.ir, shop.alo-varzesh.com,
+  pedal.ir (car magazine — unrelated), aradbranding.com (marketing blog, no
+  prices) — already covered or non-qualifying.
+
+## Notes
+- ~5 fresh queries (fa/en) + ~25 curl probes this pass.
+- torob.com still blocked from this environment; used Torob's Google crawl
+  listings instead to harvest NEW seller names («راکت استور», «اپکس تنیس»,
+  «زیتازی») and then probed their independent websites.
+- Both new recommendations (racketstore.ir, zitazi.com) have full curl
+  scrapability with public prices and real padel stock — ready for the
+  cheapest-price search pipeline.

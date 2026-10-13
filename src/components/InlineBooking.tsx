@@ -223,6 +223,16 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     setSelectedTimeSlot(first ? first.time : '');
   }, [timeSlots]);
 
+  // Belt-and-braces: if the picked slot no longer exists in the current
+  // list (day crossed midnight, or the slot aged past its start), drop the
+  // stale pick so the confirm CTA goes disabled again.
+  useEffect(() => {
+    if (selectedTimeSlot && !timeSlots.some((s) => s.time === selectedTimeSlot)) {
+      userPickedSlotRef.current = false;
+      setSelectedTimeSlot('');
+    }
+  }, [timeSlots, selectedTimeSlot]);
+
   const handleSlotPick = (time: string) => {
     userPickedSlotRef.current = true;
     setSelectedTimeSlot(time);
@@ -246,6 +256,37 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     if (!court) return;
     if (!selectedTimeSlot) return;
     setBookingError(null);
+    // Stale-pick guard: the user may have tapped a slot long ago — if
+    // midnight crossed (the selected day is now past) or the picked slot
+    // already started today, the pick is no longer bookable. Never book a
+    // past day or an already-started slot.
+    const tehranToday = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    if (selectedDate.raw < tehranToday) {
+      setBookingError('این سانس دیگر قابل رزرو نیست. لطفاً روز و سانس جدیدی انتخاب کنید.');
+      return;
+    }
+    if (selectedDate.raw === tehranToday) {
+      const [hh, mm] = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Tehran',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+        .format(new Date())
+        .split(':')
+        .map(Number);
+      const nowMinutes = (hh || 0) * 60 + (mm || 0);
+      const pickedStart = slotStartMinutes(selectedTimeSlot);
+      if (pickedStart === null || pickedStart <= nowMinutes) {
+        setBookingError('این سانس دیگر قابل رزرو نیست. لطفاً سانس جدیدی انتخاب کنید.');
+        return;
+      }
+    }
     setIsSubmitting(true);
     try {
       // Fresh availability pull before the overlap check: the cached intervals

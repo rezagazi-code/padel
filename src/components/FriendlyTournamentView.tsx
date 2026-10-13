@@ -7,6 +7,15 @@ import { FriendlyTournamentPredictions } from './Predictions';
 import { generateBracket, bracketToDisplay } from '../lib/bracket';
 import { SKILL_GRADES, type SkillGrade } from '../utils/skillGrades';
 
+// Persian/Arabic-Indic digits → Latin, so inputs typed on a fa-IR keyboard
+// («۱۲») parse instead of silently falling back to defaults. Same pattern
+// as InlineBooking's faDigitsToEn; kept here as the shared local helper.
+const faDigitsToEn = (s: string) =>
+  s.replace(/[۰-۹٠-٩]/g, (d) => {
+    const p = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+    return String(p >= 0 ? p : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+  });
+
 // Suggest match duration and validate feasibility
 function calculateSuggestion(teamsCount: number, courtsCount: number, hours: number) {
   const matchMin = 90; // standard padel match
@@ -58,9 +67,9 @@ export const FriendlyTournamentView: React.FC = () => {
       clubId: club?.id || '',
       clubName: club?.name || '',
       date: fDate || 'تعیین نشده',
-      entryFeePerTeam: parseInt(fFee) || 0,
-      courtsCount: parseInt(fCourts) || 1,
-      hoursReserved: parseFloat(fHours) || 2,
+      entryFeePerTeam: parseInt(faDigitsToEn(fFee)) || 0,
+      courtsCount: parseInt(faDigitsToEn(fCourts)) || 1,
+      hoursReserved: parseFloat(faDigitsToEn(fHours)) || 2,
       matchDurationMin: 90,
       prizeSplit: fSplit,
       createdBy: playerProfile.name || 'ناشناس',
@@ -90,13 +99,9 @@ export const FriendlyTournamentView: React.FC = () => {
     const inp = scoreInputs[matchId];
     if (!inp) return;
     // Persian/Arabic-Indic digits → Latin, so «۶-۴» on a fa-IR keyboard
-    // parses instead of silently failing (same pattern as InlineBooking's
-    // faDigitsToEn; kept local per codebase convention).
-    const faDigitsToEn = (s: string) =>
-      s.replace(/[۰-۹٠-٩]/g, (d) => {
-        const p = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
-        return String(p >= 0 ? p : '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
-      });
+    // parses instead of silently failing (faDigitsToEn is the module-level
+    // shared helper; same pattern as InlineBooking's, kept local per
+    // codebase convention).
     const s1 = Math.max(0, parseInt(faDigitsToEn(inp.s1)));
     const s2 = Math.max(0, parseInt(faDigitsToEn(inp.s2)));
     if (isNaN(s1) || isNaN(s2)) return;
@@ -120,8 +125,8 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const suggestion = calculateSuggestion(
     selected?.teams.length || 0,
-    selected?.courtsCount || parseInt(fCourts) || 2,
-    selected?.hoursReserved || parseFloat(fHours) || 4
+    selected?.courtsCount || parseInt(faDigitsToEn(fCourts)) || 2,
+    selected?.hoursReserved || parseFloat(faDigitsToEn(fHours)) || 4
   );
 
   if (selected) {
@@ -329,7 +334,7 @@ export const FriendlyTournamentView: React.FC = () => {
                   <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bubble-btn-fire border-transparent text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(fCourts) || 2) * (parseFloat(fHours) || 4) * 60 / 90)} بازی برگزار کنید.</p>
+              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(faDigitsToEn(fCourts)) || 2) * (parseFloat(faDigitsToEn(fHours)) || 4) * 60 / 90)} بازی برگزار کنید.</p>
               <button type="submit" className="w-full py-3 rounded-2xl bubble-btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
