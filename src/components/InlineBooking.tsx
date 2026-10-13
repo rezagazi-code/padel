@@ -53,7 +53,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   // previously selected court while the rest of the UI moved on.
   useEffect(() => {
     setActiveCourtId(club.courts.some((c) => c.id === courtId) ? courtId : club.courts[0]?.id || '');
-  }, [courtId]);
+  }, [courtId, club.courts]);
 
   // Dates: next 7 days, generated live in the Jalali (Persian) calendar
   const daysList = useMemo(() => {

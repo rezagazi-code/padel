@@ -20,7 +20,7 @@ import {
 import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
 import { Bubbles } from './Bubbles';
-import { livePriceSearch, LivePriceOffer } from '../lib/liveSearch';
+import { livePriceSearch, LivePriceOffer, searchTermEquivalents } from '../lib/liveSearch';
 import { Capacitor } from '@capacitor/core';
 
 /** Open external URL in system browser (reliable in Capacitor, avoids _blank issues). */
@@ -221,6 +221,9 @@ export const ShopView: React.FC = () => {
   // Stale-query guard: a slow earlier search must never overwrite the results
   // of a newer one — only the latest token may touch state when it resolves.
   const searchTokenRef = useRef(0);
+  // Spinner-ownership token: set when a search starts loading, so a stale
+  // resolve can only clear the spinner it actually started.
+  const loadingTokenRef = useRef(0);
 
   // Retire any in-flight live search for the previous query: bump the token so
   // its late resolve can never overwrite the UI or leave the spinner stuck.
@@ -236,13 +239,15 @@ export const ShopView: React.FC = () => {
     // of leaving a mismatched query/results pair on screen.
     const token = ++searchTokenRef.current;
     setLiveLoading(true);
+    loadingTokenRef.current = token;
     setLiveError(null);
     setLiveOffers(null);
     const offers = await livePriceSearch(q);
     if (searchTokenRef.current !== token) {
-      // Stale: a newer search (or a query edit) took over — never leave the
-      // spinner stuck on a retired search.
-      setLiveLoading(false);
+      // Stale: a newer search (or a query edit) took over. Only clear the
+      // spinner if the newer search hasn't started its own — otherwise the
+      // newer search's setLiveLoading(true) already owns it.
+      if (loadingTokenRef.current === token) setLiveLoading(false);
       return;
     }
     setLiveLoading(false);
@@ -261,7 +266,9 @@ export const ShopView: React.FC = () => {
       const hay = normalizeFa(
         `${p.name} ${p.brand} ${SHOP_CATEGORY_LABELS[p.category]} ${p.description ?? ''}`
       );
-      return q.split(' ').every((w) => hay.includes(w));
+      return q
+        .split(' ')
+        .every((w) => searchTermEquivalents(w).some((t) => hay.includes(t)));
     });
   }, [query, category]);
 

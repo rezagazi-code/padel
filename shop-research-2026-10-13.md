@@ -252,3 +252,81 @@ then probed their independent websites. ~8 fresh queries + ~15 domain probes.
 ## Notes
 - This pass: ~8 fresh queries + ~15 curl probes. torob.com still blocked from this environment; seller names harvested from Torob's Google crawl instead.
 - tennisban.ir is the strongest single new find of the day: dedicated padel categories, 23 rackets, public Toman prices, fully curl-scrapable. Recommend adding both to the live cheapest-price search; hivajet.com flagged as small-inventory source.
+
+
+---
+
+# Update — 19:10 Tehran run (fifth store-research pass today)
+
+Fresh angle: social.search for Iranian padel shops surfaced @amir_sport_ir,
+@extrapadel.ir, @mizanpadel, @padelone.ir → probed their independent domains.
+~6 web queries + ~15 curl probes this pass.
+
+## ✅ NEW RECOMMENDED (add to live cheapest-price search)
+
+### 1. پدل وان (Padel One) — padelone.ir
+- **URL:** https://padelone.ir
+- **Padel categories:**
+  - https://padelone.ir/product-category/%d8%b1%d8%a7%da%a9%d8%aa-%d9%be%d8%af%d9%84/ (racket categories: /head/ and /nox/ subcats)
+- **City:** not published on site (contact page shows phone 09307392839 only;
+  Instagram @padelone.ir — same handle as domain).
+- **Identity:** Iranian `.ir` padel-specialty shop (WooCommerce, RTL Persian,
+  "تضمین اورجینال بودن محصولات" — claims originals).
+- **Padel inventory:** REAL — Nox rackets (Agustín Tapia line): AT10 Genius
+  12K Alum Xtrem 2026, AT10 Luxury Genius Attack 12K/18K Alum Xtrem 2026,
+  AT10 Genius 18K Alum 2026; Head racket category exists too.
+- **Price visibility:** PUBLIC — JSON-LD `Product.offers` on every product page
+  (`priceCurrency: "IRT"` = Toman, no ÷10 needed), no login. Verified samples
+  (2026-10-13):
+  - راکت پدل نوکس NOX AT10 Genius 18K Alum 2026 — 91,000,000 تومان (InStock)
+  - راکت پدل نوکس AT10 Genius 12K Alum Xtrem 2026 — 89,000,000 تومان
+    (OutOfStock — price still public)
+- **Scrapability:** PARTIAL — curl HTTPS 200 on product pages; prices only in
+  JSON-LD per product page (not on listing pages), so crawl product URLs +
+  parse JSON-LD. Same pattern as zitazi.com (JSON-LD parse).
+- **Integration cost:** LOW–MEDIUM — parse JSON-LD per product; IRT=Toman
+  directly. Flag availability (InStock/OutOfStock) from schema.
+
+## ⚠️ NEW but QUESTIONABLE (flag, don't integrate yet)
+
+### 2. میزون پدل (Mizan Padel) — mizanpadel.ir
+- **URL:** https://mizanpadel.ir — categories: /product-category/rackets/,
+  /balls/, /shoes/, /bags/, /cloths/, /supplies/
+- **City:** آبادان (Abadan) — phone 09364052006.
+- **Padel inventory:** REAL products on site (WooCommerce, public add-to-cart,
+  not inquiry-only): Siux Fenix Pro 5 2026, Wilson Endure Pro V1,
+  Babolat Counter Viper 2.5, Oxdog Ultimate Court 2026,
+  Adidas Metalbone Carbon 2026, Head One Ultralight, Nox AT10 shoes, Nox grips,
+  Wilson socks.
+- **Price visibility:** PUBLIC (Toman in WooCommerce markup, no login), e.g.
+  66.000.000 / 62.000.000 / 10.000.000 / 8.000.000 — BUT ⚠️ every racket on
+  the site is priced EXACTLY 66,000,000 تومان, which smells like template/
+  placeholder pricing, not real per-model prices. Real shops vary racket
+  prices. Do NOT integrate until prices become per-model realistic; keep on
+  watch list. Report written so the parent team can decide.
+
+## ❌ Checked but REJECTED this pass
+- **amirsport.ir** (@amir_sport_ir, Isfahan physical store with padel rackets
+  on Instagram) — live site (HTTP 200, ~290KB) but ZERO padel mentions on
+  the website (swim/skating/general sports only). No padel gear online.
+- **extrapadel.ir** (@extrapadel.ir) — dead (000), confirmed again.
+- **tennispardisan.ir** — live (200) but zero padel mentions.
+- **mizanpadel.ir** — not rejected, flagged above (uniform pricing).
+- **attpadelshop.ir / lovatennisshop.ir / allforpadel.ir / amirsportshop.ir /
+  amir-sport.ir / wilson.ir / vilsone.ir / wilsonshop.ir / puyansport.ir /
+  donikonline.ir / padeliran.com / padelshoponline.ir** — all dead (000).
+- **mahabadmode.com** — running-shoe shop (Hoka), not padel gear.
+- **astsportshop.com** — rejected again (replica/"مستر" quality sneakers only).
+- **otaghporoo** (Instagram) — clearance sale with Toman prices in posts but
+  no independent website; DM ordering only. Reject per criteria.
+- **Query re-surfaces:** sportstations.ir, tennisshop.ir, shop.alo-varzesh.com,
+  Torob lists, foreign shops (Turkey/Indonesia/Kuwait/Spain) — covered or
+  non-qualifying.
+
+## Notes
+- This pass: ~6 fresh queries (fa/en) + ~15 curl probes + 1 social.search.
+- torob.com still blocked from this environment.
+- padelone.ir is the day's cleanest new qualifying find (dedicated padel
+  shop, JSON-LD Toman prices, verified InStock). mizanpadel.ir would qualify
+  on all criteria except the suspicious uniform pricing — needs a recheck
+  before integration.

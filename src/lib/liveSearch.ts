@@ -58,6 +58,23 @@ const TERM_EQUIVS: Record<string, string[]> = {
   'flow': ['فلو'], 'indiga': ['ایندیگا'],
 };
 
+/**
+ * Expand a search term with its Latin↔Persian equivalents, so e.g. «بولپدل»
+ * matches catalog products branded "Bullpadel". The input is normalized first
+ * (TERM_EQUIVS keys are stored normalized); a space-compacted lookup handles
+ * multi-word Persian input like «بول پدل». The term itself is always included,
+ * so matching behavior for all other words is unchanged.
+ */
+export function searchTermEquivalents(term: string): string[] {
+  const key = normalizeFa(term);
+  const compact = key.replace(/\s+/g, '');
+  const equivs: string[] = [
+    ...(TERM_EQUIVS[key] ?? []),
+    ...(compact !== key ? (TERM_EQUIVS[compact] ?? []) : []),
+  ];
+  return [key, ...equivs.filter((e) => e !== key)];
+}
+
 function termInTitle(title: string, term: string): boolean {
   if (title.includes(term)) return true;
   const equivs = TERM_EQUIVS[term] ?? [];

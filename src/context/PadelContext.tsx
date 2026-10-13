@@ -858,6 +858,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setOpenMatches((prev) =>
       prev.map((x) => {
         if (x.id !== matchId) return x;
+        // Defensive: pre-validation ran against state that may be stale when
+        // two taps land in the same render frame — never allow the player in
+        // two slots of the same match on rapid clicks.
+        if (x.slots.some((s) => s.playerId === playerProfile.id)) return x;
         const updatedSlots = x.slots.map((slot) => {
           if (slot.slotNumber === slotNumber && !slot.playerId) {
             return {
@@ -977,6 +981,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setGroupSessions((prev) =>
       prev.map((x) => {
         if (x.id !== sessionId) return x;
+        // Defensive: pre-validation ran against state that may be stale when
+        // two taps land in the same render frame — never allow the player in
+        // two slots of the same session on rapid clicks.
+        if (x.courts.some((c) => c.slots.some((s) => s.playerId === playerProfile.id))) return x;
         const updatedCourts = x.courts.map((c) => {
           if (c.courtNumber !== courtNumber) return c;
           return {
