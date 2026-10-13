@@ -1024,3 +1024,21 @@ div.fixed.inset-0.z-50 > div[class*="rounded"] {
   animation: slide-down 0.3s ease-out;
   transform-origin: top;
 }
+
+/* Padel Radar — rotating sonar sweep */
+@keyframes radar-sweep {
+  to { transform: rotate(360deg); }
+}
+.radar-sweep {
+  animation: radar-sweep 4s linear infinite;
+  transform-origin: 200px 200px;
+}
+
+/* Red route — marching ants along the path */
+@keyframes route-dash {
+  to { stroke-dashoffset: -28; }
+}
+.route-dash {
+  stroke-dasharray: 14 14;
+  animation: route-dash 1s linear infinite;
+}

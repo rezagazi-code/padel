@@ -21,11 +21,13 @@ import {
   Moon,
   Info,
   Trash2,
-  Wallet
+  Wallet,
+  Radar
 } from 'lucide-react';
 import { toJalaliDisplay } from '../utils/dates';
 import { ConfirmDialog } from './ConfirmDialog';
 import { InlineBooking } from './InlineBooking';
+import { NearestClubs } from './NearestClubs';
 import { StarRating } from './StarRating';
 import { fetchBookedIntervals, BookedInterval } from '../lib/db';
 import { getSupabase } from '../lib/supabase';
@@ -55,6 +57,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
   const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
   const [expandedCourtId, setExpandedCourtId] = useState<string | null>(null);
+  const [showNearest, setShowNearest] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     clubs[0]?.courts[0]?.id || ''
   );
@@ -461,6 +464,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             >
               <Sparkles className="w-5 h-5 text-ice" />
               <span>مشاهده باشگاه‌ها</span>
+            </button>
+            <button
+              onClick={() => setShowNearest(true)}
+              className="flex items-center gap-2 bubble-btn-fire rounded-full font-black text-sm px-6 py-3.5 text-white"
+            >
+              <Radar className="w-5 h-5" />
+              <span>نزدیک‌ترین باشگاه</span>
             </button>
           </div>
         </div>
@@ -1158,6 +1168,24 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       />
 
       {/* Booking is now inline via InlineBooking (slide-down under club card) */}
+
+      {/* Padel Radar — nearest club finder overlay */}
+      {showNearest && (
+        <NearestClubs
+          onClose={() => setShowNearest(false)}
+          onReserve={(clubId) => {
+            setShowNearest(false);
+            setSelectedProvince('همه استان‌ها');
+            setExpandedCourtId(null);
+            setExpandedClubId(clubId);
+            setTimeout(() => {
+              document
+                .getElementById('clubs-list')
+                ?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
+        />
+      )}
 
     </div>
   );
