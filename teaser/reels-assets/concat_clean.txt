@@ -1,4 +1,0 @@
-file 'seg1_clean.mp4'
-file 'seg2_clean.mp4'
-file 'seg3_clean.mp4'
-file 'seg4_clean.mp4'
