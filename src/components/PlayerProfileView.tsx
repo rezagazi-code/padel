@@ -97,7 +97,14 @@ export const PlayerProfileView: React.FC = () => {
   // truth: a failed remote delete keeps the booking visible, a successful
   // one drops it. (Local bookings are removed from context by cancelBooking.)
   const handleCancelBooking = async (bookingId: string) => {
-    await cancelBooking(bookingId);
+    // Pass the merged display booking's date/timeSlot as a hint so the
+    // cancellable guard in cancelBooking also applies to server-only
+    // bookings that aren't in local state.
+    const target = displayBookings.find((b) => b.id === bookingId);
+    await cancelBooking(
+      bookingId,
+      target ? { date: target.date, timeSlot: target.timeSlot } : undefined
+    );
     if (userId && getSupabase()) {
       try {
         setServerBookings(await fetchMyBookings(userId));
@@ -418,7 +425,7 @@ export const PlayerProfileView: React.FC = () => {
             }`}
           >
             <History className="w-4 h-4" />
-            <span>تاریخچه رزروها و جلسات ({bookings.length + coachBookings.length})</span>
+            <span>تاریخچه رزروها و جلسات ({displayBookings.length + coachBookings.length})</span>
           </button>
         </div>
       </div>

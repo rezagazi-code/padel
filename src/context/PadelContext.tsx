@@ -50,6 +50,7 @@ import {
   upsertClubRating,
   fetchMyClubRatings,
   insertTournamentTeam,
+  updateTournament,
 } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
 import { isBookingCancellable } from '../utils/dates';
@@ -80,7 +81,7 @@ interface PadelContextType {
   rateClub: (clubId: string, rating: number) => Promise<void>;
   bookings: Booking[];
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt'>) => Promise<Booking | null>;
-  cancelBooking: (bookingId: string) => Promise<void>;
+  cancelBooking: (bookingId: string, hint?: { date: string; timeSlot: string }) => Promise<void>;
   openMatches: OpenMatch[];
   createOpenMatch: (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>) => OpenMatch;
   joinMatchSlot: (matchId: string, slotNumber: number) => boolean;
@@ -316,7 +317,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             // remote row wins when a team exists in both.
             setTournaments((prev) => {
               const prevById = new Map(prev.map((t) => [t.id, t]));
-              return remoteTournaments.map((rt) => {
+              const remoteIds = new Set(remoteTournaments.map((t) => t.id));
+              const merged = remoteTournaments.map((rt) => {
                 const local = prevById.get(rt.id);
                 if (!local) return rt;
                 const remoteNames = new Set(
@@ -326,13 +328,21 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   (tm) => !remoteNames.has(tm.teamName.trim())
                 );
                 if (localOnly.length === 0) return rt;
-                const merged = [...rt.registeredTeams, ...localOnly];
+                const mergedTeams = [...rt.registeredTeams, ...localOnly];
                 return {
                   ...rt,
-                  registeredTeams: merged,
-                  registeredTeamsCount: merged.length,
+                  registeredTeams: mergedTeams,
+                  registeredTeamsCount: mergedTeams.length,
                 };
               });
+              // Preserve local-only tournaments (ids like `tourn-…`) that
+              // have no server row yet: dropping them here + the
+              // persistence effect overwriting localStorage would delete
+              // them permanently. Mirrors the coaches merge below.
+              const localOnlyTourns = prev.filter(
+                (t) => t.id.startsWith('tourn-') && !remoteIds.has(t.id)
+              );
+              return [...merged, ...localOnlyTourns];
             });
           }
         }
@@ -802,20 +812,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setNeedPlayerPosts((prev) => [needPost, ...prev]);
   };
 
-  const cancelBooking = async (bookingId: string): Promise<void> => {
+  const cancelBooking = async (
+    bookingId: string,
+    hint?: { date: string; timeSlot: string }
+  ): Promise<void> => {
     // Defense in depth: past bookings — and same-day slots whose start
     // time (Tehran) has already passed — can never be cancelled. The
     // history view hides the button for those; this guards every other
     // caller of cancelBooking.
     const target = bookings.find((b) => b.id === bookingId);
-    if (target) {
+    // Server-only bookings aren't in local `bookings` state; when the
+    // caller passes a hint (date/timeSlot from the merged display list),
+    // run the same guard against it instead of skipping the check.
+    const guardTarget = target ?? hint;
+    if (guardTarget) {
       const tehranToday = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Tehran',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
       }).format(new Date());
-      if (!isBookingCancellable(target.date, target.timeSlot, tehranToday)) {
+      if (!isBookingCancellable(guardTarget.date, guardTarget.timeSlot, tehranToday)) {
         setSyncNotification('رزروهای گذشته یا شروع‌شده قابل لغو نیستند.');
         return;
       }
@@ -1548,6 +1565,23 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
 
+    // Persist the result server-side (fire-and-forget): without this the
+    // next catalog reload overwrites local state and the tournament
+    // reverts to registration with the winner lost. Local-only
+    // tournaments (`tourn-…`) have no server row, so skip them.
+    if (
+      getSupabase() &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
+    ) {
+      void updateTournament(tournId, {
+        status: 'completed',
+        winnerTeam: winnerTeamName,
+        runnerUpTeam: runnerUpTeamName,
+      }).catch((err) => {
+        console.warn('finalizeTournamentResults remote persist failed, keeping local result', err);
+      });
+    }
+
     // Update provincial rankings: add points
     setRankings((prev) => {
       const norm = (s: string) => s.trim();
@@ -1582,9 +1616,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     winnerId: string,
     score: number[]
   ) => {
-    setTournaments((prev) =>
-      prev.map((t) => {
-        if (t.id !== tournId || !t.bracket) return t;
+    // Pure transform so the same result feeds both local state and the
+    // server persist below (computed once from current state).
+    const applyBracketMatch = (t: Tournament): Tournament => {
+      if (!t.bracket) return t;
 
         const matchIdx = t.bracket.findIndex((m) => m.id === matchId);
         if (matchIdx === -1) return t;
@@ -1683,8 +1718,36 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           ...t,
           bracket: updatedMatches,
         };
-      })
+    };
+
+    const tourn = tournaments.find((t) => t.id === tournId);
+    setTournaments((prev) =>
+      prev.map((t) => (t.id === tournId ? applyBracketMatch(t) : t))
     );
+
+    // Persist the updated bracket (+ derived status/winner) server-side
+    // (fire-and-forget): without this the next catalog reload overwrites
+    // local state and the recorded result is lost. Local-only tournaments
+    // (`tourn-…`) have no server row, so skip them. A corrected earlier
+    // round that uncrowns the champion persists the cleared winner too.
+    if (
+      tourn &&
+      tourn.bracket &&
+      getSupabase() &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
+    ) {
+      const next = applyBracketMatch(tourn);
+      if (next !== tourn) {
+        void updateTournament(tournId, {
+          status: next.status,
+          winnerTeam: next.winnerTeam ?? '',
+          runnerUpTeam: next.runnerUpTeam ?? '',
+          bracket: next.bracket,
+        }).catch((err) => {
+          console.warn('updateTournamentBracketMatch remote persist failed, keeping local bracket', err);
+        });
+      }
+    }
 
     setSyncNotification('نتیجه مسابقه جدول تورنومنت با موفقیت ثبت و مسابقه بعدی بروزرسانی شد.');
   };

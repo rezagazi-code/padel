@@ -77,19 +77,23 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                     {/* Team 1 */}
                     <div
                       className={`px-4 py-3 flex items-center justify-between border-b border-white/[0.08] ${
-                        m.winner === m.team1 
-                          ? 'bg-gradient-to-l from-emerald-500/20 to-emerald-500/5 border-r-2 border-r-emerald-400' 
-                          : ''
+                        m.winner === m.team1
+                          ? 'bg-gradient-to-l from-blue-500/20 to-blue-500/5 border-r-2 border-r-blue-400'
+                          : m.winner === m.team2
+                            ? 'bg-gradient-to-l from-red-500/20 to-red-500/5 border-r-2 border-r-red-400'
+                            : ''
                       }`}
                     >
-                      <span className={`text-sm font-black ${m.winner === m.team1 ? 'text-emerald-300' : 'text-slate-100'}`}>
+                      <span className={`text-sm font-black ${m.winner === m.team1 ? 'text-blue-300' : m.winner === m.team2 ? 'text-red-300' : 'text-slate-100'}`}>
                         {m.winner === m.team1 && <Crown className="w-3.5 h-3.5 inline-block ml-1 -mt-0.5" />}{m.team1}
                       </span>
                       {m.score1 !== undefined && (
                         <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${
-                          m.winner === m.team1 
-                            ? 'text-emerald-300 bg-emerald-500/15' 
-                            : 'text-slate-300 bg-white/[0.06]'
+                          m.winner === m.team1
+                            ? 'text-blue-300 bg-blue-500/15'
+                            : m.winner === m.team2
+                              ? 'text-red-300 bg-red-500/15'
+                              : 'text-slate-300 bg-white/[0.06]'
                         }`}>
                           {m.score1}
                         </span>
@@ -98,19 +102,23 @@ export const TVBracket: React.FC<TVBracketProps> = ({ matches, title }) => {
                     {/* Team 2 */}
                     <div
                       className={`px-4 py-3 flex items-center justify-between ${
-                        m.winner === m.team2 
-                          ? 'bg-gradient-to-l from-emerald-500/20 to-emerald-500/5 border-r-2 border-r-emerald-400' 
-                          : ''
+                        m.winner === m.team2
+                          ? 'bg-gradient-to-l from-blue-500/20 to-blue-500/5 border-r-2 border-r-blue-400'
+                          : m.winner === m.team1
+                            ? 'bg-gradient-to-l from-red-500/20 to-red-500/5 border-r-2 border-r-red-400'
+                            : ''
                       }`}
                     >
-                      <span className={`text-sm font-black ${m.winner === m.team2 ? 'text-emerald-300' : 'text-slate-100'}`}>
+                      <span className={`text-sm font-black ${m.winner === m.team2 ? 'text-blue-300' : m.winner === m.team1 ? 'text-red-300' : 'text-slate-100'}`}>
                         {m.winner === m.team2 && <Crown className="w-3.5 h-3.5 inline-block ml-1 -mt-0.5" />}{m.team2}
                       </span>
                       {m.score2 !== undefined && (
                         <span className={`text-lg font-black px-2 py-0.5 rounded-lg ${
-                          m.winner === m.team2 
-                            ? 'text-emerald-300 bg-emerald-500/15' 
-                            : 'text-slate-300 bg-white/[0.06]'
+                          m.winner === m.team2
+                            ? 'text-blue-300 bg-blue-500/15'
+                            : m.winner === m.team1
+                              ? 'text-red-300 bg-red-500/15'
+                              : 'text-slate-300 bg-white/[0.06]'
                         }`}>
                           {m.score2}
                         </span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Tournament, TournamentCategory, TournamentFormat, UserRole } from '../types';
 import GradeBadge from './GradeBadge';
@@ -94,6 +94,10 @@ export const TournamentsView: React.FC = () => {
   const [newMaxTeams, setNewMaxTeams] = useState<number>(16);
   const [tournSubmitting, setTournSubmitting] = useState(false);
   const [tournSubmitError, setTournSubmitError] = useState('');
+  // Ref-based double-submit guard for team registration: state alone
+  // can't block a same-tick double submit, and registerTournamentTeam
+  // is synchronous, so the ref is set and cleared around the call.
+  const registerSubmittingRef = useRef(false);
 
   // Check RBAC permission for tournament creation
   const canCreateTournament =
@@ -121,20 +125,26 @@ export const TournamentsView: React.FC = () => {
   const handleRegisterTeam = (e: React.FormEvent) => {
     e.preventDefault();
     if (!showRegisterModal) return;
+    // Double-submit guard: a rapid second submit would otherwise fire a
+    // second fire-and-forget insertTournamentTeam → duplicate server row.
+    if (registerSubmittingRef.current) return;
+    registerSubmittingRef.current = true;
+    try {
+      const success = registerTournamentTeam(
+        showRegisterModal.id,
+        teamNameInput || `تیم ${playerProfile.name}`,
+        partnerNameInput || 'هم‌تیمی انتخابی',
+        GRADE_MIDPOINT[partnerGradeInput]
+      );
 
-    const success = registerTournamentTeam(
-      showRegisterModal.id,
-      teamNameInput || `تیم ${playerProfile.name}`,
-      partnerNameInput || 'هم‌تیمی انتخابی',
-      GRADE_MIDPOINT[partnerGradeInput]
-    );
-
-    if (success) {
-      setShowRegisterModal(null);
-      setTeamNameInput('');
-      setPartnerNameInput('');
-      setPartnerGradeInput('C');
-
+      if (success) {
+        setShowRegisterModal(null);
+        setTeamNameInput('');
+        setPartnerNameInput('');
+        setPartnerGradeInput('C');
+      }
+    } finally {
+      registerSubmittingRef.current = false;
     }
   };
 
@@ -143,6 +153,18 @@ export const TournamentsView: React.FC = () => {
     if (tournSubmitting) return;
     const club = clubs.find((c) => c.id === newClubId) || clubs[0];
 
+    // Date validation (ISO YYYY-MM-DD strings compare lexicographically):
+    // the tournament can't end before it starts, and registration must
+    // close on or before the start date.
+    if (newEndDate < newStartDate) {
+      setTournSubmitError('تاریخ پایان تورنمنت باید برابر یا بعد از تاریخ شروع باشد.');
+      return;
+    }
+    if (newDeadline > newStartDate) {
+      setTournSubmitError('مهلت ثبت‌نام باید برابر یا قبل از تاریخ شروع تورنمنت باشد.');
+      return;
+    }
+
     setTournSubmitting(true);
     setTournSubmitError('');
     try {
@@ -150,7 +172,16 @@ export const TournamentsView: React.FC = () => {
         title: newTitle || `جام پدل ${club.name}`,
         clubId: club.id,
         clubName: club.name,
-        province: club.province,
+        // A province admin files the tournament under their own province
+        // even when they pick another province's club from the dropdown:
+        // filing under club.province would hide it from their own filter
+        // and drop their manage rights (canManageTournament compares
+        // tourn.province to adminProvince).
+        province:
+          currentUserRole === 'province_admin' && adminProvince
+            ? adminProvince
+            : club.province,
+        organizerType: currentUserRole === 'province_admin' ? 'province' : 'club',
         category: newCategory,
         format: newFormat,
         startDate: newStartDate,

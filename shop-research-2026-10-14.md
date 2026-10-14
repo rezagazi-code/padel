@@ -299,3 +299,126 @@ and every new lead failed verification (see rejections below).
   mizanpadel.ir) rather than re-probing dead domains.
 - torob.com remains blocked from this environment (curl); seller names keep
   coming from Torob's Google crawl instead.
+
+---
+
+## PASS 4 — fourth store-researcher run (15:10–15:45 +0330)
+
+Goal: 1–2 NEW Iranian online shops with PUBLIC real padel prices (not DM-only).
+Already covered (passes 1–3 above + 10-12/10-13): Torob, Divar, tennisfa.com,
+tennisshop.ir, shop.alo-varzesh.com, Emalls, Digikala, padeliran.ir,
+sportstations.ir, iranjsport.com, hivapadel.com, tennis24shop.com,
+seendaalshop.ir, tagmond.com, bapateam.ir, racketstore.ir, zitazi.com,
+tennisban.ir, hivajet.com, padelone.ir, paymansport.com, sportsaeed.com,
+onesport.ir, sunsportiran.com. Watch list: mizanpadel.ir (uniform pricing),
+padel.ir (empty shop), iranoriginal.com (one padel T-shirt only).
+
+### ✅ RECOMMENDED (add to live cheapest-price search)
+
+#### 1. دکتلون اسپرت (Decathlon Sport) — decathlonsport.ir
+- **URL:** https://decathlonsport.ir
+- **Padel category (curl-verified):**
+  http://decathlonsport.ir/product-category/padel/ — title «خرید پدل |
+  لوازم ورزشی اروپایی».
+- **City:** خوی، آذربایجان غربی (address: آذربایجان غربی - خوی).
+  Phone: 02182803356, WhatsApp: 09370416439,
+  email: decathlonsport.ir@gmail.com, Telegram: DecachlonSport.
+- **Identity:** Iranian importer/retailer of Decathlon (Kuikma) European
+  sports gear; «تضمین محصولات اورجینال». Padel is a dedicated category
+  (2 subcategories: راکت پدل، لوازم جانبی پدل).
+- **Padel inventory:** YES — Kuikma-only range, 8+ products on page 1
+  (category filter shows KUIKMA 6 + QUIKMA 1; search index said 15 padel
+  results incl. bags/net):
+  - راکت پدل Kuikma PR Open — 16,328,250 تومان
+  - راکت پدل Kuikma PR Comfort Soft — 21,425,850 تومان
+  - راکت پدل QUIKMA PR React Soft — 23,815,350 تومان
+  - راکت پدل Kuikma Hybrid Metal — 47,710,350 تومان
+  - راکت پدل Kuikma PR Hybrid Carbon Coki Nieto — 60,454,350 تومان
+  - اورگریپ پدل QUIKMA Adherence (مشکی) — 2,469,150 تومان
+- **Price visibility:** PUBLIC — per-model Toman prices on every card, no
+  login. Prices are hyper-specific (non-round, e.g. 16,328,250) → real
+  per-model pricing, consistent with EUR→Toman conversion by an importer.
+- **Scrapability:** FULL via curl — HTTP 200 (~477KB), prices in
+  server-rendered HTML, no JS needed. Product title + price extractable
+  from category page text.
+- **Caveats:** (1) Kuikma-only inventory — no Head/Nox/Bullpadel rackets,
+  no padel balls seen on the padel category page; (2) accessories
+  subcategory URL guessed in this pass 404'd — use the main /padel/
+  category URL; (3) brand spelled «QUIKMA» on some listings (site's own
+  typo for Kuikma).
+- **Integration cost:** LOW — plain HTML price extraction.
+- **Confidence:** HIGH.
+
+#### 2. علیرضا شاپ (Alireza Shop) — alirezashop.org
+- **URL:** https://alirezashop.org
+- **Padel category (curl-verified):**
+  https://alirezashop.org/product-category/padel/ — subcategories:
+  راکت پدل (brands: NOX, Adidas, Babolat, Bullpadel, Head, Wilson, Oxdog,
+  Volt), توپ پدل, کفش پدل, اورگریپ پدل, اکسسوری پدل / محافظ راکت.
+- **City:** اصفهان — physical store: اصفهان، خیابان خمینی، خیابان زرین،
+  باشگاه پدلیکس. Phone: 09004005003, landline: 03131314304,
+  email: alireza.fup@gmail.com, Instagram: ALIREZASHOP.IR.
+  Support hours: daily 8–24.
+- **Identity:** «فروشگاه تخصصی تجهیزات پدل و تنیس» — padel + tennis
+  specialty shop with court booking («رزرو زمین») and a racket-finder
+  tool («راکت‌یاب هوشمند»). Also sells body-analysis devices and
+  sportswear, but padel is a core category block.
+- **Padel inventory:** YES — real named models, multi-brand:
+  - راکت پدل Nox X-One Casual Series 2023 — 32,000,000 تومان (was 33,000,000, 3% sale)
+  - راکت پدل Nox NextGen Pro Hybrid 3K 2025 — 53,000,000 تومان (was 60,000,000, 12% sale)
+  - Also listed (titles verified, prices not individually extracted):
+    Bullpadel Hack 05 Hybrid, Nox AT10 Genius 18K Alum 2026,
+    Nox X-One Silhouette 2026, Head Evo Extreme 2025, Oxdog Ultimate Pro
+    Smash, Bullpadel XPLO limited, Adidas Cross It Light 2026, Volt 500 V5.
+- **Price visibility:** PUBLIC — per-model Toman prices on product pages
+  (server-rendered HTML via curl), no login.
+- **Scrapability:** FULL via curl — HTTPS 200 (~584KB product page),
+  prices in server-rendered HTML. NOTE: one guessed category URL
+  (/product-category/padel/padel-racket/) 301'd to empty — use the
+  exact /product-category/padel/ URL and per-brand subcategory URLs
+  from the site nav.
+- **Caveat:** site banner asks buyers to confirm stock + current price
+  with support before ordering («برای اطمینان از موجودی و قیمت بروز حتما
+  با پشتیبانی تماس حاصل فرمایید») — prices are still publicly displayed,
+  but treat them as confirm-before-order.
+- **Correction vs Pass 2:** Pass 2 rejected «ورزشی علیرضا شاپ» as a
+  Torob-only seller with no standalone site. The standalone
+  alirezashop.org has now been found and verified (same name, same
+  Nox X-One focus) — almost certainly the same seller, now with its own
+  priced storefront. The Torob-only rejection is superseded.
+- **Integration cost:** LOW — WooCommerce-style category/product pages.
+- **Confidence:** HIGH.
+
+### ❌ Checked but REJECTED this pass
+- **winnersport.ir** («وینر اسپرت», padel-specialty shop at Enghelab
+  complex, Tehran, per avval.ir directory) — site SUSPENDED: HTTPS 302 →
+  /cgi-sys/suspendedpage.cgi (hosting suspension). No prices verifiable.
+  Revisit only if the site comes back.
+- **«فروشگاه پدل» (Enghelab complex, Tehran)** — directory listings only
+  (avval.ir); no independent website found. Physical-shop-only → rejected.
+- **Foreign re-surfaces:** beymen.com (TR), shopee/tokopedia (ID),
+  sportsnextdoor.com (IN) — foreign, not eligible.
+- **tennisfa/tennisshop/iranjsport/seendaalshop/bapateam/tennisban** —
+  query re-surfaces, all already covered.
+
+### Notes
+- This pass: ~6 web queries (fa) + ~10 curl probes + 4 full page scrapes
+  (decathlonsport padel category, alirezashop home/product/contact).
+- TWO fully-qualified new shops: decathlonsport.ir (Khoy, Kuikma-only)
+  and alirezashop.org (Isfahan, multi-brand padel specialty). The second
+  is the more valuable find — a real padel-specialty shop outside Tehran
+  with multi-brand rackets and public prices.
+- Watch-list items (mizanpadel.ir, padel.ir, iranoriginal.com) were NOT
+  re-verified this pass (a backgrounded recheck probe never returned);
+  they stay on the watch list unchanged.
+- Pool assessment: still thinning, but the avval.ir business-directory
+  angle (physical padel shops → check for websites) produced one live
+  lead (winnersport, suspended) and may yield more next passes.
+
+### Addendum (Pass 4, late-arriving probe)
+- The backgrounded watch-list probe belatedly returned: padel.ir/shop.php
+  HTTP 200 (27KB, content not inspected — NOT evidence of products;
+  shop stays on watch list as empty/unverified), mizanpadel.ir guessed
+  rackets URL 404 (guessed URL, inconclusive — uniform-pricing watch
+  status unchanged), iranoriginal.com search timed out (000, inconclusive).
+  No watch-list status changes from this probe.

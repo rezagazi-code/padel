@@ -89,7 +89,7 @@ export async function fetchMyBookings(userId: string): Promise<Booking[]> {
   // Join club/court names for display.
   const { data, error } = await sb
     .from('bookings')
-    .select('*, clubs!inner(name), courts!inner(name)')
+    .select('*, clubs(name), courts(name)')
     .eq('booked_by', userId)
     .order('date', { ascending: false })
     .limit(100);
@@ -408,6 +408,30 @@ export async function insertTournament(input: TournamentInput, userId: string): 
     .single();
   if (error) throw error;
   return mapTournament(data, []);
+}
+
+export interface TournamentPatch {
+  status?: Tournament['status'];
+  winnerTeam?: string;
+  runnerUpTeam?: string;
+  bracket?: Tournament['bracket'];
+}
+
+// Persist tournament result/bracket changes. RLS
+// (`tournaments_update_organizer`) allows the organizer, a super_admin, or
+// a club admin to update. Callers fire-and-forget: a failed persist must
+// never block the UI — local state stays the optimistic source of truth.
+export async function updateTournament(id: string, patch: TournamentPatch): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const row: Row = {};
+  if (patch.status !== undefined) row.status = patch.status;
+  if (patch.winnerTeam !== undefined) row.winner_team = patch.winnerTeam;
+  if (patch.runnerUpTeam !== undefined) row.runner_up_team = patch.runnerUpTeam;
+  if (patch.bracket !== undefined) row.bracket = patch.bracket;
+  if (Object.keys(row).length === 0) return;
+  const { error } = await sb.from('tournaments').update(row).eq('id', id);
+  if (error) throw error;
 }
 
 export async function deleteBookingById(bookingId: string): Promise<void> {

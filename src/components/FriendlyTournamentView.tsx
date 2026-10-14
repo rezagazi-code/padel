@@ -106,11 +106,16 @@ export const FriendlyTournamentView: React.FC = () => {
     const s2 = Math.max(0, parseInt(faDigitsToEn(inp.s2)));
     if (isNaN(s1) || isNaN(s2)) return;
     recordFriendlyScore(selected.id, matchId, s1, s2);
-    setScoreInputs((prev) => {
-      const n = { ...prev };
-      delete n[matchId];
-      return n;
-    });
+    // Only clear the inputs when the score was accepted: a tie is
+    // rejected by recordFriendlyScore (toast only), so the inputs must
+    // stay for the user to correct.
+    if (s1 !== s2) {
+      setScoreInputs((prev) => {
+        const n = { ...prev };
+        delete n[matchId];
+        return n;
+      });
+    }
   };
 
   const getTeamName = (tourn: FriendlyTournament, teamId: string | null) => {
