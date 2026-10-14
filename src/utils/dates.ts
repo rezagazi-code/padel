@@ -23,3 +23,44 @@ export function toJalaliDisplay(iso: string): string {
 export function isIsoDate(value: string): boolean {
   return ISO_RE.test((value ?? '').trim());
 }
+
+// Slot labels use Persian digits ('۱۸:۰۰ - ۱۹:۳۰'); normalize to get the
+// start of the slot in minutes since midnight. Same parse as the booking
+// form's stale-pick guard.
+export function slotStartMinutes(timeSlot: string): number | null {
+  const en = timeSlot.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+  const m = en.match(/(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+/** Current time in Tehran, in minutes since midnight. */
+export function tehranNowMinutes(): number {
+  const [hh, mm] = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Tehran',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+    .format(new Date())
+    .split(':')
+    .map(Number);
+  return (hh || 0) * 60 + (mm || 0);
+}
+
+/** True when a booking on `date` (Gregorian YYYY-MM-DD) starting at
+ *  `timeSlot` can still be cancelled: future days always, today only if
+ *  the slot has not started yet (Tehran time). An unparsable slot stays
+ *  cancellable — same as the old date-only gate — rather than blocking
+ *  on a guess. */
+export function isBookingCancellable(
+  date: string,
+  timeSlot: string,
+  tehranToday: string
+): boolean {
+  if (date < tehranToday) return false;
+  if (date > tehranToday) return true;
+  const start = slotStartMinutes(timeSlot);
+  if (start === null) return true;
+  return start > tehranNowMinutes();
+}

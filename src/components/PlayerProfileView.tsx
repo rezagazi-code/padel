@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
 import { AuthModal } from './AuthModal';
-import { PlayingHand, PlayingSide } from '../types';
+import { PlayingHand, PlayingSide, type Booking } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
 import { levelToGrade, gradeBandFa, SKILL_GRADES, GRADE_MIDPOINT } from '../utils/skillGrades';
@@ -26,7 +26,9 @@ import {
   Trophy,
   History
 } from 'lucide-react';
-import { toJalaliDisplay } from '../utils/dates';
+import { toJalaliDisplay, isBookingCancellable } from '../utils/dates';
+import { fetchMyBookings } from '../lib/db';
+import { getSupabase } from '../lib/supabase';
 import { Badges } from './Badges';
 import { CURRENT_VERSION_NAME } from '../lib/appUpdate';
 
@@ -63,6 +65,47 @@ export const PlayerProfileView: React.FC = () => {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date());
+
+  // Server bookings: context `bookings` only covers this device's
+  // localStorage, so after a cache clear / reinstall / new device the
+  // history looked empty. When the signed-in user opens the history tab,
+  // load their server bookings and merge them in (dedupe by id, local-only
+  // bookings stay visible).
+  const userId = user?.id;
+  const [serverBookings, setServerBookings] = useState<Booking[]>([]);
+  useEffect(() => {
+    if (activeTab !== 'history' || !userId || !getSupabase()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const server = await fetchMyBookings(userId);
+        if (!cancelled) setServerBookings(server);
+      } catch {
+        // Keep local-only history when the server read fails.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, userId]);
+  const displayBookings: Booking[] = [
+    ...bookings,
+    ...serverBookings.filter((sb) => !bookings.some((b) => b.id === sb.id)),
+  ];
+
+  // Cancel, then re-read the server list so the view reflects server
+  // truth: a failed remote delete keeps the booking visible, a successful
+  // one drops it. (Local bookings are removed from context by cancelBooking.)
+  const handleCancelBooking = async (bookingId: string) => {
+    await cancelBooking(bookingId);
+    if (userId && getSupabase()) {
+      try {
+        setServerBookings(await fetchMyBookings(userId));
+      } catch {
+        // Keep the current list on a refresh failure.
+      }
+    }
+  };
 
   // Change-password form state
   const [showPwForm, setShowPwForm] = useState(false);
@@ -699,14 +742,14 @@ export const PlayerProfileView: React.FC = () => {
           <div className="rounded-3xl bg-white/[0.06] border border-white/10 p-6 space-y-4">
             <h3 className="text-base font-black text-slate-100 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-[#ff6b81]" />
-              سانس‌های رزرو شده زمین‌های پدل ({bookings.length})
+              سانس‌های رزرو شده زمین‌های پدل ({displayBookings.length})
             </h3>
 
-            {bookings.length === 0 ? (
+            {displayBookings.length === 0 ? (
               <p className="text-xs text-slate-500 py-6 text-center">هنوز هیچ زمینی رزرو نکرده‌اید.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bookings.map((b) => (
+                {displayBookings.map((b) => (
                   <div
                     key={b.id}
                     className="p-4 rounded-2xl bg-white/[0.05] border border-white/10 space-y-3 text-xs"
@@ -723,9 +766,9 @@ export const PlayerProfileView: React.FC = () => {
 
                     <div className="flex items-center justify-between text-slate-500 pt-2 border-t border-white/10">
                       <span>{toJalaliDisplay(b.date)} | {b.timeSlot}</span>
-                      {b.date >= tehranToday && (
+                      {isBookingCancellable(b.date, b.timeSlot, tehranToday) && (
                         <button
-                          onClick={() => void cancelBooking(b.id)}
+                          onClick={() => void handleCancelBooking(b.id)}
                           className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

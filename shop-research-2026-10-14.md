@@ -207,3 +207,95 @@ padelone.ir, paymansport.com. Watch list: mizanpadel.ir (uniform pricing).
 - @matinsport's IG bio revealed the official-rep chain
   (@allforpadel.iran = Adidas Padel ایران, @jomasportiran = Joma) — both
   have no live priced independent sites (domains dead).
+
+---
+
+## PASS 3 — third store-researcher run (11:09–11:45 +0330)
+
+Goal: 1–2 NEW Iranian online shops with PUBLIC real padel prices (not DM-only).
+Already covered (see passes above + 10-12/10-13): Torob, Divar, tennisfa.com,
+tennisshop.ir, shop.alo-varzesh.com, Emalls, Digikala, padeliran.ir,
+sportstations.ir, iranjsport.com, hivapadel.com, tennis24shop.com,
+seendaalshop.ir, tagmond.com, bapateam.ir, racketstore.ir, zitazi.com,
+tennisban.ir, hivajet.com, padelone.ir, paymansport.com, sportsaeed.com,
+onesport.ir, sunsportiran.com. Watch list: mizanpadel.ir (uniform pricing).
+
+### ✅ RECOMMENDED: NONE this pass
+
+No new shop met the bar (real padel-gear inventory + public per-model prices +
+scrapable). The reachable pool is now essentially harvested — this pass
+checked ~50 domain probes + ~8 web queries + Torob/Emalls seller-name crawls
+and every new lead failed verification (see rejections below).
+
+### ⚠️ WATCH LIST / BORDERLINE (not recommended)
+
+#### ایران اورجینال (IranOriginal) — iranoriginal.com
+- **URL:** https://iranoriginal.com — live, Iranian apparel/footwear retailer
+  (New Balance importer; Tehran-based online shop).
+- **Padel inventory:** THIN — exactly ONE padel product: own-brand «تیشرت پدل
+  برند ایران اورجینال» in 11 size/color variants (product IDs 7570668–7570673,
+  7585589–7585606). NO rackets, shoes, balls, bags, or accessories. The
+  «راکت پدل bullpadel» string seen in an early title scrape was a tag/category
+  label, not a product.
+- **Price visibility:** PUBLIC — 5,200,000 تومان per shirt, confirmed on a
+  product page (curl 200, price in server-rendered HTML, no login).
+- **Scrapability:** FULL via curl — HTTPS 200, server-rendered HTML.
+- **Verdict:** NOT a padel-gear shop — a general apparel shop with one
+  padel-themed T-shirt design. Do not add to the padel-gear price search.
+  Revisit only if it lists real rackets/shoes/balls. City: تهران (online
+  shop; no padel-specific branch info).
+
+### ❌ Checked but REJECTED this pass
+- **noxpadel.ir** (live 200!) — WordPress brochure site for «Noxepadel» (Nox
+  rackets/bags showcase + 2023 catalogue PDF). NO WooCommerce routes
+  (/shop, /products, wp-json store API all 404), no product pages, no prices.
+  Brand showcase, not a shop.
+- **padel.ir** — «پلتفرم جامع پدل ایران» (court booking + shop + coaching +
+  ranking). Shop page (shop.php) is EMPTY: «محصولی یافت نشد», 0 products,
+  placeholder phone 021-XXXXXXXX, 0 clubs/coaches. Launching/empty platform,
+  no real inventory. Revisit if the shop ever lists products.
+- **sportland.ir** — general sportswear/apparel shop (تهران). Site search for
+  «پدل» returns the homepage; 2 incidental «پدل» mentions (tennis bags).
+  No padel gear.
+- **varzeshland.ir** — JS-redirect (Selva shop builder) landing, 0 padel
+  mentions. Unverifiable padel inventory.
+- **tennisproshop.ir** («تنیس پرو شاپ», Torob seller of tennis strings/balls)
+  — 406 from this environment; no web presence confirming any padel
+  inventory. Torob-only evidence (tennis strings/balls) → unverified, rejected.
+- **bahmansport.ir** («ورزشی بهمن») — gym-equipment shop (0 padel mentions).
+- **darnial.ir** («مجموعه دارنیال») — ping-pong specialist shop (0 padel).
+- **6sports.ir** («شش اسپورتس») — general sports shop (0 padel mentions).
+- **padelmarket.com** — Spanish shop (EUR prices, Trustpilot) — foreign.
+- **padelstore.com** — Dutch shop (EUR, «shipped today») — foreign.
+- **padelhouse.com / chiashop.com** — domain-for-sale pages, not shops.
+- **iranpasaj.com, iranmahbanoo.com/.ir, mahbanoo.ir, tapsishop.ir/.com** —
+  dead (000). «ایران ماه بانو» / «تپسی شاپ» / «ایران پاساژ» remain
+  marketplace-only sellers (Emalls/Basalam) with no independent priced sites.
+- **Dead domains (000):** padelbaz.com, padeliran.net/.shop/.store,
+  bullpadel.ir, siux.ir, oxdog.ir, kuikma.ir, padelshopiran.ir/.com,
+  irpadel.ir, padeltehran.ir, tehranpadel.com, padelisfahan.ir,
+  padelmashhad.ir, padelshiraz.ir, padelkish.com/.ir, kishpadel.ir,
+  padelkaraj.ir, padelpro.ir, padelclub.ir, padelracket.ir,
+  padelracketshop.ir, racketpadel.ir, tennisland.ir, padelkala.ir/.com,
+  padelbazar.ir, padelgear.ir, padelsport.ir, padel24.ir, padelshop24.ir/.com,
+  padelworld.ir, padelstar.ir, padelacademy.ir, padeltop.ir, topspadel.ir,
+  padelbazaar.ir, padelstore.ir, padelgalaxy.ir, padelsports.ir,
+  sportpadel.ir, padeliran24.ir, tennissproshop.ir, saminsport.ir,
+  rensoshop.ir, persiantennis.ir.
+- **Emalls/Torob re-crawl:** no new sellers with independent priced sites.
+  New names («پدل باز», «ویلسون», «رنسو شاپ», «تنیس پرو شاپ») are Torob-only.
+- **koodakoo.com** — toy shop; single toy «پدل» mention (already rejected).
+- **raseel.gift** — Saudi gift shop (SAR) — foreign.
+
+### Notes
+- This pass: ~8 web queries (fa) + ~50 curl domain probes + 4 full page
+  scrapes (noxpadel, padel.ir/shop.php, iranoriginal search + product page)
+  + Torob ball-list + Emalls seller-name crawls.
+- Pool assessment: EXHAUSTED for the current method (domain guesses + Emalls/
+  Torob seller crawls + generic fa queries). Next passes need a genuinely
+  different angle: Instagram bio link-outs from padel clubs (pro-shop pages),
+  Bazaar/CafeBazaar app-store listings of padel shops, or asking رضا for
+  shops he knows. Re-check watch-list items (padel.ir, iranoriginal.com,
+  mizanpadel.ir) rather than re-probing dead domains.
+- torob.com remains blocked from this environment (curl); seller names keep
+  coming from Torob's Google crawl instead.

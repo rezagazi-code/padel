@@ -160,16 +160,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     currentClub?.courts.find((ct) => ct.id === selectedCourtId) ||
     currentClub?.courts[0];
 
-  // Reset selected club when province changes
+  // Reset selected club when province changes — but keep the current club
+  // when it is still inside the new filter. (Radar Reserve sets the
+  // province to 'همه استان‌ها' AND a target club in the same batch; an
+  // unconditional reset to the first club overwrote the radar target.)
   useEffect(() => {
-    const firstInFilter = clubs.filter(
+    const inFilter = clubs.filter(
       (c) => selectedProvince === 'همه استان‌ها' || c.province === selectedProvince
-    )[0];
-    if (firstInFilter && firstInFilter.id !== selectedClubId) {
-      setSelectedClubId(firstInFilter.id);
+    );
+    if (inFilter.length > 0 && !inFilter.some((c) => c.id === selectedClubId)) {
+      setSelectedClubId(inFilter[0].id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProvince]);
+  }, [selectedProvince, selectedClubId, clubs]);
 
   // Real availability: reload booked intervals whenever the court or date changes.
   useEffect(() => {

@@ -185,6 +185,12 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
 
             {/* Horizontal cards — sorted by distance */}
             <div className="mt-5">
+              {ranked.length === 0 ? (
+                <p className="text-center text-sm text-slate-400 py-10">
+                  باشگاهی با موقعیت مکانی ثبت‌شده پیدا نشد.
+                </p>
+              ) : (
+                <>
               <p className="text-xs font-black text-slate-300 mb-2 px-1">
                 مرتب‌شده بر اساس فاصله
               </p>
@@ -223,6 +229,8 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
                   </button>
                 ))}
               </div>
+                </>
+              )}
             </div>
           </>
         )}

@@ -253,6 +253,33 @@ export async function fetchTournaments(): Promise<Tournament[]> {
   return (tournaments ?? []).map((r) => mapTournament(r, byTournament.get(String(r.id)) ?? []));
 }
 
+export interface TournamentTeamInput {
+  tournamentId: string;
+  teamName: string;
+  player1Id: string | null;
+  player1Name: string;
+  player1Level: number;
+  player2Id?: string | null;
+  player2Name: string;
+  player2Level: number;
+}
+
+export async function insertTournamentTeam(input: TournamentTeamInput): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { error } = await sb.from('tournament_teams').insert({
+    tournament_id: input.tournamentId,
+    team_name: input.teamName,
+    player1_id: input.player1Id,
+    player1_name: input.player1Name,
+    player1_level: input.player1Level,
+    player2_id: input.player2Id ?? null,
+    player2_name: input.player2Name,
+    player2_level: input.player2Level,
+  });
+  if (error) throw error;
+}
+
 // ============ Manager v2: clubs, courts, tournaments, booking admin ============
 // RLS: clubs insert/update/delete = super_admin; courts write = super_admin or
 // the club's own admin; tournaments insert/update/delete = super_admin (or the

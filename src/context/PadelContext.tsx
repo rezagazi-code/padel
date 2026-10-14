@@ -49,8 +49,10 @@ import {
   DOUBLE_BOOKED,
   upsertClubRating,
   fetchMyClubRatings,
+  insertTournamentTeam,
 } from '../lib/db';
 import { useAuthOptional } from './AuthContext';
+import { isBookingCancellable } from '../utils/dates';
 
 export type ActiveTab =
   | 'booking'
@@ -307,7 +309,32 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ]);
         if (!cancelled) {
           if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
-          if (remoteTournaments.length > 0) setTournaments(remoteTournaments);
+          if (remoteTournaments.length > 0) {
+            // MERGE, don't replace: a registration that only exists locally
+            // (e.g. inserted while offline, or its server insert failed)
+            // must survive the catalog reload. Match by team name; the
+            // remote row wins when a team exists in both.
+            setTournaments((prev) => {
+              const prevById = new Map(prev.map((t) => [t.id, t]));
+              return remoteTournaments.map((rt) => {
+                const local = prevById.get(rt.id);
+                if (!local) return rt;
+                const remoteNames = new Set(
+                  rt.registeredTeams.map((tm) => tm.teamName.trim())
+                );
+                const localOnly = local.registeredTeams.filter(
+                  (tm) => !remoteNames.has(tm.teamName.trim())
+                );
+                if (localOnly.length === 0) return rt;
+                const merged = [...rt.registeredTeams, ...localOnly];
+                return {
+                  ...rt,
+                  registeredTeams: merged,
+                  registeredTeamsCount: merged.length,
+                };
+              });
+            });
+          }
         }
         if (remoteCoaches.length > 0) {
           setCoaches((prev) => {
@@ -776,8 +803,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const cancelBooking = async (bookingId: string): Promise<void> => {
-    // Defense in depth: past-date bookings can never be cancelled. The
-    // history view hides the button for past dates; this guards every other
+    // Defense in depth: past bookings — and same-day slots whose start
+    // time (Tehran) has already passed — can never be cancelled. The
+    // history view hides the button for those; this guards every other
     // caller of cancelBooking.
     const target = bookings.find((b) => b.id === bookingId);
     if (target) {
@@ -787,8 +815,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         month: '2-digit',
         day: '2-digit',
       }).format(new Date());
-      if (target.date < tehranToday) {
-        setSyncNotification('رزروهای گذشته قابل لغو نیستند.');
+      if (!isBookingCancellable(target.date, target.timeSlot, tehranToday)) {
+        setSyncNotification('رزروهای گذشته یا شروع‌شده قابل لغو نیستند.');
         return;
       }
     }
@@ -1457,6 +1485,32 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
     setSyncNotification(`تیم «${teamName}» با موفقیت در تورنومنت ثبت شد.`);
+    // Persist to Supabase (fire-and-forget): without this the registration
+    // only lives in local state/localStorage and is wiped on the next
+    // catalog reload from the server. The local state above is the
+    // optimistic fallback — a failed insert never blocks or undoes it.
+    // Local-only tournaments (ids like `tourn-…`) have no server row, so
+    // their teams can't be inserted (tournament_id is a UUID FK).
+    if (
+      getSupabase() &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
+    ) {
+      void insertTournamentTeam({
+        tournamentId: tournId,
+        teamName,
+        player1Id: auth?.user?.id ?? null,
+        player1Name: playerProfile.name,
+        player1Level: playerProfile.level,
+        player2Id: null,
+        player2Name: partnerName,
+        player2Level: partnerLevel,
+      }).catch((err) => {
+        console.warn(
+          'registerTournamentTeam remote insert failed, keeping local registration',
+          err
+        );
+      });
+    }
     return true;
   };
 
@@ -1466,6 +1520,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     runnerUpTeamName: string
   ) => {
     const tourn = tournaments.find((t) => t.id === tournId);
+    // Defense in depth (the UI validates too): winner/runner-up must be
+    // registered teams and must differ — otherwise rankings get points
+    // for ghost teams and the tournament is wrongly marked completed.
+    const norm = (s: string) => s.trim();
+    const names = new Set((tourn?.registeredTeams ?? []).map((tm) => norm(tm.teamName)));
+    if (
+      !tourn ||
+      !names.has(norm(winnerTeamName)) ||
+      !names.has(norm(runnerUpTeamName)) ||
+      norm(winnerTeamName) === norm(runnerUpTeamName)
+    ) {
+      setSyncNotification('نتیجه نهایی ثبت نشد: نام تیم‌ها باید از تیم‌های ثبت‌نام‌شده و متفاوت باشند.');
+      return;
+    }
     setTournaments((prev) =>
       prev.map((t) => {
         if (t.id === tournId) {

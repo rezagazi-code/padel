@@ -78,6 +78,7 @@ export const TournamentsView: React.FC = () => {
   const [tournamentToDelete, setTournamentToDelete] = useState<Tournament | null>(null);
   const [winnerTeamInput, setWinnerTeamInput] = useState('');
   const [runnerUpTeamInput, setRunnerUpTeamInput] = useState('');
+  const [finalizeError, setFinalizeError] = useState('');
 
   // Create Tournament Form
   const [newTitle, setNewTitle] = useState('');
@@ -178,8 +179,29 @@ export const TournamentsView: React.FC = () => {
   const handleFinalize = (e: React.FormEvent) => {
     e.preventDefault();
     if (!showFinalizeModal) return;
-
-    finalizeTournamentResults(showFinalizeModal.id, winnerTeamInput, runnerUpTeamInput);
+    setFinalizeError('');
+    // Validate the free-text inputs: both names must be registered teams
+    // in this tournament and must differ — otherwise rankings get points
+    // for ghost teams and the tournament is wrongly marked completed.
+    const norm = (s: string) => s.trim();
+    const winner = norm(winnerTeamInput);
+    const runnerUp = norm(runnerUpTeamInput);
+    const names = new Set(
+      showFinalizeModal.registeredTeams.map((tm) => norm(tm.teamName))
+    );
+    if (!winner || !names.has(winner)) {
+      setFinalizeError('نام تیم قهرمان باید یکی از تیم‌های ثبت‌نام‌شده در این تورنومنت باشد.');
+      return;
+    }
+    if (!runnerUp || !names.has(runnerUp)) {
+      setFinalizeError('نام تیم نایب‌قهرمان باید یکی از تیم‌های ثبت‌نام‌شده در این تورنومنت باشد.');
+      return;
+    }
+    if (winner === runnerUp) {
+      setFinalizeError('تیم قهرمان و نایب‌قهرمان نمی‌توانند یک تیم باشند.');
+      return;
+    }
+    finalizeTournamentResults(showFinalizeModal.id, winner, runnerUp);
     setShowFinalizeModal(null);
   };
 
@@ -416,6 +438,7 @@ export const TournamentsView: React.FC = () => {
                           <button
                             onClick={() => {
                               setShowFinalizeModal(tourn);
+                              setFinalizeError('');
                               setWinnerTeamInput(tourn.registeredTeams[0]?.teamName || 'تیم قهرمان');
                               setRunnerUpTeamInput(tourn.registeredTeams[1]?.teamName || 'تیم نایب‌قهرمان');
                             }}
@@ -786,6 +809,10 @@ export const TournamentsView: React.FC = () => {
                   className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
+
+              {finalizeError && (
+                <p className="text-rose-400 text-[11px] font-bold leading-relaxed">{finalizeError}</p>
+              )}
 
               <div className="pt-2 flex gap-2">
                 <button
