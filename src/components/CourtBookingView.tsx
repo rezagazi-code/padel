@@ -1169,6 +1169,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             setShowNearest(false);
             setSelectedProvince('همه استان‌ها');
             setExpandedCourtId(null);
+            const target = clubs.find((c) => c.id === clubId);
+            if (target) {
+              setSelectedClubId(target.id);
+              if (target.courts.length > 0) {
+                setSelectedCourtId(target.courts[0].id);
+              }
+            }
             setExpandedClubId(clubId);
             setTimeout(() => {
               document

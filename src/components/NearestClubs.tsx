@@ -81,6 +81,15 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Escape key always dismisses the radar overlay
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   const ranked: ClubWithMeta[] = useMemo(() => {
     if (!userPos) return [];
     return clubs
@@ -103,9 +112,21 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
     <div
       dir="rtl"
       className="fixed inset-0 z-[70] bg-[#0a0f1c]/95 backdrop-blur-xl overflow-y-auto"
+      onClick={(e) => {
+        // Clicking the dimmed backdrop (not content) dismisses the overlay
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
+      {/* Fixed dismiss button — always on top of every overlay layer (z-[90]) so it can never be obscured */}
+      <button
+        onClick={onClose}
+        className="fixed top-4 left-4 z-[90] w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-slate-300 hover:bg-white/[0.12] cursor-pointer"
+        aria-label="بستن"
+      >
+        <X className="w-4 h-4" />
+      </button>
       <div className="min-h-full flex flex-col max-w-2xl mx-auto px-4 py-5">
-        {/* Header — sticky so the dismiss (بستن) button stays reachable while scrolling */}
+        {/* Header — title + subtitle (dismiss moved to a fixed top-corner button) */}
         <div className="sticky top-0 z-10 -mx-4 px-4 py-3 mb-3 bg-[#0a0f1c]/90 backdrop-blur-xl flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="w-10 h-10 rounded-2xl bubble-btn flex items-center justify-center">
@@ -118,13 +139,6 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-slate-300 hover:bg-white/[0.12] cursor-pointer"
-            aria-label="بستن"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
 
         {status === 'locating' && (
