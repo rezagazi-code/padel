@@ -430,49 +430,41 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   return (
     <div className="space-y-6 pb-12">
       
-      {/* Hero — Midnight Volt, court-lines watermark */}
-      <div className="relative overflow-hidden rounded-[2rem] grad-border court-watermark">
-        <img
-          src="/hero-court.jpg"
-          alt="زمین پدل"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#060a13] via-[#060a13]/60 to-[#060a13]/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#060a13]/85 via-transparent to-transparent" />
-        <div className="relative z-10 p-6 sm:p-10 flex flex-col gap-4 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-bold text-slate-200 w-fit">
-            <span className="w-2 h-2 rounded-full bg-[#ff2d55] animate-pulse-dot" />
-            رزرو هوشمند و لحظه‌ای زمین‌های پدل سراسر کشور
+      {/* Nearest Club — prominent red entry (replaces hero) */}
+      <div className="relative overflow-hidden rounded-[2rem] grad-border p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#ff2d55]/15 border border-[#ff2d55]/30 flex items-center justify-center">
+              <Radar className="w-6 h-6 text-[#ff2d55]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-white">نزدیک‌ترین باشگاه به شما</h2>
+              <p className="text-xs text-slate-400 mt-0.5">با GPS، فاصله و مسیریابی قرمز تا باشگاه</p>
+            </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-snug">
-            رزرو زمین پدل با <span className="grad-text">استانداردهای جهانی</span> Playtomic
-          </h1>
-          <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
-            انتخاب کورت‌های شیشه‌ای پانورامیک، چمن تخصصی Mondo 4NX، زمان‌بندی دقیق و پرداخت سهمی ۴ نفره به همراه اعلام نیاز به بازیکن.
-          </p>
-          <div className="flex flex-wrap items-center gap-3 pt-1">
-            <button
-              onClick={onOpenClubOwnerModal}
-              className="flex items-center gap-2 bubble-btn rounded-full font-black text-sm px-6 py-3.5"
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>افزودن باشگاه و زمین (ویژه باشگاه‌داران)</span>
-            </button>
-            <button
-              onClick={() => document.getElementById('clubs-list')?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex items-center gap-2 btn-ghost btn text-sm px-6 py-3.5 rounded-2xl"
-            >
-              <Sparkles className="w-5 h-5 text-ice" />
-              <span>مشاهده باشگاه‌ها</span>
-            </button>
-            <button
-              onClick={() => setShowNearest(true)}
-              className="flex items-center gap-2 bubble-btn rounded-full font-black text-sm px-6 py-3.5 text-white"
-            >
-              <Radar className="w-5 h-5" />
-              <span>نزدیک‌ترین باشگاه</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setShowNearest(true)}
+            className="flex items-center gap-2 bubble-btn-fire rounded-full font-black text-sm px-8 py-4 text-white shadow-lg shadow-[#ff2d55]/25"
+          >
+            <Radar className="w-5 h-5" />
+            <span>پیدا کردن نزدیک‌ترین باشگاه</span>
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 pt-4 mt-4 border-t border-white/10">
+          <button
+            onClick={onOpenClubOwnerModal}
+            className="flex items-center gap-2 bubble-btn rounded-full font-black text-sm px-6 py-3.5"
+          >
+            <PlusCircle className="w-5 h-5" />
+            <span>افزودن باشگاه و زمین (ویژه باشگاه‌داران)</span>
+          </button>
+          <button
+            onClick={() => document.getElementById('clubs-list')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-2 btn-ghost btn text-sm px-6 py-3.5 rounded-2xl"
+          >
+            <Sparkles className="w-5 h-5 text-ice" />
+            <span>مشاهده باشگاه‌ها</span>
+          </button>
         </div>
 
         {/* Province Filter — the core org model (central onboarding per province) */}
