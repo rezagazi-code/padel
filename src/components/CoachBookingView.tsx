@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { Coach } from '../types';
@@ -34,6 +34,8 @@ export const CoachBookingView: React.FC = () => {
   const [formRate, setFormRate] = useState('');
   const [formError, setFormError] = useState('');
   const [formSaving, setFormSaving] = useState(false);
+  // Ref-based double-submit guard for coach booking confirmation.
+  const bookingSubmittingRef = useRef(false);
 
   const handleAddCoach = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +94,10 @@ export const CoachBookingView: React.FC = () => {
   const handleConfirmBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCoach) return;
+    // Double-submit guard: bookCoach is synchronous, so a ref blocks a
+    // same-tick double submit that would create duplicate coach bookings.
+    if (bookingSubmittingRef.current) return;
+    bookingSubmittingRef.current = true;
 
     let multiplier = 1;
     if (sessionType === 'Duo Clinic') multiplier = 1.3;
@@ -113,6 +119,7 @@ export const CoachBookingView: React.FC = () => {
 
     setSelectedCoach(null);
     setShowReceiptModal(newBooking);
+    bookingSubmittingRef.current = false;
 
     try {
     } catch {}

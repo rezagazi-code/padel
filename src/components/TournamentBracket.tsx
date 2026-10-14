@@ -32,6 +32,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   const [scoreT2S1, setScoreT2S1] = useState(4);
   const [scoreT2S2, setScoreT2S2] = useState(3);
   const [selectedWinnerId, setSelectedWinnerId] = useState<string>('');
+  const [scoreError, setScoreError] = useState<string | null>(null);
 
   if (!bracket || bracket.length === 0) {
     return (
@@ -49,6 +50,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   const handleOpenEdit = (m: BracketMatch) => {
     if (!canManage) return;
     setEditingMatch(m);
+    setScoreError(null);
     setSelectedWinnerId(m.winnerId || m.team1?.id || '');
     // Always start from defaults: a cancelled edit's typed values must never
     // leak into the next match's modal.
@@ -70,12 +72,33 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     e.preventDefault();
     if (!editingMatch || !onUpdateMatch || !selectedWinnerId) return;
 
+    // Validate score/winner consistency: no tied sets, and the selected
+    // winner must have strictly more set wins than the loser.
+    const t1 = [scoreT1S1, scoreT1S2];
+    const t2 = [scoreT2S1, scoreT2S2];
+    for (let i = 0; i < 2; i++) {
+      if (t1[i] === t2[i]) {
+        setScoreError('امتیاز ست‌ها نمی‌تواند مساوی باشد. لطفاً امتیازها را اصلاح کنید.');
+        return;
+      }
+    }
+    const t1SetWins = t1.filter((_, i) => t1[i] > t2[i]).length;
+    const t2SetWins = t2.filter((_, i) => t2[i] > t1[i]).length;
+    const winnerIsTeam1 = selectedWinnerId === (editingMatch.team1?.id || 't1');
+    const winnerSetWins = winnerIsTeam1 ? t1SetWins : t2SetWins;
+    const loserSetWins = winnerIsTeam1 ? t2SetWins : t1SetWins;
+    if (winnerSetWins <= loserSetWins) {
+      setScoreError('امتیاز ست‌ها با تیم برنده انتخاب‌شده سازگار نیست.');
+      return;
+    }
+
     onUpdateMatch(editingMatch.id, selectedWinnerId, [
       scoreT1S1,
       scoreT1S2,
       scoreT2S1,
       scoreT2S2
     ]);
+    setScoreError(null);
     setEditingMatch(null);
   };
 
@@ -381,7 +404,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     name="winner"
                     value={editingMatch.team1?.id || 't1'}
                     checked={selectedWinnerId === (editingMatch.team1?.id || 't1')}
-                    onChange={() => setSelectedWinnerId(editingMatch.team1?.id || 't1')}
+                    onChange={() => { setSelectedWinnerId(editingMatch.team1?.id || 't1'); setScoreError(null); }}
                     className="accent-[#ff2d55]"
                   />
                   <span>تیم ۱: {editingMatch.team1?.name || 'تعیین نشده'} (انتخاب به عنوان برنده)</span>
@@ -393,7 +416,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     min={0}
                     max={7}
                     value={scoreT1S1}
-                    onChange={(e) => setScoreT1S1(Number(e.target.value))}
+                    onChange={(e) => { setScoreT1S1(Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
                   <span className="text-[11px] text-slate-500">ست دوم:</span>
@@ -402,7 +425,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     min={0}
                     max={7}
                     value={scoreT1S2}
-                    onChange={(e) => setScoreT1S2(Number(e.target.value))}
+                    onChange={(e) => { setScoreT1S2(Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
                 </div>
@@ -416,7 +439,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     name="winner"
                     value={editingMatch.team2?.id || 't2'}
                     checked={selectedWinnerId === (editingMatch.team2?.id || 't2')}
-                    onChange={() => setSelectedWinnerId(editingMatch.team2?.id || 't2')}
+                    onChange={() => { setSelectedWinnerId(editingMatch.team2?.id || 't2'); setScoreError(null); }}
                     className="accent-[#ff2d55]"
                   />
                   <span>تیم ۲: {editingMatch.team2?.name || 'تعیین نشده'} (انتخاب به عنوان برنده)</span>
@@ -428,7 +451,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     min={0}
                     max={7}
                     value={scoreT2S1}
-                    onChange={(e) => setScoreT2S1(Number(e.target.value))}
+                    onChange={(e) => { setScoreT2S1(Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
                   <span className="text-[11px] text-slate-500">ست دوم:</span>
@@ -437,11 +460,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     min={0}
                     max={7}
                     value={scoreT2S2}
-                    onChange={(e) => setScoreT2S2(Number(e.target.value))}
+                    onChange={(e) => { setScoreT2S2(Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
                 </div>
               </div>
+
+              {scoreError && (
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 text-center">
+                  {scoreError}
+                </div>
+              )}
 
               <div className="flex gap-2 pt-2">
                 <button

@@ -422,3 +422,164 @@ padel.ir (empty shop), iranoriginal.com (one padel T-shirt only).
   rackets URL 404 (guessed URL, inconclusive — uniform-pricing watch
   status unchanged), iranoriginal.com search timed out (000, inconclusive).
   No watch-list status changes from this probe.
+
+---
+
+## PASS 5 — fifth store-researcher run (19:15–19:50 +0330)
+
+Goal: 1–2 NEW Iranian online shops with PUBLIC real padel prices (not DM-only).
+Already covered (passes 1–4 above + 10-12/10-13): Torob, Divar, tennisfa.com,
+tennisshop.ir, shop.alo-varzesh.com, Emalls, Digikala, padeliran.ir,
+sportstations.ir, iranjsport.com, hivapadel.com, tennis24shop.com,
+seendaalshop.ir, tagmond.com, bapateam.ir, racketstore.ir, zitazi.com,
+tennisban.ir, hivajet.com, padelone.ir, paymansport.com, sportsaeed.com,
+onesport.ir, sunsportiran.com, decathlonsport.ir, alirezashop.org.
+Watch list: mizanpadel.ir (uniform pricing), padel.ir (empty shop),
+iranoriginal.com (one padel T-shirt only), winnersport.ir (suspended).
+
+### ✅ RECOMMENDED: NONE this pass
+
+No new shop met the bar. Queries only re-surfaced already-covered shops
+(tennisshop.ir, tennisfa.com, seendaalshop.ir, tennisban.ir,
+sportstations.ir, emalls.ir sellers = Torob-only).
+
+### Watch-list recheck (curl-verified, all 200 this pass)
+- **mizanpadel.ir/product-category/rackets/** — re-fetched and text-extracted:
+  STILL the same uniform pricing (اکس کالیون UNUM S1 66.000.000 تومان،
+  «قیمت فعلی 62.000.000 تومان» for every racket; no per-model variation).
+  Stays OFF the recommended list. آبادان.
+- **padel.ir/shop.php** — content re-inspected: still «محصولی یافت نشد»
+  (shop is empty, placeholder phone 021-XXXXXXXX). Stays on watch list.
+- **winnersport.ir** — still suspended (plain fetch returns the 302
+  suspension redirect body). Stays on watch list.
+- **iranoriginal.com** — 200; not re-inspected this pass (verified 10-14:
+  one padel-themed T-shirt only). Watch status unchanged.
+
+### ❌ Checked but REJECTED this pass
+- **Dead domains (000):** padelacademy.ir, padelkala.ir, padelstoreiran.ir,
+  padelshoes.ir, iranpadelstore.ir, padelshopping.ir, padelbag.ir,
+  padelball.ir, topadpadel.ir, padelgeariran.ir, padelclubshop.ir,
+  padelstoreiran.com, padelstoreonline.ir, padelmarketiran.ir — all
+  non-existent from this environment.
+- **Provincial query** (مشهد/شیراز/اصفهان/تبریز): results were bike shops,
+  Telegram-only channels (@patelon_shiraz = Telegram-order shop, Shiraz),
+  bicycle tools, foreign sites (hepsiburada, beymen) — no new priced
+  storefront with padel inventory.
+
+### Notes
+- This pass: ~4 web queries (fa) + ~18 curl domain probes + 3 watch-list
+  content re-inspections (text-extracted, not just HTTP status).
+- Pool assessment: EXHAUSTED for the current angles (domain guesses,
+  fa/en queries, Torob/Emalls seller crawls, provincial queries).
+  Next passes should use a genuinely different method: crawl Instagram
+  padel-club bios for bio-link shops, check CafeBazaar for padel shop
+  apps, or ask رضا directly for shops he knows — re-probing dead domains
+  has a near-zero hit rate now.
+- torob.com remains blocked from this environment (curl exit 52).
+
+---
+
+## PASS 6 — sixth store-researcher run (23:20–00:10 +0330, 14→15 Oct)
+
+Goal: 1–2 NEW Iranian online shops with PUBLIC real padel prices (not DM-only).
+Already covered (passes 1–5 above + 10-12/10-13): Torob, Divar, tennisfa.com,
+tennisshop.ir, shop.alo-varzesh.com, Emalls, Digikala, padeliran.ir,
+sportstations.ir, iranjsport.com, hivapadel.com, tennis24shop.com,
+seendaalshop.ir, tagmond.com, bapateam.ir, racketstore.ir, zitazi.com,
+tennisban.ir, hivajet.com, padelone.ir, paymansport.com, sportsaeed.com,
+onesport.ir, sunsportiran.com, decathlonsport.ir, alirezashop.org.
+Watch list: mizanpadel.ir (uniform pricing), padel.ir (empty shop),
+iranoriginal.com (one padel T-shirt only), winnersport.ir (suspended).
+
+### ✅ RECOMMENDED (add to live cheapest-price search)
+
+#### 1. تنادور (Tenador) — tenador.com
+- **URL:** https://www.tenador.com — surfaced via fresh fa query
+  «خرید آنلاین راکت پدل فروشگاه تخصصی قیمت» (Google crawl 28 days ago).
+- **Padel category (curl-verified):** https://www.tenador.com/padel —
+  «خرید تجهیزات و لوازم پدل | تنادور». Page says «تعداد کالا: 20»;
+  40 /products/ links seen in HTML (filters included).
+- **City:** ایران، فروشگاه آنلاین — no physical address on contact/about
+  pages; contact is info.tenador@gmail.com + contact form (24/7 support
+  claim). Site self-describes: «فروشگاه تخصصی تجهیزات ورزش‌های راکتی
+  در ایران».
+- **Identity:** Iranian racket-sports specialty e-shop (tennis + padel +
+  pickleball); dedicated /padel category with brand filters (نوکس،
+  بولپدل، هد) and series filters (FR Exclusive, XPLO, Gravity, Extreme,
+  Speed, Radical).
+- **Padel inventory:** YES — real named models, server-rendered with prices:
+  - راکت پدل نوکس Premium FR Exclusive 12K 2025 — ۸۷٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل نوکس Prestige 2.0 FR Exclusive 12K 2026 — ۸۷٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل بولپدل XPLO 25 — ۱۰۲٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل هد Gravity Motion 2024 — ۶۰٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل هد Gravity Pro 2024 — ۷۲٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل هد Vector 2025 — ۶۰٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل هد Extreme PWR — ۶۶٬۰۰۰٬۰۰۰ تومان
+  - راکت پدل هد Alpha Plus 2025 — ۶۶٬۰۰۰٬۰۰۰ تومان
+  - (bags/accessories on same category + homepage: ساک پدل پرو کنکس,
+    اورگریپ هد Padel Pro x3, اورگریپ بولپدل GB1705 x3; catalog JSON
+    shows padel «توپ» entries too)
+- **Price visibility:** PUBLIC — every card + product page shows Toman
+  price with add-to-cart, no login (verified in curl HTML).
+- **Scrapability:** FULL via curl — HTTPS 200 (~960KB homepage,
+  server-rendered HTML, no JS needed). Category page extracted cleanly;
+  product-page price verified (e.g. ساک پدل پرو کنکس Ace Station Tour 6R
+  — ۴۲٬۰۰۰٬۰۰۰ تومان, current price; Google's 28-day-old crawl showed
+  ۲۹٬۷۵۰٬۰۰۰ — price moves, still public).
+- **Caveats:** (1) prices not hyper-specific (round millions; 87/60/66
+  repeated twice) but brand/model/varied range 60M–102M — genuine
+  per-model pricing, not template-uniform like mizanpadel.ir; (2) no
+  physical store address/phone published — treat as online-only;
+  (3) padel range (20 items) is smaller than tennis range.
+- **Integration cost:** LOW — simple HTML price extraction.
+- **Confidence:** HIGH.
+
+### ⚠️ WATCH LIST / BORDERLINE (unchanged this pass)
+- **mizanpadel.ir** — rechecked 10-14 late: rackets category STILL uniform
+  (اکس کالیون UNUM S1 66.000.000, «قیمت فعلی 62.000.000» every racket;
+  content-level extraction this pass). Stays OFF.
+- **padel.ir/shop.php** — re-inspected this pass: still «محصولی یافت نشد»
+  (empty shop, placeholder phone 021-XXXXXXXX). Stays on watch list.
+- **winnersport.ir** — still 302 → /cgi-sys/suspendedpage.cgi (suspended).
+  Stays on watch list.
+- **iranoriginal.com** — 200, not re-inspected this pass (verified 10-14:
+  one padel T-shirt only). Watch status unchanged.
+
+### ❌ Checked but REJECTED this pass
+- **Instagram padel-seller sweep** (social.search, ~35 posts, fa queries):
+  active IG padel sellers found — @hitclub_store (240K followers,
+  اصفهان shop, prices via message), @extrapadel.ir (1.9K, «فروشگاه
+  تخصصی پدل», website extrapadel.ir dead 000 → IG-only),
+  @ace_sport1 (13K, «ثبت سفارش دایرکت»), @davis_sneaker_club1
+  (comment-a-number for price), @luna_stelleonlineshop («مدلشو بنویس
+  قیمتشو برات بفرستم»), @otaghporoo (24K, Dubai importer, comment-to-order),
+  @padelio_ (Tehran, comment «pack» to order), @padelhouse_shop (94
+  followers, padelhouse.ir dead), @oddny.collectibles (price slides on IG,
+  oddny.ir dead 000), @jomasportiran_padel → only links
+  www.matinsportshop.com (matinsport site, dead 000 ×5).
+  → ALL are DM/Telegram/WhatsApp/comment-to-order or website-dead.
+  Per the brief (no DM-only, website must show prices) all rejected —
+  but this confirms the IG padel-retail scene is almost entirely
+  DM-based; standalone priced sites are the exception, not the rule.
+- **CafeBazaar angle** — web search for padel shop apps found NO padel
+  gear-shop apps on CafeBazaar (only score-keeping/utility apps).
+  Dead end.
+- **Emalls padel-racket lists re-crawl** — sellers: وان اسپورت، اسپرت سعید
+  (covered), زیتازی/دیجی‌کالا/باسلام/ایران ماه بانو/تپسی شاپ/ایران پاساژ/
+  چیاشاپ (marketplace-only, no independent priced sites). No new names.
+- **Dead domains (000):** oddny.ir, padelio.ir, oddnystore.ir.
+
+### Notes
+- This pass: 3 web queries (fa) + ~10 curl probes + social.search sweep
+  (~35 IG posts reviewed) + 4 full page scrapes (tenador home, /padel,
+  product page, contact/about).
+- ONE new fully-qualified shop: tenador.com — Iranian online
+  racket-sports specialty shop with a real padel category (20 items,
+  Nox/Bullpadel/Head rackets + bags/accessories), public per-model Toman
+  prices, curl-scrapable server-rendered pages. No physical address
+  published (online-only).
+- Pool assessment: the Instagram sweep exhausted the "bio-link shop"
+  angle Pass 5 proposed — the IG padel sellers are nearly all
+  DM/Telegram-order based with no priced websites. Next passes:
+  re-check watch list (winnersport revival, padel.ir product fill,
+  mizanpadel pricing) or ask رضا for shops he knows.

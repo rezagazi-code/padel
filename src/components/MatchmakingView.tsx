@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
@@ -50,6 +50,8 @@ export const MatchmakingView: React.FC = () => {
   const [mainTab, setMainTab] = useState<'open' | 'friendly' | 'group'>('open');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [matchToDelete, setMatchToDelete] = useState<OpenMatch | null>(null);
+  // Ref-based double-submit guard for open-match creation.
+  const createMatchSubmittingRef = useRef(false);
 
   const canDeleteMatch = (m: OpenMatch) =>
     m.creatorId === playerProfile.id ||
@@ -126,28 +128,37 @@ export const MatchmakingView: React.FC = () => {
 
   const handleCreateMatch = (e: React.FormEvent) => {
     e.preventDefault();
-    const club = clubs.find((c) => c.id === newClubId) || clubs[0];
+    // Double-submit guard: the create modal stays open until the first
+    // submit completes, so a rapid double-tap would create two open
+    // matches. createOpenMatch is synchronous → a ref blocks it.
+    if (createMatchSubmittingRef.current) return;
+    createMatchSubmittingRef.current = true;
+    try {
+      const club = clubs.find((c) => c.id === newClubId) || clubs[0];
 
-    createOpenMatch({
-      title: newTitle || `مسابقه پدل در ${club.name}`,
-      clubId: club.id,
-      clubName: club.name,
-      courtName: newCourtName,
-      date: newDate,
-      time: newTime,
-      type: newType,
-      minLevel: Number(newMinLevel),
-      maxLevel: Number(newMaxLevel),
-      pricePerPlayer: Number(newPrice),
-      gender: newGender,
-      creatorId: playerProfile.id,
-      creatorName: playerProfile.name,
-      creatorAvatar: playerProfile.avatar,
-      creatorLevel: playerProfile.level,
-    });
+      createOpenMatch({
+        title: newTitle || `مسابقه پدل در ${club.name}`,
+        clubId: club.id,
+        clubName: club.name,
+        courtName: newCourtName,
+        date: newDate,
+        time: newTime,
+        type: newType,
+        minLevel: Number(newMinLevel),
+        maxLevel: Number(newMaxLevel),
+        pricePerPlayer: Number(newPrice),
+        gender: newGender,
+        creatorId: playerProfile.id,
+        creatorName: playerProfile.name,
+        creatorAvatar: playerProfile.avatar,
+        creatorLevel: playerProfile.level,
+      });
 
-    setShowCreateModal(false);
-    setNewTitle('');
+      setShowCreateModal(false);
+      setNewTitle('');
+    } finally {
+      createMatchSubmittingRef.current = false;
+    }
     try {} catch {
       // safe
     }

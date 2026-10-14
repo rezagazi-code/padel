@@ -342,7 +342,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               const localOnlyTourns = prev.filter(
                 (t) => t.id.startsWith('tourn-') && !remoteIds.has(t.id)
               );
-              return [...merged, ...localOnlyTourns];
+              // Local-only tournaments stay at the top (matching
+              // createTournament's prepend), so cards don't jump down the
+              // list after a catalog reload.
+              return [...localOnlyTourns, ...merged];
             });
           }
         }
@@ -1474,6 +1477,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('شما قبلاً در این تورنومنت تیم ثبت کرده‌اید.');
       return false;
     }
+    // Duplicate team names: the finalize flow matches teams by name, so
+    // identical names mis-credit rankings and the catalog-merge dedupe
+    // silently drops one registration. Compare trimmed + case-insensitive.
+    const normName = (s: string) => s.trim().toLowerCase();
+    if (t.registeredTeams.some((tm) => normName(tm.teamName) === normName(teamName))) {
+      setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
+      return false;
+    }
 
     const newTeam = {
       id: `tm-${Date.now()}`,
@@ -1486,11 +1497,18 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTournaments((prev) =>
       prev.map((x) => {
         if (x.id !== tournId) return x;
-        // Defensive: never exceed capacity or double-register on rapid clicks.
+        // Defensive: never exceed capacity, double-register on rapid
+        // clicks, or add a duplicate team name.
         if (x.registeredTeamsCount >= x.maxTeams) return x;
         if (
           x.registeredTeams.some(
             (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
+          )
+        )
+          return x;
+        if (
+          x.registeredTeams.some(
+            (tm) => normName(tm.teamName) === normName(newTeam.teamName)
           )
         )
           return x;
@@ -1578,7 +1596,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         winnerTeam: winnerTeamName,
         runnerUpTeam: runnerUpTeamName,
       }).catch((err) => {
+        // RLS can deny this (e.g. province admins had no UPDATE right):
+        // the error must be visible — the UI otherwise shows success and
+        // the next catalog reload silently reverts the result.
         console.warn('finalizeTournamentResults remote persist failed, keeping local result', err);
+        setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (دسترسی کافی نیست) — لطفاً با پشتیبانی در میان بگذارید.');
       });
     }
 
@@ -1744,7 +1766,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           runnerUpTeam: next.runnerUpTeam ?? '',
           bracket: next.bracket,
         }).catch((err) => {
+          // Same RLS exposure as finalize: surface the failure so the
+          // bracket edit isn't silently lost on the next catalog reload.
           console.warn('updateTournamentBracketMatch remote persist failed, keeping local bracket', err);
+          setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (دسترسی کافی نیست) — لطفاً با پشتیبانی در میان بگذارید.');
         });
       }
     }

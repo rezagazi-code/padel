@@ -98,6 +98,10 @@ export const TournamentsView: React.FC = () => {
   // can't block a same-tick double submit, and registerTournamentTeam
   // is synchronous, so the ref is set and cleared around the call.
   const registerSubmittingRef = useRef(false);
+  // Same double-submit guard for «ثبت نتایج»: a rapid double-tap would
+  // otherwise run finalizeTournamentResults twice and award ranking
+  // points twice.
+  const finalizeSubmittingRef = useRef(false);
 
   // Check RBAC permission for tournament creation
   const canCreateTournament =
@@ -232,8 +236,16 @@ export const TournamentsView: React.FC = () => {
       setFinalizeError('تیم قهرمان و نایب‌قهرمان نمی‌توانند یک تیم باشند.');
       return;
     }
-    finalizeTournamentResults(showFinalizeModal.id, winner, runnerUp);
-    setShowFinalizeModal(null);
+    // Double-submit guard: finalizeTournamentResults is synchronous, so a
+    // ref set/cleared around the call blocks a same-tick double submit.
+    if (finalizeSubmittingRef.current) return;
+    finalizeSubmittingRef.current = true;
+    try {
+      finalizeTournamentResults(showFinalizeModal.id, winner, runnerUp);
+      setShowFinalizeModal(null);
+    } finally {
+      finalizeSubmittingRef.current = false;
+    }
   };
 
   return (
