@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { openExternal } from './externalLink';
 
 export interface AppUpdateInfo {
   versionCode: number;
@@ -9,8 +10,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 72;
-export const CURRENT_VERSION_NAME = '3.15.19';
+export const CURRENT_VERSION_CODE = 73;
+export const CURRENT_VERSION_NAME = '3.15.20';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   // Only check in native app
@@ -62,6 +63,6 @@ export async function isUpdateEndpointReachable(timeoutMs = 8000): Promise<boole
 
 export function openApkDownload(url: string) {
   // Open in system browser - user will get install prompt after download
-  window.open(url, '_system');
+  void openExternal(url);
 }
 // retrigger 3.15.5 build (infra flake retry)

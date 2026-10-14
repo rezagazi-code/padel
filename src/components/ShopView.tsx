@@ -21,12 +21,8 @@ import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
 import { Bubbles } from './Bubbles';
 import { livePriceSearch, LivePriceOffer, searchTermEquivalents } from '../lib/liveSearch';
+import { openExternal } from '../lib/externalLink';
 import { Capacitor } from '@capacitor/core';
-
-/** Open external URL in system browser (reliable in Capacitor, avoids _blank issues). */
-function openExternal(url: string) {
-  window.open(url, '_system', 'noopener');
-}
 
 /** Normalize Persian text for search: ي→ی, ك→ک, remove tatweel/diacritics. */
 function normalizeFa(s: string): string {

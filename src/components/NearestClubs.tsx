@@ -10,6 +10,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { usePadel } from '../context/PadelContext';
+import { openExternal } from '../lib/externalLink';
 import {
   CLUB_COORDS,
   haversineKm,
@@ -98,19 +99,14 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
 
   const selected = ranked.find((c) => c.id === selectedId) || null;
 
-  const openRoute = (clubId: string) => {
-    setSelectedId(clubId);
-    setShowRoute(true);
-  };
-
   return (
     <div
       dir="rtl"
       className="fixed inset-0 z-[70] bg-[#0a0f1c]/95 backdrop-blur-xl overflow-y-auto"
     >
       <div className="min-h-full flex flex-col max-w-2xl mx-auto px-4 py-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Header — sticky so the dismiss (بستن) button stays reachable while scrolling */}
+        <div className="sticky top-0 z-10 -mx-4 px-4 py-3 mb-3 bg-[#0a0f1c]/90 backdrop-blur-xl flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="w-10 h-10 rounded-2xl bubble-btn flex items-center justify-center">
               <Radar className="w-5 h-5 text-white" />
@@ -486,7 +482,7 @@ function RouteView({
 
   const openGoogleMaps = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
-    window.open(url, '_system', 'noopener');
+    void openExternal(url);
   };
 
   return (

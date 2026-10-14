@@ -467,7 +467,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
             </button>
             <button
               onClick={() => setShowNearest(true)}
-              className="flex items-center gap-2 bubble-btn-fire rounded-full font-black text-sm px-6 py-3.5 text-white"
+              className="flex items-center gap-2 bubble-btn rounded-full font-black text-sm px-6 py-3.5 text-white"
             >
               <Radar className="w-5 h-5" />
               <span>نزدیک‌ترین باشگاه</span>
