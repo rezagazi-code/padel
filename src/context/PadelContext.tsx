@@ -279,6 +279,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // local sports profile. Afterwards the local profile is the source of truth
   // for the UI and edits are pushed back to the server (see updatePlayerProfile).
   const lastSyncedAuthId = useRef<string | null>(null);
+  // Optimistic join guard: pre-validation reads state from the last render,
+  // so two joins landing before the re-render would both pass it and the
+  // defensive setState updater would silently decline the second — while
+  // the success toast still fired and `true` was returned. The ref is
+  // checked synchronously, so only the first of the racing calls toasts and
+  // returns true. Keys are released inside the updater once React processes
+  // it (a flag set inside the updater can never be read at return time —
+  // React 18 batches the updater — so the ref only covers the race window).
+  const pendingJoinRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const p = auth?.profile;
     if (!p) {
@@ -321,11 +330,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               const merged = remoteTournaments.map((rt) => {
                 const local = prevById.get(rt.id);
                 if (!local) return rt;
+                // Match the registration guard's normalization (trimmed +
+                // case-insensitive): names that differ only by case/whitespace
+                // are the same team.
+                const normName = (s: string) => s.trim().toLowerCase();
                 const remoteNames = new Set(
-                  rt.registeredTeams.map((tm) => tm.teamName.trim())
+                  rt.registeredTeams.map((tm) => normName(tm.teamName))
                 );
                 const localOnly = local.registeredTeams.filter(
-                  (tm) => !remoteNames.has(tm.teamName.trim())
+                  (tm) => !remoteNames.has(normName(tm.teamName))
                 );
                 if (localOnly.length === 0) return rt;
                 const mergedTeams = [...rt.registeredTeams, ...localOnly];
@@ -902,9 +915,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     const target = m.slots.find((s) => s.slotNumber === slotNumber);
     if (!target || target.playerId) return false;
+    // Racing tap: a join for this match+player is already queued from this
+    // render frame — the defensive updater below would decline it, so don't
+    // toast or report success for it.
+    const joinKey = `match:${matchId}:${playerProfile.id}`;
+    if (pendingJoinRef.current.has(joinKey)) return false;
+    pendingJoinRef.current.add(joinKey);
 
-    setOpenMatches((prev) =>
-      prev.map((x) => {
+    setOpenMatches((prev) => {
+      pendingJoinRef.current.delete(joinKey);
+      return prev.map((x) => {
         if (x.id !== matchId) return x;
         // Defensive: pre-validation ran against state that may be stale when
         // two taps land in the same render frame — never allow the player in
@@ -930,8 +950,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           slots: updatedSlots,
           status: isFull ? 'full' : 'open',
         };
-      })
-    );
+      });
+    });
 
     setSyncNotification('شما با موفقیت به مسابقه پیوستید!');
     return true;
@@ -1025,9 +1045,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const targetCourt = g.courts.find((c) => c.courtNumber === courtNumber);
     const target = targetCourt?.slots.find((s) => s.slotNumber === slotNumber);
     if (!target || target.playerId) return false;
+    // Racing tap: a join for this session+player is already queued from this
+    // render frame — the defensive updater below would decline it, so don't
+    // toast or report success for it.
+    const joinKey = `gsession:${sessionId}:${playerProfile.id}`;
+    if (pendingJoinRef.current.has(joinKey)) return false;
+    pendingJoinRef.current.add(joinKey);
 
-    setGroupSessions((prev) =>
-      prev.map((x) => {
+    setGroupSessions((prev) => {
+      pendingJoinRef.current.delete(joinKey);
+      return prev.map((x) => {
         if (x.id !== sessionId) return x;
         // Defensive: pre-validation ran against state that may be stale when
         // two taps land in the same render frame — never allow the player in
@@ -1056,8 +1083,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           courts: updatedCourts,
           status: groupSessionIsFull(updatedCourts) ? 'full' : 'open',
         };
-      })
-    );
+      });
+    });
     setSyncNotification('شما با موفقیت به سانس گروهی پیوستید!');
     return true;
   };
@@ -1359,8 +1386,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       level: playerProfile.level,
       side: playerProfile.preferredSide,
     };
-    setNeedPlayerPosts((prev) =>
-      prev.map((x) => {
+    // Racing tap: a join for this post+player is already queued from this
+    // render frame — the defensive updater below would decline it, so don't
+    // toast or report success for it.
+    const joinKey = `needpost:${postId}:${playerProfile.id}`;
+    if (pendingJoinRef.current.has(joinKey)) return false;
+    pendingJoinRef.current.add(joinKey);
+
+    setNeedPlayerPosts((prev) => {
+      pendingJoinRef.current.delete(joinKey);
+      return prev.map((x) => {
         if (x.id !== postId) return x;
         // Defensive: never exceed capacity on rapid clicks.
         if (x.spotsNeeded <= x.joinedPlayers.length) return x;
@@ -1371,8 +1406,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           joinedPlayers: updatedJoined,
           status: updatedJoined.length >= x.spotsNeeded ? 'filled' : 'active',
         };
-      })
-    );
+      });
+    });
     setSyncNotification('درخواست پیوستن شما به عنوان بازیکن آزاد ثبت شد!');
     return true;
   };
@@ -1476,6 +1511,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // (the old `success` flag was always false → modal never closed, no toast).
     const t = tournaments.find((x) => x.id === tournId);
     if (!t) return false;
+    // Registration is only open while the tournament is in 'registration'
+    // status: the server RLS policy rejects team inserts for ongoing /
+    // completed tournaments, so refuse locally with the same
+    // error-return pattern instead of a silent remote failure.
+    if (t.status !== 'registration') {
+      setSyncNotification('مهلت ثبت‌نام این تورنومنت به پایان رسیده است.');
+      return false;
+    }
     if (t.registeredTeamsCount >= t.maxTeams) {
       setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
       return false;
@@ -1706,10 +1749,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           status: 'completed',
           winnerId,
           team1: currentMatch.team1
-            ? { ...currentMatch.team1, score: [score[0], score[1]], isWinner: isTeam1Winner }
+            ? { ...currentMatch.team1, score: score.slice(0, score.length / 2), isWinner: isTeam1Winner }
             : undefined,
           team2: currentMatch.team2
-            ? { ...currentMatch.team2, score: [score[2], score[3]], isWinner: !isTeam1Winner }
+            ? { ...currentMatch.team2, score: score.slice(score.length / 2), isWinner: !isTeam1Winner }
             : undefined,
         };
 

@@ -29,8 +29,10 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   const [editingMatch, setEditingMatch] = useState<BracketMatch | null>(null);
   const [scoreT1S1, setScoreT1S1] = useState(6);
   const [scoreT1S2, setScoreT1S2] = useState(6);
+  const [scoreT1S3, setScoreT1S3] = useState<number | null>(null);
   const [scoreT2S1, setScoreT2S1] = useState(4);
   const [scoreT2S2, setScoreT2S2] = useState(3);
+  const [scoreT2S3, setScoreT2S3] = useState<number | null>(null);
   const [selectedWinnerId, setSelectedWinnerId] = useState<string>('');
   const [scoreError, setScoreError] = useState<string | null>(null);
 
@@ -56,15 +58,19 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     // leak into the next match's modal.
     setScoreT1S1(6);
     setScoreT1S2(6);
+    setScoreT1S3(null);
     setScoreT2S1(4);
     setScoreT2S2(3);
+    setScoreT2S3(null);
     if (m.team1?.score) {
       setScoreT1S1(m.team1.score[0] ?? 6);
       setScoreT1S2(m.team1.score[1] ?? 6);
+      setScoreT1S3(m.team1.score[2] ?? null);
     }
     if (m.team2?.score) {
       setScoreT2S1(m.team2.score[0] ?? 4);
       setScoreT2S2(m.team2.score[1] ?? 3);
+      setScoreT2S3(m.team2.score[2] ?? null);
     }
   };
 
@@ -72,11 +78,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     e.preventDefault();
     if (!editingMatch || !onUpdateMatch || !selectedWinnerId) return;
 
-    // Validate score/winner consistency: no tied sets, and the selected
-    // winner must have strictly more set wins than the loser.
-    const t1 = [scoreT1S1, scoreT1S2];
-    const t2 = [scoreT2S1, scoreT2S2];
-    for (let i = 0; i < 2; i++) {
+    // Validate score/winner consistency (best-of-3): no tied sets, the
+    // selected winner must have exactly 2 set wins, and the optional third
+    // set only exists at 1-1 (a 2-0 result needs no third set).
+    if ((scoreT1S3 === null) !== (scoreT2S3 === null)) {
+      setScoreError('امتیاز ست سوم را برای هر دو تیم وارد کنید.');
+      return;
+    }
+    const hasThirdSet = scoreT1S3 !== null && scoreT2S3 !== null;
+    const t1 = hasThirdSet ? [scoreT1S1, scoreT1S2, scoreT1S3 as number] : [scoreT1S1, scoreT1S2];
+    const t2 = hasThirdSet ? [scoreT2S1, scoreT2S2, scoreT2S3 as number] : [scoreT2S1, scoreT2S2];
+    for (let i = 0; i < t1.length; i++) {
       if (t1[i] === t2[i]) {
         setScoreError('امتیاز ست‌ها نمی‌تواند مساوی باشد. لطفاً امتیازها را اصلاح کنید.');
         return;
@@ -87,17 +99,26 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     const winnerIsTeam1 = selectedWinnerId === (editingMatch.team1?.id || 't1');
     const winnerSetWins = winnerIsTeam1 ? t1SetWins : t2SetWins;
     const loserSetWins = winnerIsTeam1 ? t2SetWins : t1SetWins;
-    if (winnerSetWins <= loserSetWins) {
-      setScoreError('امتیاز ست‌ها با تیم برنده انتخاب‌شده سازگار نیست.');
+    if (winnerSetWins !== 2 || loserSetWins > 1) {
+      setScoreError('در مسابقات بهترین از ۳ ست، تیم برنده باید دقیقاً ۲ ست برده باشد.');
+      return;
+    }
+    if (loserSetWins === 1 && !hasThirdSet) {
+      setScoreError('نتیجه ۱-۱ است؛ لطفاً امتیاز ست سوم (ست سرنوشت‌ساز) را وارد کنید.');
+      return;
+    }
+    if (hasThirdSet && loserSetWins === 0) {
+      setScoreError('ست سوم فقط در صورت تساوی ۱-۱ معتبر است؛ نتیجه ۲-۰ به ست سوم نیازی ندارد.');
       return;
     }
 
-    onUpdateMatch(editingMatch.id, selectedWinnerId, [
-      scoreT1S1,
-      scoreT1S2,
-      scoreT2S1,
-      scoreT2S2
-    ]);
+    onUpdateMatch(
+      editingMatch.id,
+      selectedWinnerId,
+      hasThirdSet
+        ? [scoreT1S1, scoreT1S2, scoreT1S3 as number, scoreT2S1, scoreT2S2, scoreT2S3 as number]
+        : [scoreT1S1, scoreT1S2, scoreT2S1, scoreT2S2]
+    );
     setScoreError(null);
     setEditingMatch(null);
   };
@@ -190,12 +211,11 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                       {match.team1?.score && (
                         <div className="flex items-center gap-1 font-mono text-xs font-black">
-                          <span className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                            {match.team1.score[0]}
-                          </span>
-                          <span className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                            {match.team1.score[1]}
-                          </span>
+                          {match.team1.score.map((s, i) => (
+                            <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
+                              {s}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -224,12 +244,11 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                       {match.team2?.score && (
                         <div className="flex items-center gap-1 font-mono text-xs font-black">
-                          <span className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                            {match.team2.score[0]}
-                          </span>
-                          <span className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                            {match.team2.score[1]}
-                          </span>
+                          {match.team2.score.map((s, i) => (
+                            <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
+                              {s}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -311,12 +330,11 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                   {finalMatch.team1?.score && (
                     <div className="flex items-center gap-1 font-mono text-sm font-black">
-                      <span className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
-                        {finalMatch.team1.score[0]}
-                      </span>
-                      <span className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
-                        {finalMatch.team1.score[1]}
-                      </span>
+                      {finalMatch.team1.score.map((s, i) => (
+                        <span key={i} className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
+                          {s}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -345,12 +363,11 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                   {finalMatch.team2?.score && (
                     <div className="flex items-center gap-1 font-mono text-sm font-black">
-                      <span className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
-                        {finalMatch.team2.score[0]}
-                      </span>
-                      <span className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
-                        {finalMatch.team2.score[1]}
-                      </span>
+                      {finalMatch.team2.score.map((s, i) => (
+                        <span key={i} className="w-6 text-center bg-slate-900/40 px-1 py-0.5 rounded text-amber-300">
+                          {s}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -428,6 +445,15 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     onChange={(e) => { setScoreT1S2(Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
+                  <span className="text-[11px] text-slate-500">ست سوم (اختیاری):</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={scoreT1S3 ?? ''}
+                    onChange={(e) => { setScoreT1S3(e.target.value === '' ? null : Number(e.target.value)); setScoreError(null); }}
+                    className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
+                  />
                 </div>
               </div>
 
@@ -461,6 +487,15 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                     max={7}
                     value={scoreT2S2}
                     onChange={(e) => { setScoreT2S2(Number(e.target.value)); setScoreError(null); }}
+                    className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
+                  />
+                  <span className="text-[11px] text-slate-500">ست سوم (اختیاری):</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={scoreT2S3 ?? ''}
+                    onChange={(e) => { setScoreT2S3(e.target.value === '' ? null : Number(e.target.value)); setScoreError(null); }}
                     className="w-16 bg-white/[0.05] border border-white/10 rounded-lg p-1.5 text-center text-slate-100 font-mono"
                   />
                 </div>

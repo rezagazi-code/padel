@@ -63,3 +63,23 @@ foreign, DM-only, marketplace-only, or dead.
   shops Lucka knows personally, or new shops launching in the future.
 - torob.com remains blocked from this environment (exit 52 / timeout);
   seller names continue to come only via Google's Torob crawl.
+
+---
+
+## Pass 8 — 2026-10-15 ~08:52 run (store-researcher)
+
+### ✅ RECOMMENDED: NONE this pass
+
+### ⚠️ WATCH LIST recheck (curl-verified, all HTTP 200)
+- **winnersport.ir** — STILL suspended (final URL /cgi-sys/suspendedpage.cgi).
+- **padel.ir/shop.php** — still «محصولی یافت نشد» (empty shop).
+- **mizanpadel.ir/product-category/rackets/** — STILL uniform placeholder pricing.
+- **iranoriginal.com** — re-verified: padel section is still own-brand «تیشرت پدل» only; no rackets/shoes/balls inventory. Stays OFF recommended list.
+
+### ❌ Checked but REJECTED this pass
+- Fresh-angle fa queries (خرید آنلاین راکت پدل ایران; خرید راکت پدل قیمت مشهد/تبریز/شیراز/اصفهان; فروشگاه پدل کرج/کیش/شمال; خرید کفش پدل/توپ پدل ایران; quoted "پدل" site-freshness query) — surfaced only: foreign shops (Indonesia pedalpadel.id, Turkey beymen.com/hepsiburada/decathlon.tr, Italy decathlon.it, Portugal stockpadel.com, India sportsnextdoor.com), Torob crawl price lists (already covered via Torob), padel-BOARD (SUP) content, YouTube/TikTok, already-covered Iranian shops (sportstations.ir, tennis24shop.com — both on recommended list), and padel court-construction price PDFs (amiranpadel.com — construction, not gear).
+- No new Iranian standalone storefront with public padel prices appeared in any query.
+
+### Notes
+- 5 web queries (fa) + 4 watch-list curl probes + 1 deep iranoriginal.com content check.
+- Pool assessment unchanged: EXHAUSTED. 27 shops on the recommended list; all known watch-list sites still dead/empty/placeholder. New finds remain dependent on: Lucka personally knowing shops, new shops launching, or VPN-accessible paths (torob.com curl still blocked).

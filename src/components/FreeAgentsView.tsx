@@ -52,10 +52,10 @@ export const FreeAgentsView: React.FC = () => {
   const [reqTime, setReqTime] = useState('۲۱:۰۰ - ۲۲:۳۰');
   const [reqSpots, setReqSpots] = useState<number>(1);
   const [reqSide, setReqSide] = useState<PlayingSide>('left');
-  const [reqMinLevel, setReqMinLevel] = useState<number>(3.2);
-  const [reqMaxLevel, setReqMaxLevel] = useState<number>(4.2);
   const [reqCost, setReqCost] = useState<number>(220000);
   const [reqNote, setReqNote] = useState('');
+  // Busy state for the manual need-player ad submit (double-submit guard).
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
 
   // Free agent status toggle form
   const [freeAgentNoteInput, setFreeAgentNoteInput] = useState(playerProfile.freeAgentNote || '');
@@ -73,25 +73,33 @@ export const FreeAgentsView: React.FC = () => {
 
   const handleCreateRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    createNeedPlayerPost({
-      clubName: reqClubName,
-      province: playerProfile.province,
-      date: reqDate,
-      time: reqTime,
-      spotsNeeded: reqSpots,
-      preferredSide: reqSide,
-      minLevel: Number(reqMinLevel),
-      maxLevel: Number(reqMaxLevel),
-      costPerPerson: Number(reqCost),
-      hostPlayerId: playerProfile.id,
-      hostName: playerProfile.name,
-      hostAvatar: playerProfile.avatar,
-      hostLevel: playerProfile.level,
-      note: reqNote || `زمین رزرو شده و به ${reqSpots} بازیکن نیاز داریم.`,
-    });
-    setShowCreateRequestModal(false);
+    if (requestSubmitting) return;
+    setRequestSubmitting(true);
     try {
-    } catch {}
+      // Level range derived from the host's level, same as the auto-created
+      // ads from createNeedPostForBooking — manual ads should behave alike.
+      const hostMinLevel = Math.max(1, playerProfile.level - 0.7);
+      const hostMaxLevel = Math.min(7, playerProfile.level + 0.8);
+      createNeedPlayerPost({
+        clubName: reqClubName,
+        province: playerProfile.province,
+        date: reqDate,
+        time: reqTime,
+        spotsNeeded: reqSpots,
+        preferredSide: reqSide,
+        minLevel: hostMinLevel,
+        maxLevel: hostMaxLevel,
+        costPerPerson: Number(reqCost),
+        hostPlayerId: playerProfile.id,
+        hostName: playerProfile.name,
+        hostAvatar: playerProfile.avatar,
+        hostLevel: playerProfile.level,
+        note: reqNote || `زمین رزرو شده و به ${reqSpots} بازیکن نیاز داریم.`,
+      });
+      setShowCreateRequestModal(false);
+    } finally {
+      setRequestSubmitting(false);
+    }
   };
 
   const handleSendInvite = () => {
@@ -568,7 +576,8 @@ export const FreeAgentsView: React.FC = () => {
               <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
+                  disabled={requestSubmitting}
+                  className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   ثبت در تابلوی بازیکنان آزاد
                 </button>

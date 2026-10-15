@@ -231,10 +231,12 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   }, [timeSlots]);
 
   // Belt-and-braces: if the picked slot no longer exists in the current
-  // list (day crossed midnight, or the slot aged past its start), drop the
+  // list (day crossed midnight, or the slot aged past its start) — or it
+  // flipped to booked (someone else grabbed it in a refresh) — drop the
   // stale pick so the confirm CTA goes disabled again.
   useEffect(() => {
-    if (selectedTimeSlot && !timeSlots.some((s) => s.time === selectedTimeSlot)) {
+    const picked = timeSlots.find((s) => s.time === selectedTimeSlot);
+    if (selectedTimeSlot && (!picked || picked.isBooked)) {
       userPickedSlotRef.current = false;
       setSelectedTimeSlot('');
     }
@@ -365,6 +367,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           shares: names.map((name, idx) => ({ name, amount: perPerson, paid: idx === 0 })),
         });
         setDongiNames(['', '', '']);
+        setDongiEnabled(false);
       }
 
       // NOTE: onBooked is fired from dismissReceipt, not here — calling it here

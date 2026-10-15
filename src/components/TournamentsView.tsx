@@ -357,6 +357,7 @@ export const TournamentsView: React.FC = () => {
           {filteredTournaments.map((tourn, idx) => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
             const isCompleted = tourn.status === 'completed';
+            const isRegistrationOpen = tourn.status === 'registration';
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
             return (
@@ -463,18 +464,24 @@ export const TournamentsView: React.FC = () => {
                       </span>
                     ) : (
                       <>
-                        <button
-                          onClick={() => setShowRegisterModal(tourn)}
-                          disabled={isFull}
-                          className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                            isFull
-                              ? 'bg-white/[0.04] text-slate-500 cursor-not-allowed'
-                              : 'bubble-btn text-white font-black rounded-2xl'
-                          }`}
-                        >
-                          <Users className="w-4 h-4" />
-                          <span>{isFull ? 'ظرفیت تکمیل' : 'ثبت‌نام تیم در تورنومنت'}</span>
-                        </button>
+                        {isRegistrationOpen ? (
+                          <button
+                            onClick={() => setShowRegisterModal(tourn)}
+                            disabled={isFull}
+                            className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                              isFull
+                                ? 'bg-white/[0.04] text-slate-500 cursor-not-allowed'
+                                : 'bubble-btn text-white font-black rounded-2xl'
+                            }`}
+                          >
+                            <Users className="w-4 h-4" />
+                            <span>{isFull ? 'ظرفیت تکمیل' : 'ثبت‌نام تیم در تورنومنت'}</span>
+                          </button>
+                        ) : (
+                          <span className="text-xs font-bold text-slate-500 flex items-center gap-1 flex-1 py-3 justify-center">
+                            ثبت‌نام این تورنومنت بسته شده است.
+                          </span>
+                        )}
 
                         {/* RBAC Protected Finalize Button: only allowed for that club's admin or province admin */}
                         {canManageTournament(tourn) && (

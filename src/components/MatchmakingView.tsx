@@ -717,6 +717,11 @@ const GroupSessionsTab: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<GroupSession | null>(null);
+  // Ref-based double-submit guard for group-session creation: createGroupSession
+  // is synchronous, so a ref blocks a same-tick double submit that would
+  // create two sessions. (createMatchSubmittingRef lives in the sibling
+  // MatchmakingView component and can't be shared here.)
+  const createGroupSubmittingRef = useRef(false);
 
   const canDeleteSession = (s: GroupSession) =>
     s.creatorId === playerProfile.id ||
@@ -744,28 +749,34 @@ const GroupSessionsTab: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const club = clubs.find((c) => c.id === gClubId) || clubs[0];
-    createGroupSession(
-      {
-        title: gTitle || `سانس گروهی ${club.name}`,
-        clubId: club.id,
-        clubName: club.name,
-        date: gDate,
-        time: gTime,
-        type: gType,
-        minLevel: Number(gMinLevel),
-        maxLevel: Number(gMaxLevel),
-        pricePerPlayer: Number(gPrice),
-        gender: 'all',
-        creatorId: playerProfile.id,
-        creatorName: playerProfile.name,
-        creatorAvatar: playerProfile.avatar,
-        creatorLevel: playerProfile.level,
-      },
-      gCourtNames.map((n, i) => n.trim() || `زمین ${i + 1}`)
-    );
-    setShowModal(false);
-    setGTitle('');
+    if (createGroupSubmittingRef.current) return;
+    createGroupSubmittingRef.current = true;
+    try {
+      const club = clubs.find((c) => c.id === gClubId) || clubs[0];
+      createGroupSession(
+        {
+          title: gTitle || `سانس گروهی ${club.name}`,
+          clubId: club.id,
+          clubName: club.name,
+          date: gDate,
+          time: gTime,
+          type: gType,
+          minLevel: Number(gMinLevel),
+          maxLevel: Number(gMaxLevel),
+          pricePerPlayer: Number(gPrice),
+          gender: 'all',
+          creatorId: playerProfile.id,
+          creatorName: playerProfile.name,
+          creatorAvatar: playerProfile.avatar,
+          creatorLevel: playerProfile.level,
+        },
+        gCourtNames.map((n, i) => n.trim() || `زمین ${i + 1}`)
+      );
+      setShowModal(false);
+      setGTitle('');
+    } finally {
+      createGroupSubmittingRef.current = false;
+    }
   };
 
   return (

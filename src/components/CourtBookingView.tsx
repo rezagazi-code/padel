@@ -283,10 +283,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   }, [timeSlots]);
 
   // Belt-and-braces: if the picked slot no longer exists in the current
-  // list (day crossed midnight, or the slot aged past its start), drop the
+  // list (day crossed midnight, or the slot aged past its start) — or it
+  // flipped to booked (someone else grabbed it in a refresh) — drop the
   // stale pick so the confirm CTA goes disabled again.
   useEffect(() => {
-    if (selectedTimeSlot && !timeSlots.some((s) => s.time === selectedTimeSlot)) {
+    const picked = timeSlots.find((s) => s.time === selectedTimeSlot);
+    if (selectedTimeSlot && (!picked || picked.isBooked)) {
       userPickedSlotRef.current = false;
       setSelectedTimeSlot('');
     }
@@ -422,6 +424,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         shares: names.map((name, idx) => ({ name, amount: perPerson, paid: idx === 0 })),
       });
       setDongiNames(['', '', '']);
+      setDongiEnabled(false);
     }
 
     } finally {

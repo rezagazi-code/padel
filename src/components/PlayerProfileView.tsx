@@ -57,6 +57,9 @@ export const PlayerProfileView: React.FC = () => {
   const isSuperAdmin = user?.role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  // In-flight guard: cancelBooking awaits a remote delete + re-read, so a
+  // double-tap would otherwise fire two cancels for the same booking.
+  const cancelBookingInflightRef = useRef(false);
 
   // Today's Tehran date (Gregorian YYYY-MM-DD): past bookings can't be cancelled.
   const tehranToday = new Intl.DateTimeFormat('en-CA', {
@@ -97,20 +100,26 @@ export const PlayerProfileView: React.FC = () => {
   // truth: a failed remote delete keeps the booking visible, a successful
   // one drops it. (Local bookings are removed from context by cancelBooking.)
   const handleCancelBooking = async (bookingId: string) => {
-    // Pass the merged display booking's date/timeSlot as a hint so the
-    // cancellable guard in cancelBooking also applies to server-only
-    // bookings that aren't in local state.
-    const target = displayBookings.find((b) => b.id === bookingId);
-    await cancelBooking(
-      bookingId,
-      target ? { date: target.date, timeSlot: target.timeSlot } : undefined
-    );
-    if (userId && getSupabase()) {
-      try {
-        setServerBookings(await fetchMyBookings(userId));
-      } catch {
-        // Keep the current list on a refresh failure.
+    if (cancelBookingInflightRef.current) return;
+    cancelBookingInflightRef.current = true;
+    try {
+      // Pass the merged display booking's date/timeSlot as a hint so the
+      // cancellable guard in cancelBooking also applies to server-only
+      // bookings that aren't in local state.
+      const target = displayBookings.find((b) => b.id === bookingId);
+      await cancelBooking(
+        bookingId,
+        target ? { date: target.date, timeSlot: target.timeSlot } : undefined
+      );
+      if (userId && getSupabase()) {
+        try {
+          setServerBookings(await fetchMyBookings(userId));
+        } catch {
+          // Keep the current list on a refresh failure.
+        }
       }
+    } finally {
+      cancelBookingInflightRef.current = false;
     }
   };
 

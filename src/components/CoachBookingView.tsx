@@ -88,6 +88,7 @@ export const CoachBookingView: React.FC = () => {
   const handleOpenBookingModal = (coach: Coach) => {
     setSelectedCoach(coach);
     setSelectedClub(coach.clubs[0] || 'باشگاه پدل انقلاب');
+    setSelectedDate(coach.availableDays[0] || 'شنبه ۱۴۰۳/۰۶/۳۱');
     setSelectedHour(coach.availableHours[0] || '۱۶:۰۰');
   };
 
