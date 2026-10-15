@@ -54,6 +54,7 @@ export const FriendlyTournamentView: React.FC = () => {
   const [tP1, setTP1] = useState('');
   const [tP2, setTP2] = useState('');
   const [tRank, setTRank] = useState<SkillGrade>('C');
+  const [tNameError, setTNameError] = useState('');
 
   // Score form
   const [scoreInputs, setScoreInputs] = useState<Record<string, { s1: string; s2: string }>>({});
@@ -82,16 +83,28 @@ export const FriendlyTournamentView: React.FC = () => {
   const handleAddTeam = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selected || !tName.trim()) return;
-    addFriendlyTeam(selected.id, {
+    // Duplicate team names: reject trimmed + case-insensitive, exactly like
+    // registerTournamentTeam does for official tournaments — with a Persian
+    // inline error, never a silent accept.
+    const norm = (s: string) => s.trim().toLowerCase();
+    if (selected.teams.some((tm) => norm(tm.teamName) === norm(tName))) {
+      setTNameError('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
+      return;
+    }
+    const ok = addFriendlyTeam(selected.id, {
       teamName: tName.trim(),
       player1Name: tP1.trim() || 'بازیکن ۱',
       player2Name: tP2.trim() || 'بازیکن ۲',
       rank: tRank,
     });
+    if (!ok) {
+      setTNameError('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
+      return;
+    }
     // Refresh selected
     const updated = friendlyTournaments.find((t) => t.id === selected.id);
     if (updated) setSelected({ ...updated, teams: [...updated.teams, { id: 'tmp', teamName: tName.trim(), player1Name: tP1.trim(), player2Name: tP2.trim(), rank: tRank }] });
-    setTName(''); setTP1(''); setTP2(''); setTRank('C');
+    setTName(''); setTP1(''); setTP2(''); setTRank('C'); setTNameError('');
   };
 
   const handleScore = (matchId: string) => {
@@ -208,7 +221,7 @@ export const FriendlyTournamentView: React.FC = () => {
               {tourn.teams.length === 0 && <p className="text-slate-500 text-sm">هنوز تیمی اضافه نشده.</p>}
             </div>
             <form onSubmit={handleAddTeam} className="grid grid-cols-2 gap-2">
-              <input value={tName} onChange={(e) => setTName(e.target.value)} placeholder="نام تیم *" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
+              <input value={tName} onChange={(e) => { setTName(e.target.value); setTNameError(''); }} placeholder="نام تیم *" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <select value={tRank} onChange={(e) => setTRank(e.target.value as SkillGrade)} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
                 {SKILL_GRADES.map((g) => (
                   <option key={g} value={g} className="bg-[#0d1420]">سطح {g}</option>
@@ -217,6 +230,9 @@ export const FriendlyTournamentView: React.FC = () => {
               <input value={tP1} onChange={(e) => setTP1(e.target.value)} placeholder="بازیکن ۱" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <input value={tP2} onChange={(e) => setTP2(e.target.value)} placeholder="بازیکن ۲" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <button type="submit" className="col-span-2 py-2 rounded-xl btn-ice text-white text-sm font-bold">+ افزودن تیم</button>
+              {tNameError && (
+                <p className="col-span-2 text-xs text-red-400">{tNameError}</p>
+              )}
             </form>
             {tourn.teams.length >= 2 && (
               <button

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
@@ -174,6 +174,33 @@ export const PlayerProfileView: React.FC = () => {
   const [racketBrand, setRacketBrand] = useState(playerProfile.racketBrand);
   const [racketModel, setRacketModel] = useState(playerProfile.racketModel);
   const [bio, setBio] = useState(playerProfile.bio || '');
+
+  // Re-sync the edit form from the live playerProfile.
+  // The form state initializes once at mount, but the post-sign-in profile
+  // sync (PadelContext) can update playerProfile later. Without this, saving
+  // an edit would push stale values through updatePlayerProfile and clobber
+  // the newer server-synced name/avatar — locally AND on the server.
+  // Rule: sync whenever the profile changes or the edit panel opens, but
+  // NEVER while the edit panel is open (activeTab === 'profile'), so the
+  // user's in-progress edits are never clobbered.
+  const prevActiveTab = useRef(activeTab);
+  useEffect(() => {
+    const justOpened = prevActiveTab.current !== 'profile' && activeTab === 'profile';
+    prevActiveTab.current = activeTab;
+    if (activeTab === 'profile' && !justOpened) return; // edit in progress: leave it alone
+    setName(playerProfile.name);
+    setPhone(playerProfile.phone);
+    setCity(playerProfile.city);
+    setProvince(playerProfile.province);
+    setLevel(playerProfile.level);
+    setThemeColor(playerProfile.themeColor);
+    setPreferredSide(playerProfile.preferredSide);
+    setHand(playerProfile.hand);
+    setRacketBrand(playerProfile.racketBrand);
+    setRacketModel(playerProfile.racketModel);
+    setBio(playerProfile.bio || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerProfile, activeTab]);
 
   // Auth gate: anonymous visitors must not see or edit any profile
   // (local residue included). Matches the native-app login gate in App.tsx.

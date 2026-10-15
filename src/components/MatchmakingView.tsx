@@ -118,12 +118,7 @@ export const MatchmakingView: React.FC = () => {
   });
 
   const handleJoinSlot = (matchId: string, slotNumber: number) => {
-    const success = joinMatchSlot(matchId, slotNumber);
-    if (success) {
-      try {} catch {
-        // safe
-      }
-    }
+    joinMatchSlot(matchId, slotNumber);
   };
 
   const handleCreateMatch = (e: React.FormEvent) => {
@@ -158,9 +153,6 @@ export const MatchmakingView: React.FC = () => {
       setNewTitle('');
     } finally {
       createMatchSubmittingRef.current = false;
-    }
-    try {} catch {
-      // safe
     }
   };
 

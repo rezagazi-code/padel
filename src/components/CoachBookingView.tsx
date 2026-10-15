@@ -98,31 +98,30 @@ export const CoachBookingView: React.FC = () => {
     // same-tick double submit that would create duplicate coach bookings.
     if (bookingSubmittingRef.current) return;
     bookingSubmittingRef.current = true;
-
-    let multiplier = 1;
-    if (sessionType === 'Duo Clinic') multiplier = 1.3;
-    if (sessionType === 'Group Clinic') multiplier = 1.6;
-
-    const finalPrice = Math.round(selectedCoach.hourlyRate * multiplier);
-
-    const newBooking = bookCoach({
-      coachId: selectedCoach.id,
-      coachName: selectedCoach.name,
-      clubName: selectedClub,
-      date: selectedDate,
-      time: selectedHour,
-      sessionType,
-      price: finalPrice,
-      playerName: playerProfile.name,
-      playerPhone: playerProfile.phone,
-    });
-
-    setSelectedCoach(null);
-    setShowReceiptModal(newBooking);
-    bookingSubmittingRef.current = false;
-
     try {
-    } catch {}
+      let multiplier = 1;
+      if (sessionType === 'Duo Clinic') multiplier = 1.3;
+      if (sessionType === 'Group Clinic') multiplier = 1.6;
+
+      const finalPrice = Math.round(selectedCoach.hourlyRate * multiplier);
+
+      const newBooking = bookCoach({
+        coachId: selectedCoach.id,
+        coachName: selectedCoach.name,
+        clubName: selectedClub,
+        date: selectedDate,
+        time: selectedHour,
+        sessionType,
+        price: finalPrice,
+        playerName: playerProfile.name,
+        playerPhone: playerProfile.phone,
+      });
+
+      setSelectedCoach(null);
+      setShowReceiptModal(newBooking);
+    } finally {
+      bookingSubmittingRef.current = false;
+    }
   };
 
   return (

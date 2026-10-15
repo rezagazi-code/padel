@@ -187,8 +187,10 @@ export async function insertBooking(input: BookingInput, userId: string): Promis
     .select('*, clubs!inner(name), courts!inner(name)')
     .single();
   if (error) {
-    // 23505 = unique violation on (court_id, date, time_slot)
-    if ((error as any).code === '23505') throw new Error(DOUBLE_BOOKED);
+    // 23505 = unique violation on (court_id, date, time_slot);
+    // P0001 = booking-overlap-guard trigger (migration 0009) — both mean the
+    // slot was taken by someone else in a concurrent race.
+    if ((error as any).code === '23505' || (error as any).code === 'P0001') throw new Error(DOUBLE_BOOKED);
     throw error;
   }
   return {
