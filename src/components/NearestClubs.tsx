@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { usePadel } from '../context/PadelContext';
 import { openExternal } from '../lib/externalLink';
+import { initialClubs } from '../mockData';
 import {
   CLUB_COORDS,
   haversineKm,
@@ -32,6 +33,20 @@ interface ClubWithMeta extends Club {
 }
 
 type Status = 'locating' | 'ready' | 'error';
+
+// Name→coords fallback: withBundledClubs dedupes Supabase clubs (UUID ids)
+// against bundled club-xxx entries BY NAME, so a Supabase-backed club keeps
+// its UUID id and CLUB_COORDS[id] misses. Fall back to the bundled club's
+// coordinates via its name so such clubs still appear on the radar.
+const COORDS_BY_NAME = new Map(
+  initialClubs
+    .filter((c) => CLUB_COORDS[c.id])
+    .map((c) => [c.name, CLUB_COORDS[c.id]] as const)
+);
+
+function coordsForClub(club: Club) {
+  return CLUB_COORDS[club.id] ?? COORDS_BY_NAME.get(club.name);
+}
 
 /**
  * Padel Radar — creative nearest-club finder.
@@ -93,9 +108,9 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
   const ranked: ClubWithMeta[] = useMemo(() => {
     if (!userPos) return [];
     return clubs
-      .filter((c) => CLUB_COORDS[c.id])
+      .filter((c) => coordsForClub(c))
       .map((c) => {
-        const coords = CLUB_COORDS[c.id];
+        const coords = coordsForClub(c)!;
         return {
           ...c,
           distanceKm: haversineKm(userPos.lat, userPos.lng, coords.lat, coords.lng),
@@ -491,7 +506,7 @@ function RouteView({
   onBack: () => void;
   onReserve: () => void;
 }) {
-  const coords = CLUB_COORDS[club.id];
+  const coords = coordsForClub(club)!;
   const W = 400;
   const H = 300;
   const ux = 70;
