@@ -8,7 +8,10 @@ export interface ClubCoords {
 }
 
 export const CLUB_COORDS: Record<string, ClubCoords> = {
-  'club-padelpoint': { lat: 32.615, lng: 51.545 },
+  // Padel Point Heydarabad: village center (Heydarabad, Keraraj, Isfahan county:
+  // 32.54778, 51.77389) — the only Heydarabad in Isfahan county, matches the
+  // club's own "دهکده باغ‌ویلایی حیدرآباد". Approximate: exact club pin pending.
+  'club-padelpoint': { lat: 32.54778, lng: 51.77389 },
   'club-tikpadel': { lat: 32.58, lng: 51.69 },
   'club-negaristan': { lat: 34.0, lng: 51.43 },
   'club-teh-arenapadel': { lat: 35.7249, lng: 51.2757 },
