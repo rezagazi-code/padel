@@ -261,9 +261,6 @@ export const PlayerProfileView: React.FC = () => {
     setTimeout(() => setSaveSuccess(false), 3000);
     // Close the edit form after successful save
     setTimeout(() => setActiveTab('none'), 1000);
-
-    try {
-    } catch {}
   };
 
   return (

@@ -20,6 +20,116 @@ interface TournamentBracketProps {
   tournamentTitle: string;
 }
 
+// One bracket match card (round_16 / quarter / semi columns). The final
+// keeps its bespoke broadcast-style card inside TournamentBracket.
+const BracketMatchCard: React.FC<{
+  match: BracketMatch;
+  canManage: boolean;
+  onOpenEdit: (m: BracketMatch) => void;
+}> = ({ match, canManage, onOpenEdit }) => {
+  const team1Win = match.team1?.isWinner;
+  const team2Win = match.team2?.isWinner;
+  // TBD matches (teams not yet decided) offer no score entry — the edit
+  // affordance is disabled until both teams are known.
+  const teamsKnown = !!match.team1 && !!match.team2;
+  const editable = canManage && teamsKnown;
+
+  return (
+    <div
+      onClick={() => { if (teamsKnown) onOpenEdit(match); }}
+      className={`court-card p-3.5 transition-all ${
+        editable ? 'cursor-pointer' : ''
+      }`}
+    >
+      {/* Header info */}
+      <div className="flex items-center justify-between text-[10px] text-slate-500 pb-2 border-b border-white/10 mb-2">
+        <span className="font-bold text-slate-100 flex items-center gap-1">
+          <span>{match.roundName}</span>
+          {editable && <Edit3 className="w-3 h-3 text-slate-500 hover:text-[#ff6b81]" />}
+        </span>
+        <span className="text-slate-500 flex items-center gap-1">
+          <Clock className="w-3 h-3 text-amber-400" />
+          {match.scheduledTime || 'تعیین نشده'}
+        </span>
+      </div>
+
+      {/* Team 1 */}
+      <div
+        className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition border-r-2 ${
+          team1Win
+            ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+            : team2Win
+              ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+              : 'bg-white/[0.03] border-r-transparent text-slate-400'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          {match.team1?.seed && (
+            <span className="w-4 h-4 rounded bg-white/[0.04] text-[10px] text-slate-500 flex items-center justify-center font-mono">
+              {match.team1.seed}
+            </span>
+          )}
+          <span className="text-xs truncate max-w-[160px]">
+            {match.team1?.name || 'تعیین نشده'}
+          </span>
+          {team1Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
+        </div>
+
+        {match.team1?.score && (
+          <div className="flex items-center gap-1 font-mono text-xs font-black">
+            {match.team1.score.map((s, i) => (
+              <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Team 2 */}
+      <div
+        className={`flex items-center justify-between p-2 rounded-xl transition border-r-2 ${
+          team2Win
+            ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
+            : team1Win
+              ? 'bg-red-500/10 border-r-red-400 text-slate-300'
+              : 'bg-white/[0.03] border-r-transparent text-slate-400'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          {match.team2?.seed && (
+            <span className="w-4 h-4 rounded bg-white/[0.04] text-[10px] text-slate-500 flex items-center justify-center font-mono">
+              {match.team2.seed}
+            </span>
+          )}
+          <span className="text-xs truncate max-w-[160px]">
+            {match.team2?.name || 'تعیین نشده'}
+          </span>
+          {team2Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
+        </div>
+
+        {match.team2?.score && (
+          <div className="flex items-center gap-1 font-mono text-xs font-black">
+            {match.team2.score.map((s, i) => (
+              <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Court Name */}
+      {match.courtName && (
+        <div className="pt-2 text-[10px] text-slate-500 flex items-center gap-1 mt-1">
+          <MapPin className="w-3 h-3 text-[#ff6b81]" />
+          <span>{match.courtName}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   bracket,
   canManage,
@@ -46,11 +156,28 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     );
   }
 
-  const semiMatches = bracket.filter((m) => m.round === 'semi');
+  // Round columns render left-to-right in bracket order (RTL: first column
+  // appears rightmost). Only rounds present in the bracket get a column.
+  const ROUND_COLUMNS: { key: BracketMatch['round']; title: string }[] = [
+    { key: 'round_16', title: 'یک‌هشتم نهایی (Round of 16)' },
+    { key: 'quarter', title: 'یک‌چهارم نهایی (Quarter-Finals)' },
+    { key: 'semi', title: 'مرحله نیمه‌نهایی (Semi-Finals)' },
+  ];
+  const presentRounds = ROUND_COLUMNS.filter(({ key }) =>
+    bracket.some((m) => m.round === key)
+  );
+  const columnCount = presentRounds.length + 1; // + the final column
   const finalMatch = bracket.find((m) => m.round === 'final');
+  const finalTeamsKnown = !!finalMatch?.team1 && !!finalMatch?.team2;
+  const finalEditable = canManage && finalTeamsKnown;
 
   const handleOpenEdit = (m: BracketMatch) => {
     if (!canManage) return;
+    // Never open score entry on a TBD match (e.g. the final before the
+    // semis are played): recording a result against placeholder teams marks
+    // the match completed with a phantom winnerId and corrupts the bracket
+    // with no un-record path.
+    if (!m.team1 || !m.team2) return;
     setEditingMatch(m);
     setScoreError(null);
     setSelectedWinnerId(m.winnerId || m.team1?.id || '');
@@ -150,123 +277,46 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
       {/* Modern Grid Bracket Display */}
       <div className="overflow-x-auto pb-4 pt-2">
-        <div className="min-w-[650px] grid grid-cols-2 gap-8 relative">
-          
-          {/* Column 1: Semi-Finals (نیمه‌نهایی) */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between px-2">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                مرحله نیمه‌نهایی (Semi-Finals)
-              </span>
-              <span className="text-[10px] text-slate-500 font-mono">۲ مسابقه</span>
-            </div>
+        <div
+          className="grid gap-8 relative"
+          style={{
+            gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+            minWidth: `${columnCount * 320}px`,
+          }}
+        >
+          {/* Round columns: round_16 / quarter / semi (only rounds present
+              in the bracket). The final keeps its bespoke broadcast card. */}
+          {presentRounds.map(({ key, title }) => {
+            const matches = bracket
+              .filter((m) => m.round === key)
+              .sort((a, b) => a.matchNumber - b.matchNumber);
+            return (
+              <div key={key} className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    {title}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {matches.length.toLocaleString('fa-IR')} مسابقه
+                  </span>
+                </div>
 
-            <div className="space-y-6 relative">
-              {semiMatches.map((match) => {
-                const team1Win = match.team1?.isWinner;
-                const team2Win = match.team2?.isWinner;
+                <div className="space-y-6 relative">
+                  {matches.map((match) => (
+                    <BracketMatchCard
+                      key={match.id}
+                      match={match}
+                      canManage={canManage}
+                      onOpenEdit={handleOpenEdit}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
 
-                return (
-                  <div
-                    key={match.id}
-                    onClick={() => handleOpenEdit(match)}
-                    className={`court-card p-3.5 transition-all ${
-                      canManage ? 'cursor-pointer' : ''
-                    }`}
-                  >
-                    {/* Header info */}
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 pb-2 border-b border-white/10 mb-2">
-                      <span className="font-bold text-slate-100 flex items-center gap-1">
-                        <span>{match.roundName}</span>
-                        {canManage && <Edit3 className="w-3 h-3 text-slate-500 hover:text-[#ff6b81]" />}
-                      </span>
-                      <span className="text-slate-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-amber-400" />
-                        {match.scheduledTime || 'تعیین نشده'}
-                      </span>
-                    </div>
-
-                    {/* Team 1 */}
-                    <div
-                      className={`flex items-center justify-between p-2 rounded-xl mb-1.5 transition border-r-2 ${
-                        team1Win
-                          ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
-                          : team2Win
-                            ? 'bg-red-500/10 border-r-red-400 text-slate-300'
-                            : 'bg-white/[0.03] border-r-transparent text-slate-400'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {match.team1?.seed && (
-                          <span className="w-4 h-4 rounded bg-white/[0.04] text-[10px] text-slate-500 flex items-center justify-center font-mono">
-                            {match.team1.seed}
-                          </span>
-                        )}
-                        <span className="text-xs truncate max-w-[160px]">
-                          {match.team1?.name || 'تعیین نشده'}
-                        </span>
-                        {team1Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
-                      </div>
-
-                      {match.team1?.score && (
-                        <div className="flex items-center gap-1 font-mono text-xs font-black">
-                          {match.team1.score.map((s, i) => (
-                            <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Team 2 */}
-                    <div
-                      className={`flex items-center justify-between p-2 rounded-xl transition border-r-2 ${
-                        team2Win
-                          ? 'bg-blue-500/10 border-r-blue-400 text-slate-100 font-black'
-                          : team1Win
-                            ? 'bg-red-500/10 border-r-red-400 text-slate-300'
-                            : 'bg-white/[0.03] border-r-transparent text-slate-400'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {match.team2?.seed && (
-                          <span className="w-4 h-4 rounded bg-white/[0.04] text-[10px] text-slate-500 flex items-center justify-center font-mono">
-                            {match.team2.seed}
-                          </span>
-                        )}
-                        <span className="text-xs truncate max-w-[160px]">
-                          {match.team2?.name || 'تعیین نشده'}
-                        </span>
-                        {team2Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
-                      </div>
-
-                      {match.team2?.score && (
-                        <div className="flex items-center gap-1 font-mono text-xs font-black">
-                          {match.team2.score.map((s, i) => (
-                            <span key={i} className="w-5 text-center bg-white/[0.05] px-1 py-0.5 rounded text-[#ff6b81]">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Court Name */}
-                    {match.courtName && (
-                      <div className="pt-2 text-[10px] text-slate-500 flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3 text-[#ff6b81]" />
-                        <span>{match.courtName}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Column 2: Final Match (فینال بزرگ) */}
+          {/* Final column: bespoke broadcast-style card */}
           <div className="space-y-6 flex flex-col justify-center">
             <div className="flex items-center justify-between px-2">
               <span className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -280,9 +330,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
             {finalMatch ? (
               <div
-                onClick={() => handleOpenEdit(finalMatch)}
+                onClick={() => { if (finalTeamsKnown) handleOpenEdit(finalMatch); }}
                 className={`court-card p-5 transition-all ${
-                  canManage ? 'cursor-pointer' : ''
+                  finalEditable ? 'cursor-pointer' : ''
                 }`}
                 style={
                   finalMatch.status === 'completed'
@@ -379,7 +429,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                       <MapPin className="w-3.5 h-3.5 text-[#ff6b81]" />
                       {finalMatch.courtName}
                     </span>
-                    {canManage && (
+                    {finalEditable && (
                       <span className="text-[10px] text-amber-400 font-bold hover:underline">
                         ویرایش نتیجه فینال
                       </span>

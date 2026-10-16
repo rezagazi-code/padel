@@ -20,8 +20,8 @@ import { SupabaseModal } from './components/SupabaseModal';
 import { PwaInstallModal } from './components/PwaInstallModal';
 import { CloudExportModal } from './components/CloudExportModal';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
-import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check } from 'lucide-react';
-import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from './lib/appUpdate';
+import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check, X } from 'lucide-react';
+import { checkForAppUpdateDetailed, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from './lib/appUpdate';
 
 const MainContent: React.FC = () => {
   // v1.4 raw app build
@@ -72,10 +72,57 @@ const MainContent: React.FC = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [appUpdate, setAppUpdate] = useState<AppUpdateInfo | null>(null);
 
-  // Check for app updates on startup (native app only)
+  // Check for app updates on startup (native app only), with backoff retries:
+  // a single failed launch-time check (e.g. jsDelivr unreachable from Iran)
+  // used to fail silently with no prompt and no retry until the next app
+  // restart. Now retries at +30s, +2m and +10m after a failure; if every
+  // attempt fails, a small dismissible banner (not blocking, not nagging)
+  // offers a manual retry. The app works fine offline throughout.
+  const [updateCheckFailed, setUpdateCheckFailed] = useState(false);
   useEffect(() => {
-    checkForAppUpdate().then(setAppUpdate);
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    // Attempt 0 runs immediately; later entries are the delays before each
+    // retry after a failure.
+    const RETRY_DELAYS_MS = [0, 30_000, 120_000, 600_000];
+
+    const runAttempt = async (attemptIdx: number) => {
+      if (cancelled) return;
+      const result = await checkForAppUpdateDetailed();
+      if (cancelled) return;
+      if (result.status === 'update') {
+        setAppUpdate(result.info);
+        setUpdateCheckFailed(false);
+        return;
+      }
+      if (result.status === 'failed') {
+        if (attemptIdx + 1 < RETRY_DELAYS_MS.length) {
+          timers.push(setTimeout(() => runAttempt(attemptIdx + 1), RETRY_DELAYS_MS[attemptIdx + 1]));
+        } else {
+          setUpdateCheckFailed(true);
+        }
+      }
+      // 'up-to-date': nothing to do.
+    };
+
+    runAttempt(0);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, []);
+
+  // Manual retry from the failure banner: one attempt; a failure re-shows
+  // the banner, an available update opens the update dialog.
+  const retryUpdateCheck = async () => {
+    setUpdateCheckFailed(false);
+    const result = await checkForAppUpdateDetailed();
+    if (result.status === 'update') {
+      setAppUpdate(result.info);
+    } else if (result.status === 'failed') {
+      setUpdateCheckFailed(true);
+    }
+  };
 
   // Global toast for sync/notification messages (booking results, errors, …)
   // NOTE: kept above the conditional return to preserve hook order.
@@ -203,6 +250,31 @@ const MainContent: React.FC = () => {
                 دانلود و نصب
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subtle, dismissible banner: the update check failed on every attempt.
+          Not blocking, not nagging — the app works fine offline. */}
+      {updateCheckFailed && !appUpdate && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[65] max-w-[92vw]">
+          <div className="flex items-center gap-3 rounded-2xl bg-[#0b1220]/95 border border-amber-500/30 px-4 py-2.5 shadow-lg backdrop-blur-md">
+            <span className="text-[11px] font-bold text-slate-300 whitespace-nowrap">
+              بررسی به‌روزرسانی ناموفق بود
+            </span>
+            <button
+              onClick={retryUpdateCheck}
+              className="text-[11px] font-black text-amber-400 hover:text-amber-300 whitespace-nowrap transition cursor-pointer"
+            >
+              تلاش مجدد
+            </button>
+            <button
+              onClick={() => setUpdateCheckFailed(false)}
+              className="text-slate-500 hover:text-slate-300 transition cursor-pointer"
+              aria-label="بستن"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}

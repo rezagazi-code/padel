@@ -215,6 +215,7 @@ export interface Coach {
   name: string;
   avatar: string;
   title: string;
+  phone?: string; // coach contact number (migration 0012 adds the column)
   fipCertification: string; // e.g. 'مدرک بین‌المللی FIP سطح ۲'
   experienceYears: number;
   rating: number;
@@ -285,7 +286,10 @@ export interface Tournament {
   maxTeams: number;
   registeredTeamsCount: number;
   levelRange: string;
-  status: 'registration' | 'ongoing' | 'completed';
+  // 'draw_done' is local-only: the tournaments.status Postgres enum accepts
+  // only registration/ongoing/completed, so the draw persists the bracket
+  // while the status flips back to 'registration' on the next reload.
+  status: 'registration' | 'draw_done' | 'ongoing' | 'completed';
   bannerImage: string;
   rules: string[];
   registeredTeams: {

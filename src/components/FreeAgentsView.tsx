@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { NeedPlayerPost, PlayerProfile, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -54,8 +54,12 @@ export const FreeAgentsView: React.FC = () => {
   const [reqSide, setReqSide] = useState<PlayingSide>('left');
   const [reqCost, setReqCost] = useState<number>(220000);
   const [reqNote, setReqNote] = useState('');
-  // Busy state for the manual need-player ad submit (double-submit guard).
-  const [requestSubmitting, setRequestSubmitting] = useState(false);
+  // Ref-based double-submit guard for the manual need-player ad submit.
+  // createNeedPlayerPost is synchronous, so a useState flag set true→false
+  // in the same tick never engages `disabled` (React batches); a ref blocks
+  // the same-tick double submit instead — same pattern as the group-session
+  // creation guard in MatchmakingView.
+  const requestSubmittingRef = useRef(false);
 
   // Free agent status toggle form
   const [freeAgentNoteInput, setFreeAgentNoteInput] = useState(playerProfile.freeAgentNote || '');
@@ -73,8 +77,8 @@ export const FreeAgentsView: React.FC = () => {
 
   const handleCreateRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    if (requestSubmitting) return;
-    setRequestSubmitting(true);
+    if (requestSubmittingRef.current) return;
+    requestSubmittingRef.current = true;
     try {
       // Level range derived from the host's level, same as the auto-created
       // ads from createNeedPostForBooking — manual ads should behave alike.
@@ -98,7 +102,7 @@ export const FreeAgentsView: React.FC = () => {
       });
       setShowCreateRequestModal(false);
     } finally {
-      setRequestSubmitting(false);
+      requestSubmittingRef.current = false;
     }
   };
 
@@ -576,7 +580,6 @@ export const FreeAgentsView: React.FC = () => {
               <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button
                   type="submit"
-                  disabled={requestSubmitting}
                   className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   ثبت در تابلوی بازیکنان آزاد

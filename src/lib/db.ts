@@ -463,6 +463,7 @@ export interface CoachInput {
   name: string;
   avatar: string;
   title: string;
+  phone?: string;
   fipCertification: string;
   experienceYears: number;
   province: string;
@@ -480,6 +481,7 @@ function mapCoach(data: any): Coach {
     name: data.name,
     avatar: data.avatar_url || '',
     title: data.title || '',
+    phone: data.phone ?? '',
     fipCertification: data.fip_certification || '',
     experienceYears: data.experience_years || 0,
     rating: Number(data.rating) || 5.0,
@@ -497,26 +499,34 @@ function mapCoach(data: any): Coach {
 export async function insertCoach(input: CoachInput): Promise<Coach> {
   const sb = getSupabase();
   if (!sb) throw new Error('supabase not configured');
-  const { data, error } = await sb
+  const base = {
+    name: input.name,
+    avatar_url: input.avatar,
+    title: input.title,
+    fip_certification: input.fipCertification,
+    experience_years: input.experienceYears,
+    province: input.province,
+    club_names: input.clubs,
+    hourly_rate: input.hourlyRate,
+    bio: input.bio,
+    specialties: input.specialties,
+    available_days: input.availableDays,
+    available_hours: input.availableHours,
+  };
+  // The `phone` column ships with migration 0012. Until it is run, an insert
+  // carrying phone is rejected — retry without it so adding a coach never
+  // breaks in the meantime.
+  let res = await sb
     .from('coaches')
-    .insert({
-      name: input.name,
-      avatar_url: input.avatar,
-      title: input.title,
-      fip_certification: input.fipCertification,
-      experience_years: input.experienceYears,
-      province: input.province,
-      club_names: input.clubs,
-      hourly_rate: input.hourlyRate,
-      bio: input.bio,
-      specialties: input.specialties,
-      available_days: input.availableDays,
-      available_hours: input.availableHours,
-    })
+    .insert({ ...base, phone: input.phone || '' })
     .select('*')
     .single();
-  if (error) throw error;
-  return mapCoach(data);
+  if (res.error && /phone/i.test(res.error.message || '')) {
+    console.warn('insertCoach: phone column missing (run migration 0012), retrying without it');
+    res = await sb.from('coaches').insert(base).select('*').single();
+  }
+  if (res.error) throw res.error;
+  return mapCoach(res.data);
 }
 
 export async function deleteCoachById(coachId: string): Promise<void> {

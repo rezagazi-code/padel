@@ -31,7 +31,8 @@ import {
   Eye,
   Info,
   ChevronDown,
-  Trash2
+  Trash2,
+  Shuffle
 } from 'lucide-react';
 
 /** ISO date (YYYY-MM-DD) N days from today — for native date inputs, which the
@@ -50,6 +51,7 @@ export const TournamentsView: React.FC = () => {
     registerTournamentTeam,
     finalizeTournamentResults,
     updateTournamentBracketMatch,
+    drawOfficialBracket,
     rankings,
     playerProfile,
     clubs,
@@ -540,6 +542,23 @@ export const TournamentsView: React.FC = () => {
                     <span className="text-[10px] text-slate-500">
                       برگزارکننده: {tourn.organizerType === 'province' ? 'ادمین هیات استان' : (tourn.clubName.startsWith('باشگاه') ? tourn.clubName : `باشگاه ${tourn.clubName}`)}
                     </span>
+
+                    {/* Official draw: only the tournament's manager, while
+                        registration is open, with no bracket yet and at
+                        least 2 registered teams. */}
+                    {canManageTournament(tourn) &&
+                      tourn.status === 'registration' &&
+                      !(tourn.bracket && tourn.bracket.length > 0) &&
+                      tourn.registeredTeams.length >= 2 && (
+                        <button
+                          onClick={() => drawOfficialBracket(tourn.id)}
+                          className="px-3.5 py-2 bubble-btn-fire text-white font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                          title="قرعه‌کشی جدول حذفی بر اساس قدرت تیم‌ها"
+                        >
+                          <Shuffle className="w-4 h-4" />
+                          <span>قرعه‌کشی</span>
+                        </button>
+                      )}
                   </div>
 
                   {/* Collapsible Tournament Bracket UI */}

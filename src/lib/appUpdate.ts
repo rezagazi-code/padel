@@ -10,12 +10,29 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 80;
-export const CURRENT_VERSION_NAME = '3.15.27';
+export const CURRENT_VERSION_CODE = 81;
+export const CURRENT_VERSION_NAME = '3.15.28';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
-  // Only check in native app
-  if (!Capacitor.isNativePlatform()) return null;
+  const r = await checkForAppUpdateDetailed();
+  return r.status === 'update' ? r.info : null;
+}
+
+/**
+ * Detailed update check that distinguishes "up to date" from "check failed"
+ * (network error, timeout, bad JSON, non-OK response). checkForAppUpdate
+ * intentionally swallows failures to null; callers that need retry/failure
+ * UI (App.tsx) use this instead.
+ */
+export type UpdateCheckResult =
+  | { status: 'update'; info: AppUpdateInfo }
+  | { status: 'up-to-date' }
+  | { status: 'failed' };
+
+export async function checkForAppUpdateDetailed(): Promise<UpdateCheckResult> {
+  // Only check in native app — on web there is nothing to check, which is
+  // "up to date", never a failure (no failure banner on web).
+  if (!Capacitor.isNativePlatform()) return { status: 'up-to-date' };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {
@@ -23,15 +40,20 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
       cache: 'no-store',
       signal: controller.signal,
     });
-    if (!res.ok) return null;
-    const info: AppUpdateInfo = await res.json();
-    if (info.versionCode > CURRENT_VERSION_CODE) {
-      return info;
+    if (!res.ok) return { status: 'failed' };
+    let info: AppUpdateInfo;
+    try {
+      info = await res.json();
+    } catch {
+      return { status: 'failed' };
     }
-    return null;
+    if (info.versionCode > CURRENT_VERSION_CODE) {
+      return { status: 'update', info };
+    }
+    return { status: 'up-to-date' };
   } catch {
-    // Abort, network error, or bad JSON: fail silent (null = no update).
-    return null;
+    // Abort, network error: the check failed (distinct from "no update").
+    return { status: 'failed' };
   } finally {
     clearTimeout(timeout);
   }

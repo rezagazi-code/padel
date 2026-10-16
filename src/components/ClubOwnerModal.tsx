@@ -124,8 +124,6 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       });
 
       onClose();
-      try {
-      } catch {}
     } catch {
       setSubmitError('ثبت باشگاه روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
     } finally {

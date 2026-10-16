@@ -101,9 +101,13 @@ export const FriendlyTournamentView: React.FC = () => {
       setTNameError('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
       return;
     }
-    // Refresh selected
+    // Refresh selected from state. No fake team is appended: the detail
+    // view below re-reads the tournament from fresh friendlyTournaments on
+    // every render, and prizePool/suggestion use the live lookup too — a
+    // stale `{ id: 'tmp' }` append inflated the prize pool by one team and
+    // accumulated duplicate keys.
     const updated = friendlyTournaments.find((t) => t.id === selected.id);
-    if (updated) setSelected({ ...updated, teams: [...updated.teams, { id: 'tmp', teamName: tName.trim(), player1Name: tP1.trim(), player2Name: tP2.trim(), rank: tRank }] });
+    if (updated) setSelected({ ...updated });
     setTName(''); setTP1(''); setTP2(''); setTRank('C'); setTNameError('');
   };
 
@@ -136,15 +140,22 @@ export const FriendlyTournamentView: React.FC = () => {
     return tourn.teams.find((t) => t.id === teamId)?.teamName || '---';
   };
 
-  const prizePool = selected ? selected.teams.length * selected.entryFeePerTeam : 0;
-  const splitParts = selected?.prizeSplit === '70-30' ? [0.7, 0.3] : [0.6, 0.4];
+  // Live tournament for derived values: `selected` can lag one render
+  // behind after addFriendlyTeam (stale closure), so prize/suggestion math
+  // must read the fresh tournament from state — never selected.teams.
+  const liveTourn = selected
+    ? friendlyTournaments.find((t) => t.id === selected.id) ?? selected
+    : null;
+
+  const prizePool = liveTourn ? liveTourn.teams.length * liveTourn.entryFeePerTeam : 0;
+  const splitParts = liveTourn?.prizeSplit === '70-30' ? [0.7, 0.3] : [0.6, 0.4];
   const prizeFirst = Math.round(prizePool * splitParts[0]);
   const prizeSecond = Math.round(prizePool * splitParts[1]);
 
   const suggestion = calculateSuggestion(
-    selected?.teams.length || 0,
-    selected?.courtsCount || parseInt(faDigitsToEn(fCourts)) || 2,
-    selected?.hoursReserved || parseFloat(faDigitsToEn(fHours)) || 4
+    liveTourn?.teams.length || 0,
+    liveTourn?.courtsCount || parseInt(faDigitsToEn(fCourts)) || 2,
+    liveTourn?.hoursReserved || parseFloat(faDigitsToEn(fHours)) || 4
   );
 
   if (selected) {

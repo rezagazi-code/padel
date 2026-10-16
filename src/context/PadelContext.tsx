@@ -96,6 +96,7 @@ interface PadelContextType {
   createFriendlyTournament: (data: Omit<FriendlyTournament, 'id' | 'status' | 'teams' | 'bracket' | 'createdAt'>) => FriendlyTournament;
   addFriendlyTeam: (tournId: string, team: Omit<FriendlyTeam, 'id'>) => boolean;
   drawFriendlyBracket: (tournId: string) => void;
+  drawOfficialBracket: (tournId: string) => void;
   recordFriendlyScore: (tournId: string, matchId: string, score1: number, score2: number) => void;
   finalizeFriendlyTournament: (tournId: string) => void;
   needPlayerPosts: NeedPlayerPost[];
@@ -715,9 +716,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (getSupabase()) {
       try {
         const remote = await insertCoach(coachData);
-        setCoaches((prev) => [remote, ...prev]);
-        setSyncNotification(`مربی «${remote.name}» با موفقیت افزوده شد!`);
-        return remote;
+        // If migration 0012 (phone column) hasn't run yet, the server row
+        // comes back without it — keep the typed phone in local state for
+        // this session so it isn't silently lost.
+        const withPhone =
+          coachData.phone && !remote.phone ? { ...remote, phone: coachData.phone } : remote;
+        setCoaches((prev) => [withPhone, ...prev]);
+        setSyncNotification(`مربی «${withPhone.name}» با موفقیت افزوده شد!`);
+        return withPhone;
       } catch (err) {
         console.error('addCoach remote failed', err);
         setSyncNotification('خطا در ثبت مربی روی سرور. دوباره تلاش کنید.');
@@ -1215,6 +1221,161 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
     setSyncNotification('قرعه‌کشی انجام شد!');
+  };
+
+  // Official tournament draw: same snake-seeding as drawFriendlyBracket, but
+  // seeded from the tournament's REGISTERED teams and built in the official
+  // BracketMatch shape (round keys round_16/quarter/semi/final). Generates
+  // the full skeleton (later rounds start with TBD teams; winners advance
+  // via updateTournamentBracketMatch). Odd team counts are padded to a power
+  // of 2 exactly like generateBracket: byes land on the top seeds and
+  // auto-advance, their winners propagated into the next round at draw time.
+  const drawOfficialBracket = (tournId: string) => {
+    const tourn = tournaments.find((t) => t.id === tournId);
+    if (!tourn || tourn.status !== 'registration') return;
+    // Never clobber an existing bracket — recorded results would be lost.
+    if (tourn.bracket && tourn.bracket.length > 0) {
+      setSyncNotification('برای این تورنمنت قبلاً قرعه‌کشی انجام شده است.');
+      return;
+    }
+    const teams = tourn.registeredTeams;
+    if (teams.length < 2) {
+      setSyncNotification('برای قرعه‌کشی حداقل ۲ تیم ثبت‌نام‌شده لازم است.');
+      return;
+    }
+    if (teams.length > 16) {
+      setSyncNotification('قرعه‌کشی رسمی فعلاً برای حداکثر ۱۶ تیم پشتیبانی می‌شود.');
+      return;
+    }
+
+    // Sort by strength: average numeric level, stronger first (ties broken
+    // by name for a deterministic draw).
+    const sorted = [...teams].sort((a, b) => {
+      const sa = (a.player1Level + a.player2Level) / 2;
+      const sb = (b.player1Level + b.player2Level) / 2;
+      return sb - sa || a.teamName.localeCompare(b.teamName, 'fa');
+    });
+    const seedRank = new Map(sorted.map((t, i) => [t.id, i + 1]));
+
+    const n = sorted.length;
+    const size = Math.pow(2, Math.ceil(Math.log2(n)));
+    const seeded: ((typeof sorted)[number] | null)[] = [...sorted];
+    while (seeded.length < size) seeded.push(null);
+
+    // True snake seeding — identical to drawFriendlyBracket: seeds 1&2 can
+    // only meet in the final; byes (nulls) land on the top seeds.
+    const seedOrder = (k: number): number[] => {
+      if (k <= 2) return [1, 2];
+      const prev = seedOrder(k / 2);
+      const out: number[] = [];
+      for (const s of prev) out.push(s, k + 1 - s);
+      return out;
+    };
+    const order = seedOrder(size);
+
+    // Round key derived from the true bracket size (same derivation as the
+    // friendly draw). The official BracketMatch type supports up to round_16.
+    const ROUND_BY_SIZE: Record<number, { key: BracketMatch['round']; fa: string }> = {
+      2: { key: 'final', fa: 'فینال' },
+      4: { key: 'semi', fa: 'نیمه‌نهایی' },
+      8: { key: 'quarter', fa: 'یک‌چهارم نهایی' },
+      16: { key: 'round_16', fa: 'یک‌هشتم نهایی' },
+    };
+    const first = ROUND_BY_SIZE[size];
+    if (!first) return;
+
+    const ROUND_SEQ: BracketMatch['round'][] = ['round_16', 'quarter', 'semi', 'final'];
+    const ROUND_FA: Record<BracketMatch['round'], string> = {
+      round_16: 'یک‌هشتم نهایی',
+      quarter: 'یک‌چهارم نهایی',
+      semi: 'نیمه‌نهایی',
+      final: 'فینال',
+    };
+
+    const bracket: BracketMatch[] = [];
+    const stamp = Date.now();
+    let seq = 0;
+    // First round from the snake order; a bye (one side null) auto-advances
+    // its team: completed match with winnerId set, like the friendly draw.
+    const firstRoundCount = size / 2;
+    for (let i = 0; i < firstRoundCount; i++) {
+      const t1 = seeded[order[2 * i] - 1];
+      const t2 = seeded[order[2 * i + 1] - 1];
+      const byeWinner = t1 && !t2 ? t1 : !t1 && t2 ? t2 : null;
+      bracket.push({
+        id: `ob-${stamp}-${seq++}`,
+        round: first.key,
+        roundName: first.fa,
+        matchNumber: i + 1,
+        team1: t1 ? { id: t1.id, name: t1.teamName, seed: seedRank.get(t1.id) } : undefined,
+        team2: t2 ? { id: t2.id, name: t2.teamName, seed: seedRank.get(t2.id) } : undefined,
+        status: byeWinner ? 'completed' : 'pending',
+        winnerId: byeWinner ? byeWinner.id : undefined,
+      });
+    }
+    // Later-round skeleton with TBD teams; matchNumber is sequential per
+    // round so winner advancement pairing stays correct.
+    const startIdx = ROUND_SEQ.indexOf(first.key);
+    let prevCount = firstRoundCount;
+    for (let r = startIdx + 1; r < ROUND_SEQ.length; r++) {
+      const count = prevCount / 2;
+      for (let i = 0; i < count; i++) {
+        bracket.push({
+          id: `ob-${stamp}-${seq++}`,
+          round: ROUND_SEQ[r],
+          roundName: ROUND_FA[ROUND_SEQ[r]],
+          matchNumber: i + 1,
+          status: 'pending',
+        });
+      }
+      prevCount = count;
+    }
+    // Propagate bye winners forward into the next round's slots (match m ->
+    // next-round match ceil(m/2); odd m -> team1, even m -> team2). Byes only
+    // exist in the first round, so one forward pass suffices.
+    for (let r = startIdx; r < ROUND_SEQ.length - 1; r++) {
+      const cur = bracket
+        .filter((m) => m.round === ROUND_SEQ[r])
+        .sort((a, b) => a.matchNumber - b.matchNumber);
+      const nxt = bracket
+        .filter((m) => m.round === ROUND_SEQ[r + 1])
+        .sort((a, b) => a.matchNumber - b.matchNumber);
+      cur.forEach((m, idx) => {
+        if (m.status === 'completed' && m.winnerId) {
+          const winner = m.team1?.id === m.winnerId ? m.team1 : m.team2;
+          const target = nxt[Math.floor(idx / 2)];
+          if (winner && target) {
+            target[idx % 2 === 0 ? 'team1' : 'team2'] = {
+              id: winner.id,
+              name: winner.name,
+              seed: winner.seed,
+            };
+          }
+        }
+      });
+    }
+
+    setTournaments((prev) =>
+      prev.map((t) =>
+        t.id === tournId ? { ...t, bracket, status: 'draw_done' as const } : t
+      )
+    );
+
+    // Persist the bracket server-side (fire-and-forget with surfaced errors,
+    // same as updateTournamentBracketMatch). NOTE: status is deliberately NOT
+    // persisted as 'draw_done' — the tournaments.status Postgres enum only
+    // accepts registration/ongoing/completed and the write would be rejected.
+    if (
+      tourn &&
+      getSupabase() &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
+    ) {
+      void updateTournament(tournId, { bracket }).catch((err) => {
+        console.warn('drawOfficialBracket remote persist failed, keeping local bracket', err);
+        setSyncNotification('⚠️ قرعه‌کشی انجام شد اما ذخیره‌سازی روی سرور ناموفق بود — لطفاً با پشتیبانی در میان بگذارید.');
+      });
+    }
+    setSyncNotification('قرعه‌کشی رسمی انجام شد!');
   };
 
   const recordFriendlyScore = (tournId: string, matchId: string, score1: number, score2: number) => {
@@ -1756,15 +1917,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : undefined,
         };
 
-        // Advance to next round if applicable (e.g. semi -> final)
-        if (currentMatch.round === 'semi' && winnerTeam) {
-          const finalMatch = updatedMatches.find((m) => m.round === 'final');
-          if (finalMatch) {
-            if (currentMatch.matchNumber === 1) {
-              finalMatch.team1 = { id: winnerTeam.id, name: winnerTeam.name };
-            } else {
-              finalMatch.team2 = { id: winnerTeam.id, name: winnerTeam.name };
-            }
+        // Advance to the next round if applicable (round_16 -> quarter -> semi
+        // -> final). Matches pair sequentially: winner of match m feeds
+        // next-round match ceil(m/2) — slot team1 for odd m, team2 for even m.
+        const NEXT_ROUND: Record<BracketMatch['round'], BracketMatch['round'] | undefined> = {
+          round_16: 'quarter',
+          quarter: 'semi',
+          semi: 'final',
+          final: undefined,
+        };
+        const nextRound = NEXT_ROUND[currentMatch.round];
+        if (nextRound && winnerTeam) {
+          const nextMatches = updatedMatches
+            .filter((m) => m.round === nextRound)
+            .sort((a, b) => a.matchNumber - b.matchNumber);
+          const target = nextMatches[Math.ceil(currentMatch.matchNumber / 2) - 1];
+          if (target) {
+            target[currentMatch.matchNumber % 2 === 1 ? 'team1' : 'team2'] = {
+              id: winnerTeam.id,
+              name: winnerTeam.name,
+            };
           }
         } else if (currentMatch.round === 'final' && winnerTeam) {
           // Tournament winner determined!
@@ -1893,6 +2065,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createFriendlyTournament,
         addFriendlyTeam,
         drawFriendlyBracket,
+        drawOfficialBracket,
         recordFriendlyScore,
         finalizeFriendlyTournament,
         needPlayerPosts,

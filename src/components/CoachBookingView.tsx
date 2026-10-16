@@ -34,8 +34,22 @@ export const CoachBookingView: React.FC = () => {
   const [formRate, setFormRate] = useState('');
   const [formError, setFormError] = useState('');
   const [formSaving, setFormSaving] = useState(false);
+  // Persian weekday names (Iranian week starts Saturday) for the coach's
+  // bookable days — same convention as coach.availableDays elsewhere.
+  const [formDays, setFormDays] = useState<string[]>([]);
+  const [formHours, setFormHours] = useState('');
+  // Inline error inside the booking sheet (e.g. coach with no schedule).
+  const [bookingError, setBookingError] = useState<string | null>(null);
   // Ref-based double-submit guard for coach booking confirmation.
   const bookingSubmittingRef = useRef(false);
+
+  const WEEKDAYS_FA = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
+
+  const parseHoursInput = (raw: string): string[] =>
+    raw
+      .split(/[،,؛;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
   const handleAddCoach = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +58,21 @@ export const CoachBookingView: React.FC = () => {
       setFormError('نام مربی الزامی است.');
       return;
     }
+    // A coach without bookable days/hours can never be booked (the booking
+    // sheet would render empty selects) — require both up front.
+    const days = WEEKDAYS_FA.filter((d) => formDays.includes(d));
+    const hours = parseHoursInput(formHours);
+    if (days.length === 0 || hours.length === 0) {
+      setFormError('حداقل یک روز و یک ساعت قابل رزرو برای مربی مشخص کنید.');
+      return;
+    }
     setFormSaving(true);
     try {
       await addCoach({
         name: formName.trim(),
         avatar: '',
         title: formTitle.trim(),
+        phone: formPhone.trim(),
         fipCertification: '',
         experienceYears: 0,
         province: '',
@@ -57,11 +80,12 @@ export const CoachBookingView: React.FC = () => {
         hourlyRate: parseInt(formRate) || 0,
         bio: formBio.trim(),
         specialties: [],
-        availableDays: [],
-        availableHours: [],
+        availableDays: days,
+        availableHours: hours,
       });
       setShowAddModal(false);
       setFormName(''); setFormTitle(''); setFormPhone(''); setFormBio(''); setFormRate('');
+      setFormDays([]); setFormHours('');
     } catch {
       setFormError('خطا در ذخیره مربی. دوباره تلاش کنید.');
     } finally {
@@ -87,14 +111,24 @@ export const CoachBookingView: React.FC = () => {
 
   const handleOpenBookingModal = (coach: Coach) => {
     setSelectedCoach(coach);
+    setBookingError(null);
     setSelectedClub(coach.clubs[0] || 'باشگاه پدل انقلاب');
-    setSelectedDate(coach.availableDays[0] || 'شنبه ۱۴۰۳/۰۶/۳۱');
-    setSelectedHour(coach.availableHours[0] || '۱۶:۰۰');
+    // No fake fallbacks: a coach without a schedule keeps empty selections
+    // and the confirm guard below blocks the booking with a clear message.
+    setSelectedDate(coach.availableDays[0] || '');
+    setSelectedHour(coach.availableHours[0] || '');
   };
 
   const handleConfirmBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCoach) return;
+    // Belt-and-braces: never record a booking for a coach with no schedule
+    // (older coaches created before the add-form validation may have empty
+    // availableDays/availableHours).
+    if (selectedCoach.availableDays.length === 0 || selectedCoach.availableHours.length === 0) {
+      setBookingError('این مربی برنامه‌ای ثبت نکرده است.');
+      return;
+    }
     // Double-submit guard: bookCoach is synchronous, so a ref blocks a
     // same-tick double submit that would create duplicate coach bookings.
     if (bookingSubmittingRef.current) return;
@@ -208,6 +242,16 @@ export const CoachBookingView: React.FC = () => {
                   </div>
 
                   <p className="text-xs text-[#ff6b81] font-bold">{coach.title}</p>
+                  {coach.phone && (
+                    <a
+                      href={`tel:${coach.phone.replace(/\s/g, '')}`}
+                      className="inline-flex items-center gap-1 text-[11px] text-emerald-300 hover:text-emerald-200 mt-1"
+                      dir="ltr"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>{coach.phone}</span>
+                    </a>
+                  )}
                   
                   <div className="inline-flex items-center gap-1 text-[11px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md mt-1">
                     <Award className="w-3 h-3" />
@@ -375,6 +419,12 @@ export const CoachBookingView: React.FC = () => {
                 <p className="text-[#ff6b81] text-[11px] flex items-center gap-1.5">سطح فعلی: <GradeBadge grade={levelToGrade(playerProfile.level)} className="text-[10px] min-w-[1.8rem]" /></p>
               </div>
 
+              {bookingError && (
+                <p className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-3 py-2 text-center">
+                  {bookingError}
+                </p>
+              )}
+
               <div className="pt-2 flex gap-3">
                 <button
                   type="submit"
@@ -405,7 +455,7 @@ export const CoachBookingView: React.FC = () => {
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-base font-black text-slate-100">جلسه مربیگری با موفقیت رزرو شد</h3>
-              <p className="text-slate-500 text-[11px]">پیامک هماهنگی برای مربی و شما ارسال گردید.</p>
+              <p className="text-slate-500 text-[11px]">رزرو شما ثبت شد. برای هماهنگی نهایی، مربی با شما تماس می‌گیرد.</p>
             </div>
 
             <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2">
@@ -458,6 +508,46 @@ export const CoachBookingView: React.FC = () => {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="عنوان (مثلاً مربی ارشد)"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
+              />
+              <input
+                value={formPhone}
+                onChange={(e) => setFormPhone(e.target.value)}
+                placeholder="شماره تماس مربی"
+                inputMode="tel"
+                dir="ltr"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm text-right"
+              />
+              <div>
+                <span className="block text-slate-400 font-bold mb-1.5 text-xs">روزهای قابل رزرو *</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {WEEKDAYS_FA.map((d) => {
+                    const active = formDays.includes(d);
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() =>
+                          setFormDays((prev) =>
+                            prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
+                          )
+                        }
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          active
+                            ? 'bg-[#ff2d55]/20 border-[#ff2d55]/60 text-slate-100'
+                            : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <input
+                value={formHours}
+                onChange={(e) => setFormHours(e.target.value)}
+                placeholder="ساعت‌های قابل رزرو * (با ویرگول جدا کنید؛ مثلاً ۱۶:۰۰، ۱۷:۳۰)"
                 className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 text-sm"
               />
               <input
