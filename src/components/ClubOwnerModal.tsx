@@ -30,6 +30,10 @@ interface CourtDraft {
   hasCameras: boolean;
 }
 
+/** Convert Persian digits to Latin digits (e.g. '۰۷:۰۰' → '07:00'). */
+const fa2en = (s: string): string =>
+  s.replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString());
+
 export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose }) => {
   const { addClub } = usePadel();
 
@@ -38,8 +42,8 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
   const [city, setCity] = useState('تهران');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('۰۲۱-');
-  const [openingHour, setOpeningHour] = useState('۰۷:۰۰');
-  const [closingHour, setClosingHour] = useState('۲۴:۰۰');
+  const [openingHour, setOpeningHour] = useState('07:00');
+  const [closingHour, setClosingHour] = useState('24:00');
   const [coverImage, setCoverImage] = useState('/covers/club-2.jpg');
 
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +94,18 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clubName || submitting) return;
+    // Slot generators parse hours with Number() — Persian digits become NaN
+    // and the club ends up with zero bookable slots. Normalize everything to
+    // Latin digits before saving.
+    const phoneEn = fa2en(phone);
+    const openingHourEn = fa2en(openingHour.trim());
+    const closingHourEn = fa2en(closingHour.trim());
+    const hourOk = (h: string) =>
+      /^([01]?\d|2[0-3]):[0-5]\d$/.test(h) || h === '24:00';
+    if (!hourOk(openingHourEn) || !hourOk(closingHourEn)) {
+      setSubmitError('ساعت بازگشایی و پایان باید به قالب ساعت باشد (مثلاً 07:00 تا 24:00).');
+      return;
+    }
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -98,13 +114,13 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
         province,
         city,
         address,
-        phone,
-        openingHour,
-        closingHour,
+        phone: phoneEn,
+        openingHour: openingHourEn,
+        closingHour: closingHourEn,
         coverImage,
         galleryImages: [coverImage],
         ownerName: 'مدیر مجموعه پدل',
-        ownerPhone: phone,
+        ownerPhone: phoneEn,
         courtsCount: courts.length,
         courts: courts.map((c, i) => ({
           ...c,

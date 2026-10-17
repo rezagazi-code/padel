@@ -237,6 +237,9 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   useEffect(() => {
     const picked = timeSlots.find((s) => s.time === selectedTimeSlot);
     if (selectedTimeSlot && (!picked || picked.isBooked)) {
+      if (userPickedSlotRef.current) {
+        setBookingError('این سانس توسط کاربر دیگری رزرو شد؛ لطفاً سانس دیگری انتخاب کنید.');
+      }
       userPickedSlotRef.current = false;
       setSelectedTimeSlot('');
     }

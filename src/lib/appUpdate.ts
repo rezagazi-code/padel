@@ -18,8 +18,10 @@ export interface DownloadProgress {
 /**
  * Download the APK natively (bypassing the browser, which gets stuck on a
  * black screen for APK URLs on some devices) and launch the Android package
- * installer via FileProvider. Falls back to opening the URL in the browser
- * if the native path fails.
+ * installer via FileProvider. On failure the caller is told via
+ * report({status:'error'}) — the UI offers a retry and an explicit
+ * "download with browser" button; we deliberately do NOT auto-open the
+ * browser here (that was the 2026-10-17 black-screen incident).
  */
 export async function downloadAndInstallApk(
   url: string,
@@ -40,11 +42,14 @@ export async function downloadAndInstallApk(
     }
     // res.data is an ArrayBuffer — convert to base64 for Filesystem
     const bytes = new Uint8Array(res.data as ArrayBuffer);
-    let binary = '';
+    // Collect chunks first and join once: string += in a loop over ~17MB
+    // is O(n²) and stalls the main thread.
+    const parts: string[] = [];
     const CHUNK = 0x8000;
     for (let i = 0; i < bytes.length; i += CHUNK) {
-      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]);
+      parts.push(String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]));
     }
+    const binary = parts.join('');
     const base64 = btoa(binary);
     report({ progress: 0.9, status: 'downloading' });
 
@@ -65,8 +70,6 @@ export async function downloadAndInstallApk(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     report({ progress: 0, status: 'error', error: msg });
-    // Fallback: open in browser as before
-    void openExternal(url);
   }
 }
 
@@ -85,8 +88,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 86;
-export const CURRENT_VERSION_NAME = '3.15.33';
+export const CURRENT_VERSION_CODE = 87;
+export const CURRENT_VERSION_NAME = '3.15.34';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   const r = await checkForAppUpdateDetailed();

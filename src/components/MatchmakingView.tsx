@@ -485,7 +485,7 @@ export const MatchmakingView: React.FC = () => {
                       {compatible.slice(0, 4).map((a) => (
                         <button
                           key={a.id}
-                          onClick={() => inviteFreeAgent(a.id, match.id)}
+                          onClick={() => inviteFreeAgent(a.id, match.title)}
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition text-xs"
                           title={`دعوت ${a.name}`}
                         >

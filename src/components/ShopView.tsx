@@ -29,6 +29,7 @@ function normalizeFa(s: string): string {
   return s
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
+    .replace(/ة/g, 'ه')
     .replace(/[ً-ٖـ]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -151,7 +152,8 @@ const ProductSheet: React.FC<{
   onClose: () => void;
   liveOffers: LivePriceOffer[] | null;
   liveLoading: boolean;
-}> = ({ p, onClose, liveOffers, liveLoading }) => {
+  liveError: boolean;
+}> = ({ p, onClose, liveOffers, liveLoading, liveError }) => {
   const sorted = useMemo(
     () =>
       [...p.offers].sort((a, b) => {
@@ -161,6 +163,14 @@ const ProductSheet: React.FC<{
       }),
     [p]
   );
+  // The «قیمت زنده» header renders only when it has content beneath it —
+  // a loading spinner, offer rows, or the not-found fallback (e.g. after a
+  // failed fetch). On web (non-native) no fetch runs, so the whole section
+  // is hidden instead of showing a bare header.
+  const hasLiveRows = !!liveOffers && liveOffers.length > 0;
+  const showLiveFallback =
+    liveError || (!liveLoading && !!liveOffers && !hasLiveRows);
+  const showLiveSection = liveLoading || hasLiveRows || showLiveFallback;
   return (
     <div
       className="fixed inset-0 z-[70] flex items-end justify-center bg-[#0E1B2C]/35 backdrop-blur-[6px] menu-fade"
@@ -199,69 +209,75 @@ const ProductSheet: React.FC<{
             <X className="w-4 h-4" />
           </button>
         </div>
-        <p className="px-5 pt-3 pb-1 text-[11px] font-bold text-[#5B6B7F] flex items-center gap-1">
-          <Zap className="w-3.5 h-3.5 text-[#0EA5E9]" />
-          قیمت زنده
-          {liveLoading && <Loader2 className="w-3 h-3 animate-spin text-[#0EA5E9]" />}
-        </p>
-        <div className="px-4 pb-1">
-          {liveLoading ? (
-            <div className="space-y-2">
-              {[0, 1].map((i) => (
-                <div key={i} className="h-14 rounded-2xl bg-[#EAF2F8] animate-pulse" />
-              ))}
-            </div>
-          ) : liveOffers && liveOffers.length > 0 ? (
-            <div className="space-y-2">
-              {liveOffers.slice(0, 3).map((o, i) => (
-                <div key={i} className="offer-row flex items-center gap-3 p-2.5 border-[#0EA5E9]/30 bg-[#F0F9FF]">
-                  {o.image ? (
-                    <img
-                      src={o.image}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      className="w-11 h-11 rounded-xl object-cover bg-[#EAF2F8] shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-[#EAF2F8] flex items-center justify-center shrink-0">
-                      <Tag className="w-4 h-4 text-[#8CA0B3]" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-extrabold text-[#0E1B2C] truncate">{o.title}</p>
-                    <p className="text-[10px] text-[#5B6B7F] mt-0.5 flex items-center gap-1">
-                      <Store className="w-3 h-3" />
-                      {o.store}
-                      {o.verified && (
-                        <span className="inline-flex items-center gap-0.5 text-emerald-600 font-bold">
-                          <BadgeCheck className="w-3 h-3" />
-                          موجود
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <p className="text-[13px] font-extrabold text-[#0E1B2C] tabular-nums shrink-0">
-                    {formatPrice(o.priceToman)}
-                  </p>
-                  <button
-                    onClick={() => openExternal(o.url)}
-                    className="bubble-btn shrink-0 h-8 px-3 flex items-center gap-1 text-[11px] cursor-pointer"
-                    aria-label={`مشاهده در ${o.store}`}
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    خرید
-                  </button>
+        {showLiveSection && (
+          <>
+            <p className="px-5 pt-3 pb-1 text-[11px] font-bold text-[#5B6B7F] flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-[#0EA5E9]" />
+              قیمت زنده
+              {liveLoading && <Loader2 className="w-3 h-3 animate-spin text-[#0EA5E9]" />}
+            </p>
+            <div className="px-4 pb-1">
+              {liveLoading ? (
+                <div className="space-y-2">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="h-14 rounded-2xl bg-[#EAF2F8] animate-pulse" />
+                  ))}
                 </div>
-              ))}
+              ) : liveOffers && liveOffers.length > 0 ? (
+                <div className="space-y-2">
+                  {liveOffers.slice(0, 3).map((o, i) => (
+                    <div key={i} className="offer-row flex items-center gap-3 p-2.5 border-[#0EA5E9]/30 bg-[#F0F9FF]">
+                      {o.image ? (
+                        <img
+                          src={o.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="w-11 h-11 rounded-xl object-cover bg-[#EAF2F8] shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-11 h-11 rounded-xl bg-[#EAF2F8] flex items-center justify-center shrink-0">
+                          <Tag className="w-4 h-4 text-[#8CA0B3]" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-extrabold text-[#0E1B2C] truncate">{o.title}</p>
+                        <p className="text-[10px] text-[#5B6B7F] mt-0.5 flex items-center gap-1">
+                          <Store className="w-3 h-3" />
+                          {o.store}
+                          {o.verified && (
+                            <span className="inline-flex items-center gap-0.5 text-emerald-600 font-bold">
+                              <BadgeCheck className="w-3 h-3" />
+                              موجود
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <p className="text-[13px] font-extrabold text-[#0E1B2C] tabular-nums shrink-0">
+                        {formatPrice(o.priceToman)}
+                      </p>
+                      <button
+                        onClick={() => openExternal(o.url)}
+                        className="bubble-btn shrink-0 h-8 px-3 flex items-center gap-1 text-[11px] cursor-pointer"
+                        aria-label={`مشاهده در ${o.store}`}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        خرید
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-[#8CA0B3] pb-1">
+                  قیمت زنده‌ای پیدا نشد — عبارت دیگه‌ای رو امتحان کن
+                </p>
+              )}
             </div>
-          ) : liveOffers ? (
-            <p className="text-[10px] text-[#8CA0B3] pb-1">قیمت زنده‌ای پیدا نشد</p>
-          ) : null}
-        </div>
+          </>
+        )}
         <p className="px-5 pt-2 pb-1 text-[11px] font-bold text-[#5B6B7F] flex items-center gap-1">
           <Tag className="w-3.5 h-3.5 text-[#0EA5E9]" />
           پیشنهادها (ارزون‌ترین اول)
@@ -323,6 +339,7 @@ export const ShopView: React.FC = () => {
   // so prices are fresh on view without a manual search.
   const [sheetLiveOffers, setSheetLiveOffers] = useState<LivePriceOffer[] | null>(null);
   const [sheetLiveLoading, setSheetLiveLoading] = useState(false);
+  const [sheetLiveError, setSheetLiveError] = useState(false);
   const sheetTokenRef = useRef(0);
   // Stale-query guard: a slow earlier search must never overwrite the results
   // of a newer one — only the latest token may touch state when it resolves.
@@ -404,12 +421,24 @@ export const ShopView: React.FC = () => {
   /** Open a product sheet and auto-fetch fresh live prices for it. */
   const openProductSheet = (p: ShopProduct) => {
     setOpenProduct(p);
+    setSheetLiveError(false);
     if (!Capacitor.isNativePlatform()) return;
     const token = ++sheetTokenRef.current;
     setSheetLiveOffers(null);
     setSheetLiveLoading(true);
-    // Distinctive query: brand + model (Latin part of the Persian name)
-    const q = `${p.brand} ${p.name.replace(/^(راکت پدل|توپ پدل|کفش پدل|لباس پدل|ساک پدل|کیف پدل)\s*/, '')}`.trim();
+    // Distinctive query: brand + model (Latin part of the Persian name).
+    // Strip the category prefix and any duplicated brand word, e.g. brand
+    // «Dunlop» + «راکت پدل Dunlop Boost 2.0» → "Dunlop Boost 2.0".
+    const brandRe = new RegExp(
+      p.brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      'gi'
+    );
+    const stripped = p.name
+      .replace(/^(راکت پدل|توپ پدل|کفش پدل|لباس پدل|ساک پدل|کیف پدل)\s*/, '')
+      .replace(brandRe, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const q = (stripped ? `${p.brand} ${stripped}` : p.name).trim();
     livePriceSearch(q)
       .then((offers) => {
         if (sheetTokenRef.current !== token) return;
@@ -420,6 +449,7 @@ export const ShopView: React.FC = () => {
         if (sheetTokenRef.current !== token) return;
         setSheetLiveLoading(false);
         setSheetLiveOffers(null);
+        setSheetLiveError(true);
       });
   };
 
@@ -640,6 +670,7 @@ export const ShopView: React.FC = () => {
             onClose={closeProductSheet}
             liveOffers={sheetLiveOffers}
             liveLoading={sheetLiveLoading}
+            liveError={sheetLiveError}
           />
         )}
       </div>

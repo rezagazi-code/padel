@@ -3,6 +3,7 @@ import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
 import { AuthModal } from './AuthModal';
+import { ConfirmDialog } from './ConfirmDialog';
 import { PlayingHand, PlayingSide, type Booking } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
@@ -99,6 +100,10 @@ export const PlayerProfileView: React.FC = () => {
   // Cancel, then re-read the server list so the view reflects server
   // truth: a failed remote delete keeps the booking visible, a successful
   // one drops it. (Local bookings are removed from context by cancelBooking.)
+  // Confirmation target for the history "لغو سانس" button — tapping it only
+  // opens the dialog; the booking is cancelled after explicit confirmation.
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+
   const handleCancelBooking = async (bookingId: string) => {
     if (cancelBookingInflightRef.current) return;
     cancelBookingInflightRef.current = true;
@@ -145,20 +150,25 @@ export const PlayerProfileView: React.FC = () => {
       return;
     }
     setPwBusy(true);
-    const { error } = await changePassword(pwCurrent, pwNew);
-    setPwBusy(false);
-    if (error) {
-      setPwError(error);
-      return;
+    try {
+      const { error } = await changePassword(pwCurrent, pwNew);
+      if (error) {
+        setPwError(error);
+        return;
+      }
+      setPwSuccess(true);
+      setPwCurrent('');
+      setPwNew('');
+      setPwConfirm('');
+      setTimeout(() => {
+        setShowPwForm(false);
+        setPwSuccess(false);
+      }, 2500);
+    } catch {
+      setPwError('خطا در ارتباط با سرور؛ دوباره تلاش کنید.');
+    } finally {
+      setPwBusy(false);
     }
-    setPwSuccess(true);
-    setPwCurrent('');
-    setPwNew('');
-    setPwConfirm('');
-    setTimeout(() => {
-      setShowPwForm(false);
-      setPwSuccess(false);
-    }, 2500);
   };
 
   // Form State
@@ -236,14 +246,18 @@ export const PlayerProfileView: React.FC = () => {
     );
   }
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     // Persian validation: name is required
     if (!name.trim()) {
       alert('لطفاً نام و نام خانوادگی را وارد کنید.');
       return;
     }
-    updatePlayerProfile({
+    // updatePlayerProfile resolves true on server save, false on failure
+    // (a notification is already shown in that case). Cast keeps this
+    // compiling while the context migration lands; a non-boolean return
+    // (old void signature) is treated as success, not failure.
+    const ok = (await updatePlayerProfile({
       name: name.trim(),
       phone,
       city,
@@ -255,12 +269,14 @@ export const PlayerProfileView: React.FC = () => {
       racketBrand,
       racketModel,
       bio,
-    });
+    })) as unknown as boolean | undefined;
 
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
-    // Close the edit form after successful save
-    setTimeout(() => setActiveTab('none'), 1000);
+    if (ok !== false) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      // Close the edit form after successful save
+      setTimeout(() => setActiveTab('none'), 1000);
+    }
   };
 
   return (
@@ -808,7 +824,7 @@ export const PlayerProfileView: React.FC = () => {
                       <span>{toJalaliDisplay(b.date)} | {b.timeSlot}</span>
                       {isBookingCancellable(b.date, b.timeSlot, tehranToday) && (
                         <button
-                          onClick={() => void handleCancelBooking(b.id)}
+                          onClick={() => setCancelTargetId(b.id)}
                           className="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -863,6 +879,20 @@ export const PlayerProfileView: React.FC = () => {
       <p className="text-center text-[10px] text-slate-600 font-medium pt-2">
         نسخه {CURRENT_VERSION_NAME}
       </p>
+
+      <ConfirmDialog
+        open={cancelTargetId !== null}
+        title="لغو سانس"
+        message="این سانس لغو شود؟ این عمل قابل بازگشت نیست."
+        confirmLabel="لغو سانس"
+        cancelLabel="انصراف"
+        onConfirm={() => {
+          const id = cancelTargetId;
+          setCancelTargetId(null);
+          if (id) void handleCancelBooking(id);
+        }}
+        onCancel={() => setCancelTargetId(null)}
+      />
 
     </div>
   );

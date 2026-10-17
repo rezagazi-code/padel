@@ -33,6 +33,7 @@ function normalizeFa(s: string): string {
   return s
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
+    .replace(/ة/g, 'ه')
     .replace(/[ً-ٖـ]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -105,18 +106,17 @@ function termInTitle(title: string, term: string): boolean {
 
 /**
  * Relevance filter: a live-search hit must actually be padel gear.
- * Requires (1) a padel indicator in the title and (2) at least one
- * distinctive query term (brand/model) in the title — so "viper" no
- * longer matches a Razer mouse or a wiper blade.
+ * With a padel indicator in the title, one distinctive query term
+ * (brand/model) suffices; without one, at least two distinctive terms
+ * must match — so Latin-script titles like «Head Gravity Pro» pass,
+ * while "viper" still can't match a Razer mouse or a wiper blade.
  */
 export function isPadelRelevant(titleRaw: string, queryRaw: string): boolean {
   const title = normalizeFa(titleRaw);
   const query = normalizeFa(queryRaw);
 
-  // 1. Must be padel-related
-  if (!title.includes('پدل') && !title.includes('padel')) return false;
-
-  // 2. Must match at least one distinctive (non-generic) query term
+  // Distinctive (non-generic) query terms: brand/model words that carry
+  // the match signal (e.g. «gravity», «pro» for «Head Gravity Pro»).
   const GENERIC = new Set([
     'پدل', 'padel', 'راکت', 'racket', 'راکت‌ها', 'توپ', 'ball', 'balls',
     'کفش', 'shoe', 'shoes', 'قیمت', 'خرید', 'جدید', 'اصل', 'اورجینال',
@@ -124,6 +124,13 @@ export function isPadelRelevant(titleRaw: string, queryRaw: string): boolean {
   ]);
   const terms = query.split(/\s+/).filter((t) => t.length > 1 && !GENERIC.has(t));
   if (terms.length === 0) return true;
+
+  // A padel indicator relaxes the bar to a single distinctive term;
+  // without one, require ≥2 matched distinctive terms so single-term
+  // false positives (e.g. query "viper" → Razer mouse) are still dropped.
+  const hasPadel = title.includes('پدل') || title.includes('padel');
+  const matched = terms.filter((t) => termInTitle(title, t)).length;
+  if (!hasPadel && matched < 2) return false;
 
   return terms.some((t) => termInTitle(title, t));
 }

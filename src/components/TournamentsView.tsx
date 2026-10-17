@@ -195,7 +195,7 @@ export const TournamentsView: React.FC = () => {
         registrationDeadline: newDeadline,
         entryFee: Number(newEntryFee),
         prizePool: newPrizePool,
-        maxTeams: Number(newMaxTeams),
+        maxTeams: Math.min(Number(newMaxTeams), 16),
         levelRange: '۳.۰۰+',
         bannerImage: club.coverImage,
         rules: [
@@ -359,7 +359,7 @@ export const TournamentsView: React.FC = () => {
           {filteredTournaments.map((tourn, idx) => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
             const isCompleted = tourn.status === 'completed';
-            const isRegistrationOpen = tourn.status === 'registration';
+            const isRegistrationOpen = tourn.status === 'registration' && !(tourn.bracket && tourn.bracket.length > 0);
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
             return (
@@ -494,8 +494,9 @@ export const TournamentsView: React.FC = () => {
                               setWinnerTeamInput(tourn.registeredTeams[0]?.teamName || 'تیم قهرمان');
                               setRunnerUpTeamInput(tourn.registeredTeams[1]?.teamName || 'تیم نایب‌قهرمان');
                             }}
-                            className="px-3.5 py-3 glow-btn-gold text-white font-black text-xs rounded-xl transition cursor-pointer"
-                            title="ثبت نتایج توسط مسئول باشگاه و افزایش امتیازات رنکینگ بازیکنان"
+                            disabled={(tourn.bracket?.length ?? 0) > 0}
+                            className={`px-3.5 py-3 glow-btn-gold text-white font-black text-xs rounded-xl transition ${(tourn.bracket?.length ?? 0) > 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title={(tourn.bracket?.length ?? 0) > 0 ? 'ابتدا نتایج جدول تورنمنت را کامل ثبت کنید؛ ثبت دستی فقط برای تورنمنت‌های بدون جدول است.' : 'ثبت نتایج توسط مسئول باشگاه و افزایش امتیازات رنکینگ بازیکنان'}
                           >
                             ثبت نتایج و آپدیت رنک
                           </button>
@@ -1009,7 +1010,6 @@ export const TournamentsView: React.FC = () => {
                     <option value={8}>۸ تیم (دونفره)</option>
                     <option value={12}>۱۲ تیم</option>
                     <option value={16}>۱۶ تیم</option>
-                    <option value={32}>۳۲ تیم</option>
                   </select>
                 </div>
               </div>

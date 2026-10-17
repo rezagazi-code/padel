@@ -71,7 +71,7 @@ interface PadelContextType {
   isMobileDeviceView: boolean;
   setIsMobileDeviceView: (val: boolean) => void;
   playerProfile: PlayerProfile;
-  updatePlayerProfile: (updates: Partial<PlayerProfile>) => void;
+  updatePlayerProfile: (updates: Partial<PlayerProfile>) => Promise<boolean>;
   clubs: Club[];
   addClub: (club: Omit<Club, 'id' | 'rating' | 'reviewCount'>) => Promise<Club>;
   addCourtToClub: (clubId: string, court: Omit<Court, 'id' | 'clubId'>) => Promise<void>;
@@ -99,6 +99,7 @@ interface PadelContextType {
   drawOfficialBracket: (tournId: string) => void;
   recordFriendlyScore: (tournId: string, matchId: string, score1: number, score2: number) => void;
   finalizeFriendlyTournament: (tournId: string) => void;
+  resetFriendlyBracket: (tournId: string) => void;
   needPlayerPosts: NeedPlayerPost[];
   createNeedPlayerPost: (post: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => void;
   joinNeedPlayerPost: (postId: string) => boolean;
@@ -289,6 +290,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // it (a flag set inside the updater can never be read at return time —
   // React 18 batches the updater — so the ref only covers the race window).
   const pendingJoinRef = useRef<Set<string>>(new Set());
+  // Guard against double-awarding tournament ranking points: a tournament's
+  // winner must be credited exactly once. StrictMode double-invokes state
+  // updaters and both the free-text finalize path and the bracket path can
+  // award, so the ref records which tournament ids already credited which
+  // winner. Seeded at init from already-completed tournaments — pre-fix
+  // bracket-completed tournaments keep their zero points (documented
+  // trade-off: no new corruption is possible, no backfill either).
+  const bracketPointsAwardedRef = useRef<Map<string, string>>(
+    new Map(
+      tournaments
+        .filter((t) => t.status === 'completed' && t.winnerTeam)
+        .map((t) => [t.id, t.winnerTeam as string])
+    )
+  );
   useEffect(() => {
     const p = auth?.profile;
     if (!p) {
@@ -467,7 +482,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'coaches', JSON.stringify(coaches));
   }, [coaches]);
 
-  const updatePlayerProfile = (updates: Partial<PlayerProfile>) => {
+  const updatePlayerProfile = async (updates: Partial<PlayerProfile>): Promise<boolean> => {
     setPlayerProfile((prev) => {
       const updated = { ...prev, ...updates };
       // Also update in free agents if isFreeAgent
@@ -486,8 +501,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return updated;
     });
     // Push the editable identity fields back to the server profile so
-    // «پروفایل من» stays connected to AuthProfile (fire-and-forget; the
-    // local profile remains the UI source of truth).
+    // «پروفایل من» stays connected to AuthProfile. Returns true when the
+    // local save (and the server push, if applicable) succeeds, false
+    // when the server push fails — the local profile remains the UI source
+    // of truth either way.
     const authUserId = auth?.user?.id ?? null;
     if (getSupabase() && authUserId) {
       const patch: ProfilePatch = {};
@@ -504,10 +521,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (updates.phone !== undefined) patch.phone = updates.phone;
       if (updates.bio !== undefined) patch.bio = updates.bio;
       if (updates.isFreeAgent !== undefined) patch.is_free_agent = updates.isFreeAgent;
-      if (Object.keys(patch).length > 0) {
-        updateMyProfile(authUserId, patch).catch(() => {});
+      if (Object.keys(patch).length === 0) return true;
+      try {
+        await updateMyProfile(authUserId, patch);
+        return true;
+      } catch {
+        setSyncNotification('ذخیره پروفایل ناموفق بود؛ اتصال اینترنت را بررسی کنید.');
+        return false;
       }
     }
+    return true;
   };
 
   const addClub = async (clubData: Omit<Club, 'id' | 'rating' | 'reviewCount'>): Promise<Club> => {
@@ -1508,6 +1531,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSyncNotification('مسابقه دوستانه به پایان رسید!');
   };
 
+  // Undo an accidental friendly-tournament draw (A5): only allowed while
+  // the bracket exists, status is still draw_done, and NO match has a
+  // recorded result. A "recorded result" means a winnerId accompanied by
+  // scores (recordFriendlyScore always sets score1+score2+winnerId
+  // together); a bare winnerId with null scores is just a bye auto-advance
+  // from the draw and must not block the undo. Resets to open so teams
+  // can be edited and the draw re-run. Persists via the existing
+  // friendly_tournaments localStorage effect.
+  const resetFriendlyBracket = (tournId: string) => {
+    const t = friendlyTournaments.find((x) => x.id === tournId);
+    if (!t || t.status !== 'draw_done' || !t.bracket || t.bracket.length === 0) return;
+    const anyResult = t.bracket.some(
+      (m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)
+    );
+    if (anyResult) return;
+    setFriendlyTournaments((prev) =>
+      prev.map((x) => (x.id === tournId ? { ...x, bracket: [], status: 'open' as const } : x))
+    );
+    setSyncNotification('قرعه‌کشی حذف شد و تورنمنت به وضعیت ثبت‌نام برگشت.');
+  };
+
   const createNeedPlayerPost = (postData: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => {
     const newPost: NeedPlayerPost = {
       ...postData,
@@ -1680,6 +1724,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('مهلت ثبت‌نام این تورنومنت به پایان رسیده است.');
       return false;
     }
+    // A drawn bracket means registration is over even if the status was not
+    // persisted server-side (A2): refuse with the same error-return pattern
+    // instead of a silent remote RLS failure.
+    if (t.bracket && t.bracket.length > 0) {
+      setSyncNotification('قرعه‌کشی این تورنومنت انجام شده و ثبت‌نام بسته است.');
+      return false;
+    }
     if (t.registeredTeamsCount >= t.maxTeams) {
       setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
       return false;
@@ -1763,6 +1814,45 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return true;
   };
 
+  // Awards provincial/country ranking points for a tournament result.
+  // Extracted (verbatim logic) so the free-text finalize path and the
+  // bracket-completion path award IDENTICAL points. Callers guard with
+  // bracketPointsAwardedRef so each winner is credited exactly once.
+  // MUST be called outside setTournaments updaters (StrictMode
+  // double-invokes updaters → double award); calling setRankings +
+  // setSyncNotification directly here is fine.
+  const awardTournamentRankingPoints = (
+    tourn: Tournament,
+    winnerTeamName: string,
+    runnerUpTeamName: string
+  ) => {
+    setRankings((prev) => {
+      const norm = (s: string) => s.trim();
+      const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
+      const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
+      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
+      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
+      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]));
+      if (!winnerTeam) {
+        setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
+      }
+      return prev.map((player) => {
+        if (winnerNames.includes(player.name)) {
+          return { ...player, points: player.points + 250, tournamentsPlayed: player.tournamentsPlayed + 1, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        if (runnerUpNames.includes(player.name)) {
+          return { ...player, points: player.points + 150, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        if (participantNames.has(player.name)) {
+          return { ...player, points: player.points + 50, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        return player; // non-participants: completely untouched
+      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
+    });
+
+    setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
+  };
+
   const finalizeTournamentResults = (
     tournId: string,
     winnerTeamName: string,
@@ -1781,6 +1871,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       norm(winnerTeamName) === norm(runnerUpTeamName)
     ) {
       setSyncNotification('نتیجه نهایی ثبت نشد: نام تیم‌ها باید از تیم‌های ثبت‌نام‌شده و متفاوت باشند.');
+      return;
+    }
+    // A non-empty bracket here is necessarily partially played (a
+    // completed bracket implies completed status, which this guard can't
+    // see after a server-less reload): the free-text finalize would award
+    // points the bracket-completion path would then refuse, or vice
+    // versa. Finish the bracket in the bracket UI instead.
+    if (tourn.bracket && tourn.bracket.length > 0) {
+      setSyncNotification('ابتدا نتایج جدول تورنمنت را کامل ثبت کنید.');
       return;
     }
     setTournaments((prev) =>
@@ -1818,32 +1917,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    // Update provincial rankings: add points
-    setRankings((prev) => {
-      const norm = (s: string) => s.trim();
-      const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
-      const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
-      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
-      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
-      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]));
-      if (!winnerTeam) {
-        setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
-      }
-      return prev.map((player) => {
-        if (winnerNames.includes(player.name)) {
-          return { ...player, points: player.points + 250, tournamentsPlayed: player.tournamentsPlayed + 1, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
-        }
-        if (runnerUpNames.includes(player.name)) {
-          return { ...player, points: player.points + 150, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
-        }
-        if (participantNames.has(player.name)) {
-          return { ...player, points: player.points + 50, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
-        }
-        return player; // non-participants: completely untouched
-      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
-    });
-
-    setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
+    // Award ranking points exactly once per winner (guarded by
+    // bracketPointsAwardedRef: re-recording the same result after a reload
+    // must not double-award, and a corrected final that crowns a different
+    // champion awards the NEW winner). The status/winner update stays
+    // unconditional — only the points award is deduped.
+    if (bracketPointsAwardedRef.current.get(tournId) !== winnerTeamName) {
+      awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
+    }
+    bracketPointsAwardedRef.current.set(tournId, winnerTeamName);
   };
 
   const updateTournamentBracketMatch = (
@@ -1968,6 +2050,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const tourn = tournaments.find((t) => t.id === tournId);
+    // Compute the transform ONCE from current state and reuse it for local
+    // state, the server persist, and the points award below. applyBracketMatch
+    // reads only `t` and builds fresh objects for everything it changes; the
+    // one shared-reference write (advancing the winner into the next-round
+    // slot) rewrites identical values on repeat calls, so reusing a single
+    // pre-computed `next` is safe.
+    const next = tourn?.bracket ? applyBracketMatch(tourn) : undefined;
     setTournaments((prev) =>
       prev.map((t) => (t.id === tournId ? applyBracketMatch(t) : t))
     );
@@ -1978,28 +2067,41 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // (`tourn-…`) have no server row, so skip them. A corrected earlier
     // round that uncrowns the champion persists the cleared winner too.
     if (
-      tourn &&
-      tourn.bracket &&
+      next &&
+      next !== tourn &&
       getSupabase() &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
     ) {
-      const next = applyBracketMatch(tourn);
-      if (next !== tourn) {
-        void updateTournament(tournId, {
-          status: next.status,
-          winnerTeam: next.winnerTeam ?? '',
-          runnerUpTeam: next.runnerUpTeam ?? '',
-          bracket: next.bracket,
-        }).catch((err) => {
-          // Same RLS exposure as finalize: surface the failure so the
-          // bracket edit isn't silently lost on the next catalog reload.
-          console.warn('updateTournamentBracketMatch remote persist failed, keeping local bracket', err);
-          setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (دسترسی کافی نیست) — لطفاً با پشتیبانی در میان بگذارید.');
-        });
-      }
+      void updateTournament(tournId, {
+        status: next.status,
+        winnerTeam: next.winnerTeam ?? '',
+        runnerUpTeam: next.runnerUpTeam ?? '',
+        bracket: next.bracket,
+      }).catch((err) => {
+        // Same RLS exposure as finalize: surface the failure so the
+        // bracket edit isn't silently lost on the next catalog reload.
+        console.warn('updateTournamentBracketMatch remote persist failed, keeping local bracket', err);
+        setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (دسترسی کافی نیست) — لطفاً با پشتیبانی در میان بگذارید.');
+      });
     }
 
     setSyncNotification('نتیجه مسابقه جدول تورنومنت با موفقیت ثبت و مسابقه بعدی بروزرسانی شد.');
+
+    // Bracket completion awards ranking points (the fix: the final used to
+    // award zero). Guarded by bracketPointsAwardedRef so re-recording the
+    // final doesn't double-award, and a corrected final crowning a new
+    // champion awards the NEW winner. Placed AFTER setTournaments on
+    // purpose — React StrictMode double-invokes state updaters, and the
+    // award must never run inside one.
+    if (
+      next &&
+      next.status === 'completed' &&
+      next.winnerTeam &&
+      bracketPointsAwardedRef.current.get(tournId) !== next.winnerTeam
+    ) {
+      awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
+      bracketPointsAwardedRef.current.set(tournId, next.winnerTeam);
+    }
   };
 
   const setSupabaseConfig = (configOrUrl: { url: string; anonKey: string } | string, key?: string) => {
@@ -2068,6 +2170,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         drawOfficialBracket,
         recordFriendlyScore,
         finalizeFriendlyTournament,
+        resetFriendlyBracket,
         needPlayerPosts,
         createNeedPlayerPost,
         joinNeedPlayerPost,

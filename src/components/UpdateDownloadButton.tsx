@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Download, Loader2, AlertCircle } from 'lucide-react';
+import { Download, Loader2, AlertCircle, Globe } from 'lucide-react';
 import { downloadAndInstallApk, DownloadProgress } from '../lib/appUpdate';
+import { openExternal } from '../lib/externalLink';
 
 /**
  * Update button that downloads the APK natively inside the app (no browser)
@@ -18,9 +19,11 @@ export const UpdateDownloadButton: React.FC<{
     busyRef.current = true;
     void downloadAndInstallApk(apkUrl, (p) => {
       setProgress(p);
+      // Allow retry after error, and re-download after 'done': the native
+      // installer Activity may be cancelled (Back), leaving the user here
+      // with the same cache file — re-download is idempotent.
       if (p.status === 'done' || p.status === 'error') {
-        // Allow retry after error; on success the installer takes over
-        if (p.status === 'error') busyRef.current = false;
+        busyRef.current = false;
       }
     });
   };
@@ -58,10 +61,20 @@ export const UpdateDownloadButton: React.FC<{
         </div>
       )}
       {progress?.status === 'error' && (
-        <p className="mt-2 text-[11px] text-red-400 flex items-center justify-center gap-1">
-          <AlertCircle className="w-3.5 h-3.5" />
-          دانلود ناموفق بود — دوباره تلاش کن
-        </p>
+        <div className="mt-2 flex flex-col items-center gap-2">
+          <p className="text-[11px] text-red-400 flex items-center justify-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5" />
+            دانلود ناموفق بود — دوباره تلاش کن
+          </p>
+          <button
+            type="button"
+            onClick={() => void openExternal(apkUrl)}
+            className="text-xs font-bold text-[#ff6b81] hover:text-[#ff8ba0] underline underline-offset-4 transition flex items-center gap-1"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            دانلود با مرورگر
+          </button>
+        </div>
       )}
     </div>
   );

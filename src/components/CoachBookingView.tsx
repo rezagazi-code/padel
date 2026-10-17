@@ -42,6 +42,11 @@ export const CoachBookingView: React.FC = () => {
   const [bookingError, setBookingError] = useState<string | null>(null);
   // Ref-based double-submit guard for coach booking confirmation.
   const bookingSubmittingRef = useRef(false);
+  // Double-submit guard: bookingSubmittingRef is set/reset inside the same
+  // synchronous handler, so it can't block a second click from another
+  // event tick. This state lock survives across ticks and disables the
+  // confirm button until the receipt modal is dismissed.
+  const [bookingLocked, setBookingLocked] = useState(false);
 
   const WEEKDAYS_FA = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
 
@@ -131,8 +136,11 @@ export const CoachBookingView: React.FC = () => {
     }
     // Double-submit guard: bookCoach is synchronous, so a ref blocks a
     // same-tick double submit that would create duplicate coach bookings.
+    // The bookingLocked state below survives across event ticks and keeps
+    // the confirm button disabled until the receipt is dismissed.
     if (bookingSubmittingRef.current) return;
     bookingSubmittingRef.current = true;
+    setBookingLocked(true);
     try {
       let multiplier = 1;
       if (sessionType === 'Duo Clinic') multiplier = 1.3;
@@ -428,7 +436,8 @@ export const CoachBookingView: React.FC = () => {
               <div className="pt-2 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bubble-btn text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2"
+                  disabled={bookingLocked}
+                  className="flex-1 py-3 bubble-btn text-white font-black rounded-2xl cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <CreditCard className="w-4 h-4" />
                   <span>تایید و ثبت جلسه تمرینی</span>
@@ -478,7 +487,10 @@ export const CoachBookingView: React.FC = () => {
             </div>
 
             <button
-              onClick={() => setShowReceiptModal(null)}
+              onClick={() => {
+                setShowReceiptModal(null);
+                setBookingLocked(false);
+              }}
               className="w-full py-2.5 bubble-btn-fire text-white font-black rounded-2xl cursor-pointer"
             >
               متشکرم، بستن

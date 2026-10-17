@@ -55,8 +55,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
 
   if (!isOpen) return null;
 
-  // Blocking update screen — user must update before logging in
-  if (!checkingUpdate && updateRequired) {
+  // Blocking update screen — anonymous users must update before logging in.
+  // Logged-in users are NOT trapped here: they fall through to the normal
+  // modal and the non-blocking App banner already nags them. Reza's
+  // mandatory-before-login mandate (for guests) is untouched.
+  if (!checkingUpdate && updateRequired && !user) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#060a13]/95 backdrop-blur-md p-4">
         <div className="w-full max-w-md rounded-3xl bg-[#0a0f1c] border border-[#ff2d55]/30 p-6 shadow-2xl space-y-5 text-center">

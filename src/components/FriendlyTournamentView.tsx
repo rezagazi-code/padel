@@ -33,6 +33,7 @@ export const FriendlyTournamentView: React.FC = () => {
     addFriendlyTeam,
     drawFriendlyBracket,
     recordFriendlyScore,
+    resetFriendlyBracket,
     clubs,
     playerProfile,
   } = usePadel();
@@ -173,6 +174,21 @@ export const FriendlyTournamentView: React.FC = () => {
             <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{tourn.date}</span>
             <span className="flex items-center gap-1"><Users className="w-4 h-4" />{tourn.teams.length} تیم</span>
           </div>
+
+          {/* Undo accidental draw (A5): only before any result is recorded */}
+          {tourn.bracket?.length > 0 && tourn.status === 'draw_done' &&
+            !tourn.bracket.some((m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)) && (
+            <button
+              onClick={() => {
+                if (window.confirm('قرعه‌کشی حذف و تورنمنت به وضعیت ثبت‌نام برگردد؟')) {
+                  resetFriendlyBracket(tourn.id);
+                }
+              }}
+              className="mt-4 w-full py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-slate-300 text-sm font-bold hover:bg-white/[0.08] transition"
+            >
+              حذف قرعه‌کشی و شروع مجدد
+            </button>
+          )}
 
           {/* Calculator */}
           <div className="mt-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-sm">
