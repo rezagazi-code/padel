@@ -35,6 +35,43 @@ function normalizeFa(s: string): string {
     .toLowerCase();
 }
 
+/** Levenshtein edit distance (single-row DP). */
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  let prev: number[] = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const curr: number[] = [i];
+    for (let j = 1; j <= n; j++) {
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+    prev = curr;
+  }
+  return prev[n];
+}
+
+/**
+ * Typo-tolerant word match for Persian/Latin search.
+ * Exact substring always wins; otherwise allows a few edits scaled by word
+ * length, so «بولپدل» still matches when the user types «بولپادل» with a
+ * typo, and «viber» still finds «viper». Short words (<4 chars) stay exact
+ * to avoid noise.
+ */
+function fuzzyWordMatch(queryWord: string, hayWord: string): boolean {
+  if (!queryWord || !hayWord) return false;
+  if (hayWord.includes(queryWord) || queryWord.includes(hayWord)) return true;
+  const maxLen = Math.max(queryWord.length, hayWord.length);
+  if (maxLen < 4) return false;
+  const threshold = maxLen <= 5 ? 1 : maxLen <= 8 ? 2 : 3;
+  return levenshtein(queryWord, hayWord) <= threshold;
+}
+
 function formatPrice(t: number): string {
   if (t >= 1_000_000) {
     const m = t / 1_000_000;
@@ -109,7 +146,12 @@ const ProductCard: React.FC<{ p: ShopProduct; onOpen: () => void; eager?: boolea
   );
 };
 
-const ProductSheet: React.FC<{ p: ShopProduct; onClose: () => void }> = ({ p, onClose }) => {
+const ProductSheet: React.FC<{
+  p: ShopProduct;
+  onClose: () => void;
+  liveOffers: LivePriceOffer[] | null;
+  liveLoading: boolean;
+}> = ({ p, onClose, liveOffers, liveLoading }) => {
   const sorted = useMemo(
     () =>
       [...p.offers].sort((a, b) => {
@@ -158,6 +200,69 @@ const ProductSheet: React.FC<{ p: ShopProduct; onClose: () => void }> = ({ p, on
           </button>
         </div>
         <p className="px-5 pt-3 pb-1 text-[11px] font-bold text-[#5B6B7F] flex items-center gap-1">
+          <Zap className="w-3.5 h-3.5 text-[#0EA5E9]" />
+          قیمت زنده
+          {liveLoading && <Loader2 className="w-3 h-3 animate-spin text-[#0EA5E9]" />}
+        </p>
+        <div className="px-4 pb-1">
+          {liveLoading ? (
+            <div className="space-y-2">
+              {[0, 1].map((i) => (
+                <div key={i} className="h-14 rounded-2xl bg-[#EAF2F8] animate-pulse" />
+              ))}
+            </div>
+          ) : liveOffers && liveOffers.length > 0 ? (
+            <div className="space-y-2">
+              {liveOffers.slice(0, 3).map((o, i) => (
+                <div key={i} className="offer-row flex items-center gap-3 p-2.5 border-[#0EA5E9]/30 bg-[#F0F9FF]">
+                  {o.image ? (
+                    <img
+                      src={o.image}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="w-11 h-11 rounded-xl object-cover bg-[#EAF2F8] shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-xl bg-[#EAF2F8] flex items-center justify-center shrink-0">
+                      <Tag className="w-4 h-4 text-[#8CA0B3]" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-extrabold text-[#0E1B2C] truncate">{o.title}</p>
+                    <p className="text-[10px] text-[#5B6B7F] mt-0.5 flex items-center gap-1">
+                      <Store className="w-3 h-3" />
+                      {o.store}
+                      {o.verified && (
+                        <span className="inline-flex items-center gap-0.5 text-emerald-600 font-bold">
+                          <BadgeCheck className="w-3 h-3" />
+                          موجود
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <p className="text-[13px] font-extrabold text-[#0E1B2C] tabular-nums shrink-0">
+                    {formatPrice(o.priceToman)}
+                  </p>
+                  <button
+                    onClick={() => openExternal(o.url)}
+                    className="bubble-btn shrink-0 h-8 px-3 flex items-center gap-1 text-[11px] cursor-pointer"
+                    aria-label={`مشاهده در ${o.store}`}
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    خرید
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : liveOffers ? (
+            <p className="text-[10px] text-[#8CA0B3] pb-1">قیمت زنده‌ای پیدا نشد</p>
+          ) : null}
+        </div>
+        <p className="px-5 pt-2 pb-1 text-[11px] font-bold text-[#5B6B7F] flex items-center gap-1">
           <Tag className="w-3.5 h-3.5 text-[#0EA5E9]" />
           پیشنهادها (ارزون‌ترین اول)
         </p>
@@ -214,6 +319,11 @@ export const ShopView: React.FC = () => {
   const [liveOffers, setLiveOffers] = useState<LivePriceOffer[] | null>(null);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
+  // Per-product live prices: auto-fetched every time a product sheet opens,
+  // so prices are fresh on view without a manual search.
+  const [sheetLiveOffers, setSheetLiveOffers] = useState<LivePriceOffer[] | null>(null);
+  const [sheetLiveLoading, setSheetLiveLoading] = useState(false);
+  const sheetTokenRef = useRef(0);
   // Stale-query guard: a slow earlier search must never overwrite the results
   // of a newer one — only the latest token may touch state when it resolves.
   const searchTokenRef = useRef(0);
@@ -262,15 +372,21 @@ export const ShopView: React.FC = () => {
       const hay = normalizeFa(
         `${p.name} ${p.brand} ${SHOP_CATEGORY_LABELS[p.category]} ${p.description ?? ''}`
       );
-      // Per-word match, plus a whole-query fallback so spaced Persian input
-      // like «بول پدل» reaches the space-compacted branch in
-      // searchTermEquivalents (which per-word calls never exercise). The
-      // whole-query branch only adds matches when its equivalents hit, so
-      // Latin queries behave exactly as before.
+      // 1. Exact match (existing logic): per-word + whole-query equivalents.
       const wholeMatches = searchTermEquivalents(q).some((t) => hay.includes(t));
-      return (
-        wholeMatches ||
-        q.split(' ').every((w) => searchTermEquivalents(w).some((t) => hay.includes(t)))
+      if (wholeMatches) return true;
+      const exactWords = q
+        .split(' ')
+        .every((w) => searchTermEquivalents(w).some((t) => hay.includes(t)));
+      if (exactWords) return true;
+      // 2. Fuzzy fallback: tolerate typos — each query word must
+      // typo-match at least one haystack word (via Latin↔Persian equivalents).
+      // This is what makes «بولپدل» find Bullpadel when the user mistypes.
+      const hayWords = hay.split(' ');
+      return q.split(' ').every((qw) =>
+        searchTermEquivalents(qw).some((eq) =>
+          hayWords.some((hw) => fuzzyWordMatch(eq, hw))
+        )
       );
     });
   }, [query, category]);
@@ -284,6 +400,35 @@ export const ShopView: React.FC = () => {
     'bags',
     'accessories',
   ];
+
+  /** Open a product sheet and auto-fetch fresh live prices for it. */
+  const openProductSheet = (p: ShopProduct) => {
+    setOpenProduct(p);
+    if (!Capacitor.isNativePlatform()) return;
+    const token = ++sheetTokenRef.current;
+    setSheetLiveOffers(null);
+    setSheetLiveLoading(true);
+    // Distinctive query: brand + model (Latin part of the Persian name)
+    const q = `${p.brand} ${p.name.replace(/^(راکت پدل|توپ پدل|کفش پدل|لباس پدل|ساک پدل|کیف پدل)\s*/, '')}`.trim();
+    livePriceSearch(q)
+      .then((offers) => {
+        if (sheetTokenRef.current !== token) return;
+        setSheetLiveLoading(false);
+        setSheetLiveOffers(offers);
+      })
+      .catch(() => {
+        if (sheetTokenRef.current !== token) return;
+        setSheetLiveLoading(false);
+        setSheetLiveOffers(null);
+      });
+  };
+
+  const closeProductSheet = () => {
+    sheetTokenRef.current++; // retire any in-flight fetch
+    setOpenProduct(null);
+    setSheetLiveOffers(null);
+    setSheetLiveLoading(false);
+  };
 
   return (
     <div className="shop-bg relative -mx-4 sm:-mx-6 -mt-6 px-4 sm:px-6 pt-6 pb-6 min-h-full">
@@ -379,20 +524,44 @@ export const ShopView: React.FC = () => {
         )}
         {liveOffers && !liveLoading && (
           <div className="mt-2">
-            <p className="shop-section-label">
-              ⚡ نتایج زنده ({liveOffers.length.toLocaleString('fa-IR')})
-            </p>
             {liveOffers.length === 0 ? (
-              <p className="text-center text-xs text-[#5B6B7F] py-6">
-                قیمت زنده‌ای پیدا نشد — عبارت دیگه‌ای رو امتحان کن
-              </p>
+              results.length === 0 ? (
+                <p className="text-center text-xs text-[#5B6B7F] py-6">
+                  قیمت زنده‌ای پیدا نشد — عبارت دیگه‌ای رو امتحان کن
+                </p>
+              ) : (
+                <p className="text-center text-[11px] text-[#8CA0B3] py-2 px-4">
+                  ⚡ قیمت زنده پیدا نشد — ولی این کالاها تو فروشگاه هست (قیمت‌ها به‌روزرسانی:{' '}
+                  {SHOP_LAST_UPDATED})
+                </p>
+              )
             ) : (
-              <div className="space-y-2">
+              <>
+                <p className="shop-section-label">
+                  ⚡ نتایج زنده ({liveOffers.length.toLocaleString('fa-IR')})
+                </p>
+                <div className="space-y-2">
                 {liveOffers.map((o, i) => (
                   <div
                     key={i}
                     className="bg-white rounded-2xl border border-[#E3EDF5] p-3 flex items-center gap-3 shadow-sm"
                   >
+                    {o.image ? (
+                      <img
+                        src={o.image}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="w-14 h-14 rounded-xl object-cover bg-[#EAF2F8] shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-[#EAF2F8] flex items-center justify-center shrink-0">
+                        <Tag className="w-5 h-5 text-[#8CA0B3]" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-[#0E1B2C] truncate">{o.title}</p>
                       <p className="text-[10px] text-[#8CA0B3] mt-0.5 flex items-center gap-1">
@@ -422,6 +591,7 @@ export const ShopView: React.FC = () => {
                   </div>
                 ))}
               </div>
+              </>
             )}
           </div>
         )}
@@ -451,7 +621,7 @@ export const ShopView: React.FC = () => {
             <p className="shop-section-label">نتایج ({results.length.toLocaleString('fa-IR')} کالا)</p>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
               {results.map((p, i) => (
-                <ProductCard key={p.id} p={p} eager={i < 4} onOpen={() => setOpenProduct(p)} />
+                <ProductCard key={p.id} p={p} eager={i < 4} onOpen={() => openProductSheet(p)} />
               ))}
             </div>
           </>
@@ -464,7 +634,14 @@ export const ShopView: React.FC = () => {
           قبل از خرید، قیمت نهایی رو با فروشنده چک کن.
         </p>
 
-        {openProduct && <ProductSheet p={openProduct} onClose={() => setOpenProduct(null)} />}
+        {openProduct && (
+          <ProductSheet
+            p={openProduct}
+            onClose={closeProductSheet}
+            liveOffers={sheetLiveOffers}
+            liveLoading={sheetLiveLoading}
+          />
+        )}
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ export interface LivePriceOffer {
   url: string;
   sellers?: number;
   verified: boolean;
+  /** Product thumbnail URL extracted from the store's HTML (may be absent). */
+  image?: string;
 }
 
 const UA =
@@ -126,6 +128,25 @@ export function isPadelRelevant(titleRaw: string, queryRaw: string): boolean {
   return terms.some((t) => termInTitle(title, t));
 }
 
+/** Extract the first plausible product image URL from an HTML chunk.
+ * Skips data URIs, 1px placeholders and SVG icons; prefers absolute URLs. */
+function extractImageUrl(html: string, baseHost?: string): string | undefined {
+  const imgRe = /<img[^>]+src="([^"]+)"[^>]*>/g;
+  let m: RegExpExecArray | null;
+  while ((m = imgRe.exec(html))) {
+    let src = m[1].trim();
+    if (!src || src.startsWith('data:')) continue;
+    if (/placeholder|loading|spinner|blank\.gif|1x1/i.test(src)) continue;
+    if (src.startsWith('//')) src = 'https:' + src;
+    else if (src.startsWith('/') && baseHost) src = 'https://' + baseHost + src;
+    else if (!/^https?:\/\//i.test(src)) continue;
+    // Skip tiny tracking pixels / icons by extension when detectable
+    if (/\.(svg)(\?|$)/i.test(src) && !/product/i.test(src)) continue;
+    return src;
+  }
+  return undefined;
+}
+
 /** Native HTTP GET (bypasses CORS on Android/iOS). Returns body text or null. */
 async function nativeGet(url: string): Promise<string | null> {
   try {
@@ -167,8 +188,9 @@ async function searchTorobNative(query: string): Promise<LivePriceOffer[]> {
     const price = priceM ? faToInt(priceM[1]) : null;
     const sellerM = card.match(/در\s+([۰-۹\d]+)\s*فروشگاه/);
     const sellers = sellerM ? faToInt(sellerM[1]) ?? 1 : 1;
+    const image = extractImageUrl(card, 'torob.com');
     if (title && price && price > 0 && isPadelRelevant(title, query)) {
-      offers.push({ store: 'ترب', title, priceToman: price, url, sellers, verified: false });
+      offers.push({ store: 'ترب', title, priceToman: price, url, sellers, verified: false, image });
     }
   }
 
@@ -250,8 +272,9 @@ function parseWoodmartHtml(
     const raw = priceM ? priceM[1].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
     const numM = raw ? raw.match(/([\d,]+)/) : null;
     const toman = numM ? Math.round(parseInt(numM[1].replace(/,/g, ''), 10) / priceDivisor) : 0;
+    const image = extractImageUrl(chunk, host);
     if (title && toman > 0 && isPadelRelevant(title, query)) {
-      offers.push({ store: storeName, title, priceToman: toman, url, verified: true });
+      offers.push({ store: storeName, title, priceToman: toman, url, verified: true, image });
     }
   }
   return offers.sort((a, b) => a.priceToman - b.priceToman).slice(0, 5);
@@ -292,8 +315,11 @@ async function searchAlovarzeshNative(query: string): Promise<LivePriceOffer[]> 
       const priceM = ph.match(/woocommerce-Price-amount[^>]*><bdi>([\d,]+)/);
       const toman = priceM ? parseInt(priceM[1].replace(/,/g, ''), 10) : 0;
       const outOfStock = /ناموجود/.test(ph.slice(0, 30000));
+      // Prefer og:image (most reliable product photo), fall back to first img
+      const ogM = ph.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/);
+      const image = ogM ? ogM[1] : extractImageUrl(ph.slice(0, 60000), 'shop.alo-varzesh.com');
       if (title && toman > 0 && !outOfStock && isPadelRelevant(title, query)) {
-        offers.push({ store: 'الو ورزش', title, priceToman: toman, url, verified: true });
+        offers.push({ store: 'الو ورزش', title, priceToman: toman, url, verified: true, image });
       }
     }),
   );
