@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, UserPlus, X, AlertCircle, CheckCircle2, Loader2, Mail, Download, RefreshCw } from 'lucide-react';
-import { checkForAppUpdate, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME, isUpdateEndpointReachable } from '../lib/appUpdate';
+import { checkForAppUpdate, AppUpdateInfo, CURRENT_VERSION_NAME, isUpdateEndpointReachable } from '../lib/appUpdate';
+import { UpdateDownloadButton } from './UpdateDownloadButton';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -75,13 +76,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
               </p>
             )}
           </div>
-          <button
-            onClick={() => openApkDownload(updateRequired.apkUrl)}
-            className="bubble-btn rounded-full w-full py-4 text-base font-black text-white flex items-center justify-center gap-2"
-          >
-            <Download className="w-5 h-5" />
-            دانلود و نصب نسخه جدید
-          </button>
+          <UpdateDownloadButton
+            apkUrl={updateRequired.apkUrl}
+            className="bubble-btn rounded-full w-full py-4 text-base font-black text-white flex items-center justify-center gap-2 disabled:opacity-70"
+          />
           <button
             onClick={runUpdateCheck}
             className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-300 flex items-center justify-center gap-1.5 transition"

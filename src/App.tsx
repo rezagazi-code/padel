@@ -21,7 +21,8 @@ import { PwaInstallModal } from './components/PwaInstallModal';
 import { CloudExportModal } from './components/CloudExportModal';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { Smartphone, Zap, Sparkles, Trophy, Calendar, Users, Check, X } from 'lucide-react';
-import { checkForAppUpdateDetailed, openApkDownload, AppUpdateInfo, CURRENT_VERSION_NAME } from './lib/appUpdate';
+import { checkForAppUpdateDetailed, AppUpdateInfo, CURRENT_VERSION_NAME } from './lib/appUpdate';
+import { UpdateDownloadButton } from './components/UpdateDownloadButton';
 
 const MainContent: React.FC = () => {
   // v1.4 raw app build
@@ -243,12 +244,12 @@ const MainContent: React.FC = () => {
               >
                 بعداً
               </button>
-              <button
-                onClick={() => openApkDownload(appUpdate.apkUrl)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#ff2d55] text-white text-sm font-black"
-              >
-                دانلود و نصب
-              </button>
+              <div className="flex-1">
+                <UpdateDownloadButton
+                  apkUrl={appUpdate.apkUrl}
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#ff2d55] text-white text-sm font-black flex items-center justify-center gap-2 disabled:opacity-70"
+                />
+              </div>
             </div>
           </div>
         </div>

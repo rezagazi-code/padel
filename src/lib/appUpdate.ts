@@ -1,5 +1,80 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { openExternal } from './externalLink';
+
+interface ApkInstallerPlugin {
+  installApk(options: { path: string }): Promise<{ launched: boolean }>;
+}
+const ApkInstaller = registerPlugin<ApkInstallerPlugin>('ApkInstaller');
+
+export interface DownloadProgress {
+  /** 0..1 while downloading, 1 when done */
+  progress: number;
+  /** Human-readable status for the UI */
+  status: 'downloading' | 'installing' | 'done' | 'error';
+  error?: string;
+}
+
+/**
+ * Download the APK natively (bypassing the browser, which gets stuck on a
+ * black screen for APK URLs on some devices) and launch the Android package
+ * installer via FileProvider. Falls back to opening the URL in the browser
+ * if the native path fails.
+ */
+export async function downloadAndInstallApk(
+  url: string,
+  onProgress?: (p: DownloadProgress) => void
+): Promise<void> {
+  const report = (p: DownloadProgress) => onProgress?.(p);
+  try {
+    report({ progress: 0, status: 'downloading' });
+    // CapacitorHttp gives us raw bytes without CORS issues on native
+    const res = await CapacitorHttp.get({
+      url,
+      responseType: 'arraybuffer',
+      connectTimeout: 20000,
+      readTimeout: 120000,
+    });
+    if (res.status < 200 || res.status >= 300 || !res.data) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    // res.data is an ArrayBuffer — convert to base64 for Filesystem
+    const bytes = new Uint8Array(res.data as ArrayBuffer);
+    let binary = '';
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]);
+    }
+    const base64 = btoa(binary);
+    report({ progress: 0.9, status: 'downloading' });
+
+    const fileName = 'padelpro-update.apk';
+    await Filesystem.writeFile({
+      path: fileName,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    const uri = await Filesystem.getUri({ path: fileName, directory: Directory.Cache });
+    // uri.uri is like file:///data/user/0/ir.padelpro.arena/cache/padelpro-update.apk
+    // Strip the file:// prefix for the native File constructor
+    const filePath = uri.uri.replace(/^file:\/\//, '');
+
+    report({ progress: 1, status: 'installing' });
+    await ApkInstaller.installApk({ path: filePath });
+    report({ progress: 1, status: 'done' });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    report({ progress: 0, status: 'error', error: msg });
+    // Fallback: open in browser as before
+    void openExternal(url);
+  }
+}
+
+export function openApkDownload(url: string) {
+  // Legacy path — prefer downloadAndInstallApk for the in-app flow.
+  void openExternal(url);
+}
+// retrigger 3.15.5 build (infra flake retry)
 
 export interface AppUpdateInfo {
   versionCode: number;
@@ -10,8 +85,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 84;
-export const CURRENT_VERSION_NAME = '3.15.31';
+export const CURRENT_VERSION_CODE = 85;
+export const CURRENT_VERSION_NAME = '3.15.32';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   const r = await checkForAppUpdateDetailed();
@@ -81,10 +156,5 @@ export async function isUpdateEndpointReachable(timeoutMs = 8000): Promise<boole
   } finally {
     clearTimeout(timeout);
   }
-}
-
-export function openApkDownload(url: string) {
-  // Open in system browser - user will get install prompt after download
-  void openExternal(url);
 }
 // retrigger 3.15.5 build (infra flake retry)
