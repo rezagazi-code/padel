@@ -49,7 +49,8 @@ export const PlayerProfileView: React.FC = () => {
     bookings,
     coachBookings,
     openMatches,
-    cancelBooking
+    cancelBooking,
+    setSyncNotification
   } = usePadel();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
@@ -331,7 +332,21 @@ export const PlayerProfileView: React.FC = () => {
                   // createImageBitmap with imageOrientation:'from-image' also
                   // honors the photo's EXIF rotation.
                   const storeDataUrl = (dataUrl: string) => {
-                    if (dataUrl) updatePlayerProfile({ avatar: dataUrl });
+                    if (!dataUrl) return;
+                    // Awaited (fire-and-forget): an avatar push failure must
+                    // surface with avatar-specific wording, never as a
+                    // misleading "profile save failed". The form-save
+                    // notification path is untouched.
+                    void (async () => {
+                      try {
+                        const ok = (await updatePlayerProfile({ avatar: dataUrl })) as unknown as boolean | undefined;
+                        if (ok === false) {
+                          setSyncNotification('ذخیره عکس پروفایل ناموفق بود؛ اتصال اینترنت را بررسی کنید.');
+                        }
+                      } catch {
+                        setSyncNotification('ذخیره عکس پروفایل ناموفق بود؛ اتصال اینترنت را بررسی کنید.');
+                      }
+                    })();
                   };
                   const fallbackToOriginal = () => {
                     const reader = new FileReader();

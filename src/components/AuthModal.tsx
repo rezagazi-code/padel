@@ -205,7 +205,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
                 <div className="text-[11px] text-slate-400" dir="ltr">{user.email}</div>
                 {profile && (
                   <div className="text-[11px] text-emerald-300 mt-1">
-                    نقش: {profile.role === 'super_admin' ? 'مدیر ارشد' : profile.role === 'club_admin' ? 'مدیر باشگاه' : 'بازیکن'}
+                    نقش: {profile.role === 'super_admin' ? 'مدیر ارشد' : profile.role === 'club_admin' ? 'مدیر باشگاه' : profile.role === 'province_admin' ? 'مدیر استان' : 'بازیکن'}
                   </div>
                 )}
               </div>

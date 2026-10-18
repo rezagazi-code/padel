@@ -30,9 +30,12 @@ interface CourtDraft {
   hasCameras: boolean;
 }
 
-/** Convert Persian digits to Latin digits (e.g. '۰۷:۰۰' → '07:00'). */
+/** Convert Persian/Arabic-Indic digits to Latin digits (e.g. '۰۷:۰۰' → '07:00'). */
 const fa2en = (s: string): string =>
-  s.replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString());
+  s.replace(/[۰-۹٠-٩]/g, (d) => {
+    const fa = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+    return fa !== -1 ? fa.toString() : '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString();
+  });
 
 export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose }) => {
   const { addClub } = usePadel();

@@ -31,6 +31,7 @@ import {
 } from '../mockData';
 import { levelToGrade, SKILL_GRADES, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
+import { deleteDongiRecord } from '../lib/dongi';
 import {
   fetchClubs,
   fetchTournaments,
@@ -898,6 +899,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Drop auto-created "need player" ads for the cancelled booking
     // (manual posts have no bookingId, so they're unaffected).
     setNeedPlayerPosts((prev) => prev.filter((p) => p.bookingId !== bookingId));
+    // Drop the «دنگی» ledger record for the cancelled booking so it stops
+    // inflating balances (deleteDongiRecord is a no-op when none exists).
+    if (typeof deleteDongiRecord === 'function') {
+      deleteDongiRecord(bookingId);
+    }
     setSyncNotification('رزرو سانس با موفقیت لغو گردید.');
   };
 
@@ -2015,10 +2021,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             .sort((a, b) => a.matchNumber - b.matchNumber);
           const target = nextMatches[Math.ceil(currentMatch.matchNumber / 2) - 1];
           if (target) {
-            target[currentMatch.matchNumber % 2 === 1 ? 'team1' : 'team2'] = {
-              id: winnerTeam.id,
-              name: winnerTeam.name,
-            };
+            // Assign a brand-new object — never mutate the shared match
+            // object, which is still referenced by the previous state.
+            const slot = currentMatch.matchNumber % 2 === 1 ? 'team1' : 'team2';
+            const targetIdx = updatedMatches.findIndex((m) => m.id === target.id);
+            if (targetIdx !== -1) {
+              updatedMatches[targetIdx] = {
+                ...updatedMatches[targetIdx],
+                [slot]: { id: winnerTeam.id, name: winnerTeam.name },
+              };
+            }
           }
         } else if (currentMatch.round === 'final' && winnerTeam) {
           // Tournament winner determined!
@@ -2052,10 +2064,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const tourn = tournaments.find((t) => t.id === tournId);
     // Compute the transform ONCE from current state and reuse it for local
     // state, the server persist, and the points award below. applyBracketMatch
-    // reads only `t` and builds fresh objects for everything it changes; the
-    // one shared-reference write (advancing the winner into the next-round
-    // slot) rewrites identical values on repeat calls, so reusing a single
-    // pre-computed `next` is safe.
+    // reads only `t` and builds fresh objects for everything it changes
+    // (including advancing the winner into the next-round slot), so reusing
+    // a single pre-computed `next` is safe.
     const next = tourn?.bracket ? applyBracketMatch(tourn) : undefined;
     setTournaments((prev) =>
       prev.map((t) => (t.id === tournId ? applyBracketMatch(t) : t))
@@ -2072,16 +2083,22 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       getSupabase() &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)
     ) {
+      // Never persist the local-only 'draw_done' status: the tournaments.status
+      // Postgres enum accepts only registration/ongoing/completed and would
+      // reject the whole write (status + bracket), silently dropping the
+      // recorded scores. The server keeps its previous status; the local
+      // 'draw_done' semantics (e.g. the registration-reopen guard) are
+      // untouched.
       void updateTournament(tournId, {
-        status: next.status,
+        status: next.status === 'draw_done' ? undefined : next.status,
         winnerTeam: next.winnerTeam ?? '',
         runnerUpTeam: next.runnerUpTeam ?? '',
         bracket: next.bracket,
       }).catch((err) => {
-        // Same RLS exposure as finalize: surface the failure so the
-        // bracket edit isn't silently lost on the next catalog reload.
+        // Surface the failure so the bracket edit isn't silently lost on
+        // the next catalog reload.
         console.warn('updateTournamentBracketMatch remote persist failed, keeping local bracket', err);
-        setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (دسترسی کافی نیست) — لطفاً با پشتیبانی در میان بگذارید.');
+        setSyncNotification('⚠️ نتیجه ثبت شد اما ذخیره‌سازی روی سرور ناموفق بود (سرور نوشته را قبول نکرد) — لطفاً با پشتیبانی در میان بگذارید.');
       });
     }
 

@@ -751,7 +751,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                           {court.type === 'panoramic' ? 'شیشه‌ای تمام پانورامیک' : court.type === 'indoor' ? 'سالنی سرپوشیده' : 'روباز با نور LED'}
                         </p>
                         <div className="mt-2 text-xs font-bold text-[#ff6b81]">
-                          {(court.hourlyRate / 1000).toLocaleString('fa-IR')} هزار تومان / ساعت
+                          {court.hourlyRate >= 1000000
+                            ? `${(court.hourlyRate / 1000000).toLocaleString('fa-IR', { maximumFractionDigits: 1 })} میلیون تومان / ساعت`
+                            : `${court.hourlyRate.toLocaleString('fa-IR')} تومان / ساعت`}
                         </div>
                       </button>
                     );
