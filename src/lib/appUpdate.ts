@@ -1,6 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { openExternal } from './externalLink';
 
 interface ApkInstallerPlugin {
   installApk(options: { path: string }): Promise<{ launched: boolean }>;
@@ -73,10 +72,6 @@ export async function downloadAndInstallApk(
   }
 }
 
-export function openApkDownload(url: string) {
-  // Legacy path — prefer downloadAndInstallApk for the in-app flow.
-  void openExternal(url);
-}
 // retrigger 3.15.5 build (infra flake retry)
 
 export interface AppUpdateInfo {
@@ -88,8 +83,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 88;
-export const CURRENT_VERSION_NAME = '3.15.34';
+export const CURRENT_VERSION_CODE = 89;
+export const CURRENT_VERSION_NAME = '3.15.36';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   const r = await checkForAppUpdateDetailed();

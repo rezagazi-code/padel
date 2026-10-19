@@ -56,6 +56,41 @@ import {
 import { useAuthOptional } from './AuthContext';
 import { isBookingCancellable } from '../utils/dates';
 
+// localStorage record of tournament ranking-points awards: which tournament
+// ids already had points awarded, and to which winner team name
+// ({ [tournId]: winnerTeamName }). The in-memory ref alone was reload-unsafe:
+// seeding ran before the async catalog load completed, so after a reload the
+// Map was empty and re-recording a completed final double-awarded
+// 250/150/50 ranking points. Every localStorage access is try/catch guarded
+// — storage can be unavailable (private mode, disabled cookies, quota).
+const BRACKET_POINTS_AWARDED_KEY = 'padelpro_bracket_points_awarded_v1';
+
+// Seeds the award guard from BOTH (a) already-completed tournaments in state
+// and (b) the localStorage record. The record wins on conflict: it was
+// written at the exact moment the award happened, while the state seed is a
+// fallback for completions from before this persistence existed (documented
+// trade-off: pre-fix bracket-completed tournaments keep their zero points —
+// no new corruption is possible, no backfill either).
+function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, string> {
+  const seed = new Map<string, string>(
+    tournaments
+      .filter((t) => t.status === 'completed' && t.winnerTeam)
+      .map((t) => [t.id, t.winnerTeam as string])
+  );
+  try {
+    const raw = localStorage.getItem(BRACKET_POINTS_AWARDED_KEY);
+    if (raw) {
+      const stored = JSON.parse(raw) as Record<string, unknown>;
+      for (const [tournId, winner] of Object.entries(stored)) {
+        if (typeof winner === 'string' && winner.length > 0) seed.set(tournId, winner);
+      }
+    }
+  } catch {
+    // Storage unavailable — keep the in-memory seed only.
+  }
+  return seed;
+}
+
 export type ActiveTab =
   | 'booking'
   | 'matchmaking'
@@ -295,16 +330,31 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // winner must be credited exactly once. StrictMode double-invokes state
   // updaters and both the free-text finalize path and the bracket path can
   // award, so the ref records which tournament ids already credited which
-  // winner. Seeded at init from already-completed tournaments — pre-fix
-  // bracket-completed tournaments keep their zero points (documented
-  // trade-off: no new corruption is possible, no backfill either).
+  // winner. Seeded at init from already-completed tournaments AND the
+  // localStorage record (loadBracketPointsAwardedSeed) — the in-memory-only
+  // seed was reload-unsafe (see Bug 1 fix, 2026-10-19).
   const bracketPointsAwardedRef = useRef<Map<string, string>>(
-    new Map(
-      tournaments
-        .filter((t) => t.status === 'completed' && t.winnerTeam)
-        .map((t) => [t.id, t.winnerTeam as string])
-    )
+    loadBracketPointsAwardedSeed(tournaments)
   );
+  // Read/write pair for the award guard. The write-through persists to
+  // localStorage so the guard survives reloads. Re-recording the SAME result
+  // after a reload must NOT award; a corrected final crowning a DIFFERENT
+  // champion awards the NEW winner (the stored record is updated). Both are
+  // called outside React state updaters (StrictMode double-invokes updaters).
+  const getAwardedWinner = (tournId: string): string | undefined =>
+    bracketPointsAwardedRef.current.get(tournId);
+  const setAwardedWinner = (tournId: string, winnerTeamName: string): void => {
+    bracketPointsAwardedRef.current.set(tournId, winnerTeamName);
+    try {
+      const stored: Record<string, string> = {};
+      bracketPointsAwardedRef.current.forEach((winner, id) => {
+        stored[id] = winner;
+      });
+      localStorage.setItem(BRACKET_POINTS_AWARDED_KEY, JSON.stringify(stored));
+    } catch {
+      // Storage unavailable — the in-memory guard still covers this session.
+    }
+  };
   useEffect(() => {
     const p = auth?.profile;
     if (!p) {
@@ -1823,7 +1873,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Awards provincial/country ranking points for a tournament result.
   // Extracted (verbatim logic) so the free-text finalize path and the
   // bracket-completion path award IDENTICAL points. Callers guard with
-  // bracketPointsAwardedRef so each winner is credited exactly once.
+  // get/setAwardedWinner so each winner is credited exactly once.
   // MUST be called outside setTournaments updaters (StrictMode
   // double-invokes updaters → double award); calling setRankings +
   // setSyncNotification directly here is fine.
@@ -1924,14 +1974,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     // Award ranking points exactly once per winner (guarded by
-    // bracketPointsAwardedRef: re-recording the same result after a reload
-    // must not double-award, and a corrected final that crowns a different
-    // champion awards the NEW winner). The status/winner update stays
-    // unconditional — only the points award is deduped.
-    if (bracketPointsAwardedRef.current.get(tournId) !== winnerTeamName) {
+    // get/setAwardedWinner, backed by localStorage: re-recording the same
+    // result after a reload must not double-award, and a corrected final that
+    // crowns a different champion awards the NEW winner). The status/winner
+    // update stays unconditional — only the points award is deduped.
+    if (getAwardedWinner(tournId) !== winnerTeamName) {
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
     }
-    bracketPointsAwardedRef.current.set(tournId, winnerTeamName);
+    setAwardedWinner(tournId, winnerTeamName);
   };
 
   const updateTournamentBracketMatch = (
@@ -2028,7 +2078,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (targetIdx !== -1) {
               updatedMatches[targetIdx] = {
                 ...updatedMatches[targetIdx],
-                [slot]: { id: winnerTeam.id, name: winnerTeam.name },
+                [slot]: { id: winnerTeam.id, name: winnerTeam.name, seed: winnerTeam.seed },
               };
             }
           }
@@ -2068,6 +2118,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // (including advancing the winner into the next-round slot), so reusing
     // a single pre-computed `next` is safe.
     const next = tourn?.bracket ? applyBracketMatch(tourn) : undefined;
+    // applyBracketMatch returns its input unchanged when the tournament
+    // isn't found or matchId doesn't exist — in that case nothing was
+    // recorded, so the success toast below must not fire.
+    const recorded = !!next && next !== tourn;
     setTournaments((prev) =>
       prev.map((t) => (t.id === tournId ? applyBracketMatch(t) : t))
     );
@@ -2102,22 +2156,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    setSyncNotification('نتیجه مسابقه جدول تورنومنت با موفقیت ثبت و مسابقه بعدی بروزرسانی شد.');
+    if (recorded) {
+      setSyncNotification('نتیجه مسابقه جدول تورنومنت با موفقیت ثبت و مسابقه بعدی بروزرسانی شد.');
+    } else {
+      setSyncNotification('⚠️ مسابقه‌ای با این شناسه در جدول تورنومنت پیدا نشد؛ تغییری ثبت نشد.');
+    }
 
     // Bracket completion awards ranking points (the fix: the final used to
-    // award zero). Guarded by bracketPointsAwardedRef so re-recording the
-    // final doesn't double-award, and a corrected final crowning a new
-    // champion awards the NEW winner. Placed AFTER setTournaments on
-    // purpose — React StrictMode double-invokes state updaters, and the
-    // award must never run inside one.
+    // award zero). Guarded by get/setAwardedWinner (localStorage-backed) so
+    // re-recording the final doesn't double-award, and a corrected final
+    // crowning a new champion awards the NEW winner. Placed AFTER
+    // setTournaments on purpose — React StrictMode double-invokes state
+    // updaters, and the award must never run inside one.
     if (
       next &&
       next.status === 'completed' &&
       next.winnerTeam &&
-      bracketPointsAwardedRef.current.get(tournId) !== next.winnerTeam
+      getAwardedWinner(tournId) !== next.winnerTeam
     ) {
       awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
-      bracketPointsAwardedRef.current.set(tournId, next.winnerTeam);
+      setAwardedWinner(tournId, next.winnerTeam);
     }
   };
 
