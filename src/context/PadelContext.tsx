@@ -57,6 +57,21 @@ import { useAuthOptional } from './AuthContext';
 import { isBookingCancellable } from '../utils/dates';
 
 // localStorage record of tournament ranking-points awards: which tournament
+// Guard record for the bracket-points award dedup. `{ winner }` is the team
+// name that was credited; `participantsCredited` is true when the FULL
+// award (winner 250 + runner-up 150 + all-participant 50/turnsPlayed) ran.
+// Any legacy string value in storage (pre-2026-10-20 format) means the
+// tournament was fully awarded under the old code, so it migrates to
+// `{ winner, participantsCredited: true }` on read.
+// Invariant: each tournament's PARTICIPANT credit is given exactly once;
+// a corrected final crowning a DIFFERENT champion still awards the new
+// champion's winner points via awardChampionPointsOnly (no revocation of
+// the old champion's points — deliberate product constraint).
+interface BracketAwardRecord {
+  winner: string;
+  participantsCredited: boolean;
+}
+
 // ids already had points awarded, and to which winner team name
 // ({ [tournId]: winnerTeamName }). The in-memory ref alone was reload-unsafe:
 // seeding ran before the async catalog load completed, so after a reload the
@@ -71,18 +86,26 @@ const BRACKET_POINTS_AWARDED_KEY = 'padelpro_bracket_points_awarded_v1';
 // fallback for completions from before this persistence existed (documented
 // trade-off: pre-fix bracket-completed tournaments keep their zero points —
 // no new corruption is possible, no backfill either).
-function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, string> {
-  const seed = new Map<string, string>(
+function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, BracketAwardRecord> {
+  const seed = new Map<string, BracketAwardRecord>(
     tournaments
       .filter((t) => t.status === 'completed' && t.winnerTeam)
-      .map((t) => [t.id, t.winnerTeam as string])
+      .map((t) => [t.id, { winner: t.winnerTeam as string, participantsCredited: true }])
   );
   try {
     const raw = localStorage.getItem(BRACKET_POINTS_AWARDED_KEY);
     if (raw) {
       const stored = JSON.parse(raw) as Record<string, unknown>;
-      for (const [tournId, winner] of Object.entries(stored)) {
-        if (typeof winner === 'string' && winner.length > 0) seed.set(tournId, winner);
+      for (const [tournId, value] of Object.entries(stored)) {
+        if (typeof value === 'string' && value.length > 0) {
+          // Legacy format: a stored record always meant a full award.
+          seed.set(tournId, { winner: value, participantsCredited: true });
+        } else if (value && typeof value === 'object') {
+          const rec = value as Partial<BracketAwardRecord>;
+          if (typeof rec.winner === 'string' && rec.winner.length > 0) {
+            seed.set(tournId, { winner: rec.winner, participantsCredited: !!rec.participantsCredited });
+          }
+        }
       }
     }
   } catch {
@@ -139,6 +162,8 @@ interface PadelContextType {
   needPlayerPosts: NeedPlayerPost[];
   createNeedPlayerPost: (post: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => void;
   joinNeedPlayerPost: (postId: string) => boolean;
+  leaveNeedPlayerPost: (postId: string) => boolean;
+  deleteNeedPlayerPost: (postId: string) => boolean;
   freeAgents: PlayerProfile[];
   toggleFreeAgentStatus: (available: boolean, note?: string) => void;
   inviteFreeAgent: (agentId: string, matchTitle: string) => void;
@@ -309,8 +334,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (realClubId) {
       setAdminClubId(realClubId);
     }
+    const realProvince = (auth?.profile as any)?.adminProvince;
+    if (realProvince) {
+      setAdminProvince(realProvince);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.user?.role, (auth?.profile as any)?.adminClubId]);
+  }, [auth?.user?.role, (auth?.profile as any)?.adminClubId, (auth?.profile as any)?.adminProvince]);
 
   // ---- «پروفایل من» <-> AuthProfile sync ----
   // On sign-in, pull the server identity (name/email/avatar/level) into the
@@ -327,28 +356,55 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // React 18 batches the updater — so the ref only covers the race window).
   const pendingJoinRef = useRef<Set<string>>(new Set());
   // Guard against double-awarding tournament ranking points: a tournament's
-  // winner must be credited exactly once. StrictMode double-invokes state
-  // updaters and both the free-text finalize path and the bracket path can
-  // award, so the ref records which tournament ids already credited which
+  // participant credit must be given exactly once. StrictMode double-invokes
+  // state updaters and both the free-text finalize path and the bracket path
+  // can award, so the ref records which tournament ids already credited which
   // winner. Seeded at init from already-completed tournaments AND the
   // localStorage record (loadBracketPointsAwardedSeed) — the in-memory-only
-  // seed was reload-unsafe (see Bug 1 fix, 2026-10-19).
-  const bracketPointsAwardedRef = useRef<Map<string, string>>(
+  // seed was reload-unsafe (see Bug 1 fix, 2026-10-19). When a corrected
+  // final crowns a different champion, the new champion still receives
+  // champion points (awardChampionPointsOnly) — no revocation of the old
+  // champion's points (deliberate product constraint); participant credit
+  // never runs twice for the same tournament.
+  const bracketPointsAwardedRef = useRef<Map<string, BracketAwardRecord>>(
     loadBracketPointsAwardedSeed(tournaments)
   );
-  // Read/write pair for the award guard. The write-through persists to
-  // localStorage so the guard survives reloads. Re-recording the SAME result
-  // after a reload must NOT award; a corrected final crowning a DIFFERENT
-  // champion awards the NEW winner (the stored record is updated). Both are
-  // called outside React state updaters (StrictMode double-invokes updaters).
+  // Read pair for the award guard. The full record is used internally when
+  // deciding whether the full award or the champion-only award applies;
+  // getAwardedWinner keeps the original string-only signature for callers
+  // that only need the winner name. Both are called outside React state
+  // updaters (StrictMode double-invokes updaters).
   const getAwardedWinner = (tournId: string): string | undefined =>
+    bracketPointsAwardedRef.current.get(tournId)?.winner;
+  const getAwardedRecord = (tournId: string): BracketAwardRecord | undefined =>
     bracketPointsAwardedRef.current.get(tournId);
-  const setAwardedWinner = (tournId: string, winnerTeamName: string): void => {
-    bracketPointsAwardedRef.current.set(tournId, winnerTeamName);
+  // Write-through: persists to localStorage so the guard survives reloads.
+  // The write MERGES with the stored JSON instead of overwriting it from the
+  // in-memory map, so a second tab that awarded in the meantime isn't
+  // clobbered (concurrent-tab read-modify-write race). Re-recording the SAME
+  // result after a reload must NOT award; a corrected final crowning a
+  // DIFFERENT champion updates the record winner (participant credit stays
+  // given exactly once).
+  const setAwardedWinner = (tournId: string, record: BracketAwardRecord): void => {
+    bracketPointsAwardedRef.current.set(tournId, record);
     try {
-      const stored: Record<string, string> = {};
-      bracketPointsAwardedRef.current.forEach((winner, id) => {
-        stored[id] = winner;
+      const stored: Record<string, BracketAwardRecord> = {};
+      const raw = localStorage.getItem(BRACKET_POINTS_AWARDED_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        for (const [id, value] of Object.entries(parsed)) {
+          if (typeof value === 'string' && value.length > 0) {
+            stored[id] = { winner: value, participantsCredited: true };
+          } else if (value && typeof value === 'object') {
+            const rec = value as Partial<BracketAwardRecord>;
+            if (typeof rec.winner === 'string' && rec.winner.length > 0) {
+              stored[id] = { winner: rec.winner, participantsCredited: !!rec.participantsCredited };
+            }
+          }
+        }
+      }
+      bracketPointsAwardedRef.current.forEach((rec, id) => {
+        stored[id] = rec;
       });
       localStorage.setItem(BRACKET_POINTS_AWARDED_KEY, JSON.stringify(stored));
     } catch {
@@ -1673,6 +1729,57 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return true;
   };
 
+  // Leave a need-player post: removes the current player from joinedPlayers.
+  // Returns false (with a notification) when the post doesn't exist or the
+  // user isn't joined — the view only renders the button for joined users,
+  // so this is defense-in-depth.
+  const leaveNeedPlayerPost = (postId: string): boolean => {
+    const p = needPlayerPosts.find((x) => x.id === postId);
+    if (!p) {
+      setSyncNotification('این آگهی پیدا نشد.');
+      return false;
+    }
+    if (!p.joinedPlayers.some((j) => j.playerId === playerProfile.id)) {
+      setSyncNotification('شما عضو این آگهی نیستید.');
+      return false;
+    }
+    setNeedPlayerPosts((prev) =>
+      prev.map((x) => {
+        if (x.id !== postId) return x;
+        const joinedPlayers = x.joinedPlayers.filter((j) => j.playerId !== playerProfile.id);
+        return {
+          ...x,
+          joinedPlayers,
+          status: joinedPlayers.length >= x.spotsNeeded ? 'filled' : 'active',
+        };
+      })
+    );
+    setSyncNotification('از آگهی نیاز به بازیکن خارج شدید.');
+    return true;
+  };
+
+  // Delete a need-player post. Gating mirrors canDeleteMatch/canDeleteSession
+  // (MatchmakingView): the host (hostPlayerId === current player) or a
+  // super_admin may delete. The view confirms with window.confirm before
+  // calling; this is defense-in-depth. Returns false + notification
+  // otherwise.
+  const deleteNeedPlayerPost = (postId: string): boolean => {
+    const p = needPlayerPosts.find((x) => x.id === postId);
+    if (!p) {
+      setSyncNotification('این آگهی پیدا نشد.');
+      return false;
+    }
+    const allowed =
+      p.hostPlayerId === playerProfile.id || currentUserRole === 'super_admin';
+    if (!allowed) {
+      setSyncNotification('فقط میزبان آگهی یا مدیر سیستم می‌تواند آن را حذف کند.');
+      return false;
+    }
+    setNeedPlayerPosts((prev) => prev.filter((x) => x.id !== postId));
+    setSyncNotification('آگهی نیاز به بازیکن حذف شد.');
+    return true;
+  };
+
   const toggleFreeAgentStatus = (available: boolean, note?: string) => {
     updatePlayerProfile({
       isFreeAgent: available,
@@ -1735,6 +1842,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             bannerImage: tournData.bannerImage,
             rules: tournData.rules,
             official,
+            organizerType: tournData.organizerType,
           },
           authUserId
         );
@@ -1873,7 +1981,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Awards provincial/country ranking points for a tournament result.
   // Extracted (verbatim logic) so the free-text finalize path and the
   // bracket-completion path award IDENTICAL points. Callers guard with
-  // get/setAwardedWinner so each winner is credited exactly once.
+  // get/setAwardedWinner so each tournament's participant credit is given
+  // exactly once; a corrected final crowning a DIFFERENT champion uses
+  // awardChampionPointsOnly instead (the new champion still receives
+  // champion points — no revocation, deliberate product constraint).
   // MUST be called outside setTournaments updaters (StrictMode
   // double-invokes updaters → double award); calling setRankings +
   // setSyncNotification directly here is fine.
@@ -1907,6 +2018,42 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
+  };
+
+  // Champion-only award for a CORRECTED final that crowns a different
+  // champion after the full award already ran: mirrors the winner and
+  // runner-up branches of awardTournamentRankingPoints ONLY (winner's
+  // players +250 / tournamentsWon +1 / form 'W'; runner-up's players +150 /
+  // form 'L'). NO participant +50, NO tournamentsPlayed increments —
+  // every participant was already credited exactly once by the first award.
+  // Same sort + rank recompute as the full award; same StrictMode caveat
+  // (must be called outside state updaters).
+  const awardChampionPointsOnly = (
+    tourn: Tournament,
+    winnerTeamName: string,
+    runnerUpTeamName: string
+  ) => {
+    setRankings((prev) => {
+      const norm = (s: string) => s.trim();
+      const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
+      const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
+      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
+      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
+      if (!winnerTeam) {
+        setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
+      }
+      return prev.map((player) => {
+        if (winnerNames.includes(player.name)) {
+          return { ...player, points: player.points + 250, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        if (runnerUpNames.includes(player.name)) {
+          return { ...player, points: player.points + 150, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
+        }
+        return player; // participants already credited by the first full award: untouched
+      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
+    });
+
+    setSyncNotification(`نتایج تورنومنت اصلاح و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
   };
 
   const finalizeTournamentResults = (
@@ -1973,15 +2120,25 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    // Award ranking points exactly once per winner (guarded by
-    // get/setAwardedWinner, backed by localStorage: re-recording the same
-    // result after a reload must not double-award, and a corrected final that
-    // crowns a different champion awards the NEW winner). The status/winner
-    // update stays unconditional — only the points award is deduped.
-    if (getAwardedWinner(tournId) !== winnerTeamName) {
+    // Award ranking points exactly once per tournament (guarded by
+    // getAwardedRecord/setAwardedWinner, backed by localStorage):
+    // - no record → full award (winner 250 + runner-up 150 + participants
+    //   50/tournamentsPlayed), then record { winner, participantsCredited: true }.
+    // - record exists and the winner CHANGED (corrected final) → champion-only
+    //   award for the NEW champion (no participant credit again — the old
+    //   champion's points are NOT revoked, deliberate product constraint).
+    // - record exists and the winner is UNCHANGED → nothing (re-recording
+    //   the same result after a reload must not double-award).
+    // The status/winner update stays unconditional — only the points award
+    // is deduped.
+    const awarded = getAwardedRecord(tournId);
+    if (!awarded) {
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
+      setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
+    } else if (awarded.winner !== winnerTeamName) {
+      awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName);
+      setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
     }
-    setAwardedWinner(tournId, winnerTeamName);
   };
 
   const updateTournamentBracketMatch = (
@@ -2163,19 +2320,22 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     // Bracket completion awards ranking points (the fix: the final used to
-    // award zero). Guarded by get/setAwardedWinner (localStorage-backed) so
-    // re-recording the final doesn't double-award, and a corrected final
-    // crowning a new champion awards the NEW winner. Placed AFTER
+    // award zero). Guarded by getAwardedRecord/setAwardedWinner
+    // (localStorage-backed): re-recording the final doesn't double-award;
+    // a corrected final crowning a NEW champion gives the new champion the
+    // champion-only award (participant credit stays given exactly once; the
+    // old champion's points are not revoked — deliberate). Placed AFTER
     // setTournaments on purpose — React StrictMode double-invokes state
     // updaters, and the award must never run inside one.
-    if (
-      next &&
-      next.status === 'completed' &&
-      next.winnerTeam &&
-      getAwardedWinner(tournId) !== next.winnerTeam
-    ) {
-      awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
-      setAwardedWinner(tournId, next.winnerTeam);
+    if (next && next.status === 'completed' && next.winnerTeam) {
+      const awarded = getAwardedRecord(tournId);
+      if (!awarded) {
+        awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
+        setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
+      } else if (awarded.winner !== next.winnerTeam) {
+        awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '');
+        setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
+      }
     }
   };
 
@@ -2202,10 +2362,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setClubs(initialClubs);
     setBookings([]);
     setOpenMatches(initialOpenMatches);
+    setGroupSessions(initialGroupSessions);
+    setFriendlyTournaments([]);
     setNeedPlayerPosts(initialNeedPlayerPosts);
     setFreeAgents(initialFreeAgents);
+    setCoaches(initialCoaches);
+    setCoachBookings([]);
     setTournaments(initialTournaments);
     setRankings(initialRankings);
+    setMyClubRatings({});
+    setCurrentUserRole('player');
+    setAdminClubId('club-1');
+    setAdminProvince('تهران');
+    // Supabase config reverts to its initializer defaults (env, if set).
+    const env = getSupabaseConfig();
+    setSupabaseUrl(env?.url || '');
+    setSupabaseAnonKey(env?.anonKey || '');
+    // localStorage.clear() wiped the award-guard record too, so the
+    // in-memory ref must be cleared as well — otherwise re-created
+    // tournaments reusing the same ids could never award points again
+    // (state/storage divergence).
+    bracketPointsAwardedRef.current.clear();
     setSyncNotification('اطلاعات به وضعیت پیش‌فرض بازگردانی شد.');
   };
 
@@ -2249,6 +2426,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         needPlayerPosts,
         createNeedPlayerPost,
         joinNeedPlayerPost,
+        leaveNeedPlayerPost,
+        deleteNeedPlayerPost,
         freeAgents,
         toggleFreeAgentStatus,
         inviteFreeAgent,

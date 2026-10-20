@@ -271,7 +271,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, hideClose
               {error && (
                 <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span dir="ltr" className="text-left">{error}</span>
+                  <span dir="auto" className="text-left">{error}</span>
                 </div>
               )}
               {notice && (

@@ -180,16 +180,28 @@ export const DongiPanel: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {r.shares.map((s) => (
+                    {r.shares.map((s) => {
+                      // The payer's own share is saved with paid:true at booking
+                      // time, but settling with yourself is meaningless — disable
+                      // its toggle so it can't be flipped into the ledger.
+                      const isPayerOwnShare = s.name === r.paidBy;
+                      return (
                       <button
                         key={s.name}
                         onClick={() => toggleDongiSharePaid(r.bookingId, s.name)}
-                        className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 border text-xs transition cursor-pointer ${
+                        disabled={isPayerOwnShare}
+                        className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 border text-xs transition ${
+                          isPayerOwnShare ? 'cursor-not-allowed opacity-70 ' : 'cursor-pointer '
+                        }${
                           s.paid
                             ? 'bg-emerald-500/[0.08] border-emerald-500/25 text-emerald-200'
                             : 'bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/[0.06]'
                         }`}
-                        title="برای تغییر وضعیت پرداخت ضربه بزنید"
+                        title={
+                          isPayerOwnShare
+                            ? 'سهم پرداخت‌کننده با خودش تسویه نمی‌شود'
+                            : 'برای تغییر وضعیت پرداخت ضربه بزنید'
+                        }
                       >
                         <span className="font-bold truncate">{s.name}</span>
                         <span className="flex items-center gap-1.5 shrink-0">
@@ -201,7 +213,8 @@ export const DongiPanel: React.FC = () => {
                           )}
                         </span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                   <p className="text-[10px] text-slate-500">
                     پرداخت‌کننده‌ی کل مبلغ: <span className="font-bold text-slate-400">{r.paidBy}</span>

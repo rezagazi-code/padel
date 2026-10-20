@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAllProfiles, updateUserRole, UserProfile } from '../lib/db';
 import { usePadel } from '../context/PadelContext';
-import { X, Shield, User, Crown } from 'lucide-react';
+import { X, Shield, User, Crown, Landmark } from 'lucide-react';
+import { PROVINCES_LIST } from '../mockData';
 
 interface UserManagementModalProps {
   isOpen: boolean;
@@ -12,13 +13,18 @@ const roleLabels: Record<string, string> = {
   player: 'بازیکن',
   club_admin: 'مدیر باشگاه',
   super_admin: 'مدیر ارشد',
+  province_admin: 'مدیر استان',
 };
 
 const roleIcons: Record<string, React.ReactNode> = {
   player: <User className="w-4 h-4" />,
   club_admin: <Shield className="w-4 h-4" />,
   super_admin: <Crown className="w-4 h-4" />,
+  province_admin: <Landmark className="w-4 h-4" />,
 };
+
+// 'همه استان‌ها' is a filter label, not a real province — never assignable.
+const PROVINCES = PROVINCES_LIST.filter((p) => p !== 'همه استان‌ها');
 
 export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen, onClose }) => {
   const { clubs } = usePadel();
@@ -27,6 +33,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
   const [clubSelect, setClubSelect] = useState<Record<string, string>>({});
+  const [provinceSelect, setProvinceSelect] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,10 +48,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
       .finally(() => setLoading(false));
   }, [isOpen]);
 
-  const handleRoleChange = async (userId: string, newRole: 'player' | 'club_admin' | 'super_admin') => {
+  const handleRoleChange = async (userId: string, newRole: 'player' | 'club_admin' | 'super_admin' | 'province_admin') => {
     const target = users.find((u) => u.id === userId);
     if (!target) return;
     let managedClubId: string | null = null;
+    let managedProvince: string | null = null;
     if (newRole === 'club_admin') {
       managedClubId = clubSelect[userId] || target.managedClubId || clubs[0]?.id || null;
       if (!managedClubId) {
@@ -53,16 +61,52 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
       }
       const clubName = clubs.find((c) => c.id === managedClubId)?.name || '';
       if (!window.confirm(`«${target.name || target.email}» مدیر باشگاه «${clubName}» شود؟`)) return;
+    } else if (newRole === 'province_admin') {
+      managedProvince = provinceSelect[userId] || target.adminProvince || target.province || 'تهران';
+      if (!window.confirm(`«${target.name || target.email}» مدیر استان «${managedProvince}» شود؟`)) return;
     } else {
       if (!window.confirm(`نقش «${target.name || target.email}» به «${roleLabels[newRole]}» تغییر کند؟`)) return;
     }
     setUpdating(userId);
     try {
-      await updateUserRole(userId, newRole, managedClubId);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole, managedClubId } : u)));
-    } catch (e) {
+      await updateUserRole(userId, newRole, managedClubId, managedProvince);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, role: newRole, managedClubId, adminProvince: newRole === 'province_admin' ? managedProvince : null }
+            : u
+        )
+      );
+    } catch (e: any) {
       console.error(e);
-      alert('خطا در تغییر نقش. دوباره تلاش کنید.');
+      const msg = String(e?.message || e);
+      if (/admin_province/i.test(msg)) {
+        alert('ستون admin_province در دیتابیس وجود ندارد؛ ابتدا مایگریشن 0011 را در Supabase اجرا کنید.');
+      } else {
+        alert('خطا در تغییر نقش. دوباره تلاش کنید.');
+      }
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // Change the province of an existing province_admin directly from its
+  // per-row province select (no role re-pick needed).
+  const handleProvinceChange = async (userId: string, province: string) => {
+    setProvinceSelect((p) => ({ ...p, [userId]: province }));
+    if (!province) return;
+    setUpdating(userId);
+    try {
+      await updateUserRole(userId, 'province_admin', null, province);
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, adminProvince: province } : u)));
+    } catch (e: any) {
+      console.error(e);
+      const msg = String(e?.message || e);
+      if (/admin_province/i.test(msg)) {
+        alert('ستون admin_province در دیتابیس وجود ندارد؛ ابتدا مایگریشن 0011 را در Supabase اجرا کنید.');
+      } else {
+        alert('خطا در تغییر استان. دوباره تلاش کنید.');
+      }
     } finally {
       setUpdating(null);
     }
@@ -110,6 +154,24 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
                       {clubs.find((c) => c.id === u.managedClubId)?.name || 'بدون باشگاه'}
                     </span>
                   )}
+                  {u.role === 'province_admin' && (
+                    <span className="text-xs text-amber-400">
+                      {provinceSelect[u.id] || u.adminProvince || u.province || 'بدون استان'}
+                    </span>
+                  )}
+                  {u.role === 'province_admin' && (
+                    <select
+                      value={provinceSelect[u.id] ?? u.adminProvince ?? ''}
+                      onChange={(e) => handleProvinceChange(u.id, e.target.value)}
+                      className="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-slate-200"
+                      title="استان تحت مدیریت"
+                    >
+                      <option value="">انتخاب استان...</option>
+                      {PROVINCES.map((p) => (
+                        <option key={p} value={p} className="bg-slate-900">{p}</option>
+                      ))}
+                    </select>
+                  )}
                   <select
                     value={clubSelect[u.id] ?? u.managedClubId ?? ''}
                     onChange={(e) => setClubSelect((p) => ({ ...p, [u.id]: e.target.value }))}
@@ -130,6 +192,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
                     <option value="player">بازیکن</option>
                     <option value="club_admin">مدیر باشگاه</option>
                     <option value="super_admin">مدیر ارشد</option>
+                    <option value="province_admin">مدیر استان</option>
                   </select>
                 </div>
               </div>

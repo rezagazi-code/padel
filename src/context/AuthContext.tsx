@@ -11,6 +11,7 @@ export interface AuthProfile {
   role: UserRole;
   level: number;
   adminClubId: string | null;
+  adminProvince: string | null;
 }
 
 interface AuthContextValue {
@@ -20,6 +21,7 @@ interface AuthContextValue {
   profile: AuthProfile | null;
   role: UserRole;
   adminClubId: string | null;
+  adminProvince: string | null;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -37,6 +39,12 @@ async function loadProfile(userId: string): Promise<AuthProfile | null> {
   if (data.role === 'club_admin') {
     adminClubId = (data as any).managed_club_id ?? null;
   }
+  // admin_province only exists after migration 0011 is run — default to
+  // null when it is absent so province_admin logins still work.
+  let adminProvince: string | null = null;
+  if (data.role === 'province_admin') {
+    adminProvince = (data as any).admin_province ?? null;
+  }
   return {
     id: data.id,
     email: data.email,
@@ -45,6 +53,7 @@ async function loadProfile(userId: string): Promise<AuthProfile | null> {
     role: data.role as UserRole,
     level: Number(data.level),
     adminClubId,
+    adminProvince,
   };
 }
 
@@ -132,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     role: profile?.role ?? 'player',
     adminClubId: profile?.adminClubId ?? null,
+    adminProvince: profile?.adminProvince ?? null,
     signUp,
     signIn,
     signOut,

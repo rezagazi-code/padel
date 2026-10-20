@@ -139,20 +139,24 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     }
     setSlotsLoading(true);
     (async () => {
+      // Local-only (guest) bookings never reach the server, but they must
+      // still block their slot on this device.
+      const localIntervals: BookedInterval[] = bookings
+        .filter((b) => b.courtId === cid && b.date === dateISO)
+        .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }));
       try {
         if (getSupabase()) {
-          const intervals = await fetchBookedIntervals(cid, dateISO);
-          if (!cancelled) setBooked(intervals);
-        } else {
+          const server = await fetchBookedIntervals(cid, dateISO);
+          // Server wins on timeSlot collision.
+          const seen = new Set(server.map((iv) => iv.timeSlot).filter(Boolean));
           if (!cancelled)
-            setBooked(
-              bookings
-                .filter((b) => b.courtId === cid && b.date === dateISO)
-                .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }))
-            );
+            setBooked([...server, ...localIntervals.filter((iv) => !seen.has(iv.timeSlot))]);
+        } else {
+          if (!cancelled) setBooked(localIntervals);
         }
       } catch {
-        if (!cancelled) setBooked([]);
+        // A failed server fetch must not hide local bookings.
+        if (!cancelled) setBooked(localIntervals);
       } finally {
         if (!cancelled) setSlotsLoading(false);
       }
@@ -308,7 +312,17 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       try {
         if (getSupabase() && selectedDate?.raw) {
           const fresh = await fetchBookedIntervals(court.id, selectedDate.raw);
-          freshIntervals = fresh
+          // Merge local-only (guest) bookings so the overlap check also sees
+          // this device's bookings that never reached the server.
+          const local: BookedInterval[] = bookings
+            .filter((b) => b.courtId === court.id && b.date === selectedDate.raw)
+            .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }));
+          const seen = new Set(fresh.map((iv) => iv.timeSlot).filter(Boolean));
+          const merged: BookedInterval[] = [
+            ...fresh,
+            ...local.filter((iv) => !seen.has(iv.timeSlot)),
+          ];
+          freshIntervals = merged
             .map((b) => {
               const start = slotStartMinutes(b.timeSlot);
               if (start === null) return null;

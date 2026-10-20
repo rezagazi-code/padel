@@ -135,7 +135,10 @@ export function getBalances(): BalanceEntry[] {
     for (const s of r.shares) {
       const e = entry(s.name);
       e.owed += s.amount;
-      if (s.paid) e.settled += s.amount;
+      // The payer's own share can never be "settled" — settling with
+      // yourself is meaningless, and counting it credits the payer with
+      // money they never received (off by exactly one share).
+      if (s.paid && s.name !== r.paidBy) e.settled += s.amount;
     }
   }
 

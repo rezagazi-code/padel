@@ -13,7 +13,6 @@ import {
   Clock,
   Send,
   Sparkles,
-  CheckCircle2,
   ShieldCheck,
   Star,
   Zap,
@@ -29,6 +28,8 @@ export const FreeAgentsView: React.FC = () => {
     needPlayerPosts,
     createNeedPlayerPost,
     joinNeedPlayerPost,
+    leaveNeedPlayerPost,
+    deleteNeedPlayerPost,
     freeAgents,
     toggleFreeAgentStatus,
     inviteFreeAgent,
@@ -343,12 +344,24 @@ export const FreeAgentsView: React.FC = () => {
                   </div>
 
                   {isHost ? (
-                    <span className="text-xs text-slate-500 font-bold">آگهی شما</span>
+                    <button
+                      onClick={() => {
+                        if (window.confirm('آگهی نیاز به بازیکن حذف شود؟')) {
+                          deleteNeedPlayerPost(post.id);
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs rounded-xl border border-red-500/30 transition active:scale-95 cursor-pointer"
+                    >
+                      حذف آگهی
+                    </button>
                   ) : isJoined ? (
-                    <span className="text-xs text-emerald-300 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4" />
-                      شما ملحق شده‌اید
-                    </span>
+                    <button
+                      onClick={() => leaveNeedPlayerPost(post.id)}
+                      className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 font-bold text-xs rounded-xl border border-white/10 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <X className="w-4 h-4" />
+                      لغو ملحق شدن
+                    </button>
                   ) : isFilled ? (
                     <span className="text-xs text-slate-500 font-bold">تکمیل شده</span>
                   ) : (

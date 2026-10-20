@@ -231,7 +231,7 @@ function mapTournament(r: Row, teams: Row[]): Tournament {
     })),
     winnerTeam: r.winner_team || undefined,
     runnerUpTeam: r.runner_up_team || undefined,
-    organizerType: r.organizer_type === 'official' ? 'club' : undefined,
+    organizerType: r.organizer_type === 'province' ? 'province' : r.organizer_type === 'official' ? 'club' : undefined,
     bracket: r.bracket ?? undefined,
   };
 }
@@ -380,36 +380,52 @@ export interface TournamentInput {
   bannerImage: string;
   rules: string[];
   official: boolean;
+  organizerType?: 'club' | 'province'; // 'province' needs migration 0013 on the DB
 }
 
 export async function insertTournament(input: TournamentInput, userId: string): Promise<Tournament> {
   const sb = getSupabase();
   if (!sb) throw new Error('supabase not configured');
-  const { data, error } = await sb
-    .from('tournaments')
-    .insert({
-      title: input.title,
-      club_id: input.clubId || null,
-      club_name: input.clubName,
-      province: input.province,
-      category: input.category,
-      format: input.format,
-      start_date: input.startDate || null,
-      end_date: input.endDate || null,
-      registration_deadline: input.registrationDeadline || null,
-      entry_fee: input.entryFee,
-      prize_pool: input.prizePool,
-      max_teams: input.maxTeams,
-      level_range: input.levelRange,
-      banner_image: input.bannerImage,
-      rules: input.rules,
-      organizer_type: input.official ? 'official' : 'friendly',
-      organizer_id: userId,
-    })
-    .select('*')
-    .single();
-  if (error) throw error;
-  return mapTournament(data, []);
+  // 'province' enum value only exists after migration 0013 is run — when it
+  // is still pending, Postgres rejects the insert with 22P02 and we retry
+  // once with 'official' so current behavior is preserved.
+  const organizerType =
+    input.organizerType === 'province' ? 'province' : input.official ? 'official' : 'friendly';
+  const payload = {
+    title: input.title,
+    club_id: input.clubId || null,
+    club_name: input.clubName,
+    province: input.province,
+    category: input.category,
+    format: input.format,
+    start_date: input.startDate || null,
+    end_date: input.endDate || null,
+    registration_deadline: input.registrationDeadline || null,
+    entry_fee: input.entryFee,
+    prize_pool: input.prizePool,
+    max_teams: input.maxTeams,
+    level_range: input.levelRange,
+    banner_image: input.bannerImage,
+    rules: input.rules,
+    organizer_type: organizerType,
+    organizer_id: userId,
+  };
+  try {
+    const { data, error } = await sb.from('tournaments').insert(payload).select('*').single();
+    if (error) throw error;
+    return mapTournament(data, []);
+  } catch (e: any) {
+    if (organizerType === 'province' && String(e?.code) === '22P02') {
+      const { data, error } = await sb
+        .from('tournaments')
+        .insert({ ...payload, organizer_type: 'official' })
+        .select('*')
+        .single();
+      if (error) throw error;
+      return mapTournament(data, []);
+    }
+    throw e;
+  }
 }
 
 export interface TournamentPatch {
@@ -552,15 +568,28 @@ export interface UserProfile {
   province: string;
   city: string;
   managedClubId: string | null;
+  adminProvince?: string | null;
 }
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {
   const sb = getSupabase();
   if (!sb) throw new Error('supabase not configured');
-  const { data, error } = await sb
-    .from('profiles')
-    .select('id, email, name, role, province, city, managed_club_id')
-    .order('created_at', { ascending: false });
+  // admin_province only exists after migration 0011 is run by Reza (still
+  // pending) — fall back to a select without it so the user list keeps
+  // working in the meantime.
+  const cols = 'id, email, name, role, province, city, managed_club_id, admin_province';
+  const first = await sb.from('profiles').select(cols).order('created_at', { ascending: false });
+  let data: any[] | null = first.data;
+  let error: any = first.error;
+  if (error && /admin_province/i.test(String(error.message))) {
+    const retry = await sb
+      .from('profiles')
+      .select('id, email, name, role, province, city, managed_club_id')
+      .order('created_at', { ascending: false });
+    if (retry.error) throw retry.error;
+    data = retry.data;
+    error = null;
+  }
   if (error) throw error;
   return (data || []).map((r: any) => ({
     id: r.id,
@@ -570,10 +599,11 @@ export async function fetchAllProfiles(): Promise<UserProfile[]> {
     province: r.province || '',
     city: r.city || '',
     managedClubId: r.managed_club_id || null,
+    adminProvince: r.admin_province || null,
   }));
 }
 
-export async function updateUserRole(userId: string, role: 'player' | 'club_admin' | 'super_admin', managedClubId?: string | null): Promise<void> {
+export async function updateUserRole(userId: string, role: 'player' | 'club_admin' | 'super_admin' | 'province_admin', managedClubId?: string | null, managedProvince?: string | null): Promise<void> {
   const sb = getSupabase();
   if (!sb) throw new Error('supabase not configured');
   const update: any = { role };
@@ -581,6 +611,11 @@ export async function updateUserRole(userId: string, role: 'player' | 'club_admi
     update.managed_club_id = managedClubId || null;
   } else {
     update.managed_club_id = null;
+  }
+  if (role === 'province_admin') {
+    // The admin_province column only exists after migration 0011 is run;
+    // the caller must catch its error and guide Reza accordingly.
+    update.admin_province = managedProvince || '';
   }
   const { error } = await sb.from('profiles').update(update).eq('id', userId);
   if (error) throw error;

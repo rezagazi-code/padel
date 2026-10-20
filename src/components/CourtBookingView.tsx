@@ -185,22 +185,26 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     }
     setSlotsLoading(true);
     (async () => {
+      // Local-only (guest) bookings never reach the server, but they must
+      // still block their slot on this device.
+      const localIntervals: BookedInterval[] = bookings
+        .filter((b) => b.courtId === courtId && b.date === dateISO)
+        .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }));
       try {
         if (getSupabase()) {
-          const intervals = await fetchBookedIntervals(courtId, dateISO);
-          if (!cancelled) setBooked(intervals);
+          const server = await fetchBookedIntervals(courtId, dateISO);
+          // Server wins on timeSlot collision.
+          const seen = new Set(server.map((iv) => iv.timeSlot).filter(Boolean));
+          if (!cancelled)
+            setBooked([...server, ...localIntervals.filter((iv) => !seen.has(iv.timeSlot))]);
         } else {
           // Local mode (no backend): derive from the context's bookings,
           // including their durations.
-          if (!cancelled)
-            setBooked(
-              bookings
-                .filter((b) => b.courtId === courtId && b.date === dateISO)
-                .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }))
-            );
+          if (!cancelled) setBooked(localIntervals);
         }
       } catch {
-        if (!cancelled) setBooked([]);
+        // A failed server fetch must not hide local bookings.
+        if (!cancelled) setBooked(localIntervals);
       } finally {
         if (!cancelled) setSlotsLoading(false);
       }
@@ -362,7 +366,17 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       try {
         if (getSupabase() && selectedDate?.raw) {
           const fresh = await fetchBookedIntervals(currentCourt.id, selectedDate.raw);
-          freshIntervals = fresh
+          // Merge local-only (guest) bookings so the overlap check also sees
+          // this device's bookings that never reached the server.
+          const local: BookedInterval[] = bookings
+            .filter((b) => b.courtId === currentCourt.id && b.date === selectedDate.raw)
+            .map((b) => ({ timeSlot: b.timeSlot, durationMinutes: b.durationMinutes || 90 }));
+          const seen = new Set(fresh.map((iv) => iv.timeSlot).filter(Boolean));
+          const merged: BookedInterval[] = [
+            ...fresh,
+            ...local.filter((iv) => !seen.has(iv.timeSlot)),
+          ];
+          freshIntervals = merged
             .map((b) => {
               const start = slotStartMinutes(b.timeSlot);
               if (start === null) return null;

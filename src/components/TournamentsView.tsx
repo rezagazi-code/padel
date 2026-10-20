@@ -157,7 +157,10 @@ export const TournamentsView: React.FC = () => {
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tournSubmitting) return;
-    const club = clubs.find((c) => c.id === newClubId) || clubs[0];
+    // The host-club select locks club_admin to their own club; resolve it
+    // the same way here so create and display can never disagree.
+    const effectiveClubId = currentUserRole === 'club_admin' && adminClubId ? adminClubId : newClubId;
+    const club = clubs.find((c) => c.id === effectiveClubId) || clubs[0];
 
     // Date validation (ISO YYYY-MM-DD strings compare lexicographically):
     // the tournament can't end before it starts, and registration must
@@ -957,11 +960,18 @@ export const TournamentsView: React.FC = () => {
                 <div>
                   <label className="block text-slate-400 font-bold mb-1">باشگاه میزبان بازی‌ها:</label>
                   <select
-                    value={newClubId}
+                    // club_admin can only file under their own club — filing under
+                    // another club would drop their manage rights (canManageTournament
+                    // requires tourn.clubId === adminClubId).
+                    value={currentUserRole === 'club_admin' ? adminClubId || '' : newClubId}
                     onChange={(e) => setNewClubId(e.target.value)}
+                    disabled={currentUserRole === 'club_admin'}
                     className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                   >
-                    {clubs.map((c) => (
+                    {(currentUserRole === 'club_admin'
+                      ? clubs.filter((c) => c.id === adminClubId)
+                      : clubs
+                    ).map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} ({c.province})
                       </option>
