@@ -891,7 +891,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Real backend path: insert into Supabase first so the UNIQUE(court_id, date,
     // time_slot) constraint atomically blocks double booking.
-    if (getSupabase() && authUserId) {
+    // Bundled local clubs ('club-…') have no server rows (bookings.club_id /
+    // court_id are uuid columns): route them through the local fallback even
+    // when signed in — otherwise the insert fails with 22P02 and the user
+    // cannot book at all (2026-10-22).
+    if (getSupabase() && authUserId && !bookingData.clubId.startsWith('club-')) {
       try {
         const remote = await insertBooking(
           {
