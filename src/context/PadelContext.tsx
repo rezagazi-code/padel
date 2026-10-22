@@ -60,6 +60,11 @@ import { isBookingCancellable } from '../utils/dates';
 // Guard record for the bracket-points award dedup. `{ winner }` is the team
 // name that was credited; `participantsCredited` is true when the FULL
 // award (winner 250 + runner-up 150 + all-participant 50/turnsPlayed) ran.
+// `championsCredited` / `runnerUpsCredited` list every team name that already
+// received that placement for the tournament — a corrected final must never
+// re-credit an already-credited placement (2026-10-22: the record only kept
+// the latest winner, so an unchanged runner-up got +150 twice and a second
+// correction re-crowning the original champion double-awarded +250).
 // Any legacy string value in storage (pre-2026-10-20 format) means the
 // tournament was fully awarded under the old code, so it migrates to
 // `{ winner, participantsCredited: true }` on read.
@@ -70,6 +75,8 @@ import { isBookingCancellable } from '../utils/dates';
 interface BracketAwardRecord {
   winner: string;
   participantsCredited: boolean;
+  championsCredited?: string[];
+  runnerUpsCredited?: string[];
 }
 
 // ids already had points awarded, and to which winner team name
@@ -90,7 +97,12 @@ function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, Br
   const seed = new Map<string, BracketAwardRecord>(
     tournaments
       .filter((t) => t.status === 'completed' && t.winnerTeam)
-      .map((t) => [t.id, { winner: t.winnerTeam as string, participantsCredited: true }])
+      .map((t) => [t.id, {
+        winner: t.winnerTeam as string,
+        participantsCredited: true,
+        championsCredited: [t.winnerTeam as string],
+        runnerUpsCredited: t.runnerUpTeam ? [t.runnerUpTeam] : [],
+      }])
   );
   try {
     const raw = localStorage.getItem(BRACKET_POINTS_AWARDED_KEY);
@@ -99,11 +111,16 @@ function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, Br
       for (const [tournId, value] of Object.entries(stored)) {
         if (typeof value === 'string' && value.length > 0) {
           // Legacy format: a stored record always meant a full award.
-          seed.set(tournId, { winner: value, participantsCredited: true });
+          seed.set(tournId, { winner: value, participantsCredited: true, championsCredited: [value], runnerUpsCredited: [] });
         } else if (value && typeof value === 'object') {
           const rec = value as Partial<BracketAwardRecord>;
           if (typeof rec.winner === 'string' && rec.winner.length > 0) {
-            seed.set(tournId, { winner: rec.winner, participantsCredited: !!rec.participantsCredited });
+            seed.set(tournId, {
+              winner: rec.winner,
+              participantsCredited: !!rec.participantsCredited,
+              championsCredited: stringArray(rec.championsCredited, rec.winner),
+              runnerUpsCredited: stringArray(rec.runnerUpsCredited),
+            });
           }
         }
       }
@@ -112,6 +129,16 @@ function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, Br
     // Storage unavailable — keep the in-memory seed only.
   }
   return seed;
+}
+
+// Sanitizes an unknown value into a string array (localStorage data is
+// untrusted); falls back to `fallback` when absent/invalid.
+function stringArray(value: unknown, fallback?: string): string[] {
+  if (Array.isArray(value)) {
+    const out = value.filter((s): s is string => typeof s === 'string' && s.length > 0);
+    if (out.length > 0 || !fallback) return out;
+  }
+  return fallback ? [fallback] : [];
 }
 
 export type ActiveTab =
@@ -394,11 +421,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const parsed = JSON.parse(raw) as Record<string, unknown>;
         for (const [id, value] of Object.entries(parsed)) {
           if (typeof value === 'string' && value.length > 0) {
-            stored[id] = { winner: value, participantsCredited: true };
+            stored[id] = { winner: value, participantsCredited: true, championsCredited: [value], runnerUpsCredited: [] };
           } else if (value && typeof value === 'object') {
             const rec = value as Partial<BracketAwardRecord>;
             if (typeof rec.winner === 'string' && rec.winner.length > 0) {
-              stored[id] = { winner: rec.winner, participantsCredited: !!rec.participantsCredited };
+              stored[id] = {
+                winner: rec.winner,
+                participantsCredited: !!rec.participantsCredited,
+                championsCredited: stringArray(rec.championsCredited, rec.winner),
+                runnerUpsCredited: stringArray(rec.runnerUpsCredited),
+              };
             }
           }
         }
@@ -410,6 +442,33 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       // Storage unavailable — the in-memory guard still covers this session.
     }
+  };
+  // Full-award bookkeeping: the first (and only) placement credit for the
+  // tournament — records exactly which teams were credited.
+  const recordFullAward = (tournId: string, winnerTeamName: string, runnerUpTeamName: string): void => {
+    setAwardedWinner(tournId, {
+      winner: winnerTeamName,
+      participantsCredited: true,
+      championsCredited: [winnerTeamName],
+      runnerUpsCredited: runnerUpTeamName ? [runnerUpTeamName] : [],
+    });
+  };
+  // Correction bookkeeping: appends the newly credited champion/runner-up
+  // team names to the record (deduped) so a later correction never
+  // re-credits a team that already received that placement for this
+  // tournament. `winner` always tracks the LATEST champion.
+  const recordCorrectionAward = (tournId: string, winnerTeamName: string, runnerUpTeamName: string): void => {
+    const prev = getAwardedRecord(tournId);
+    const champs = [...(prev?.championsCredited ?? (prev?.winner ? [prev.winner] : []))];
+    if (winnerTeamName && !champs.includes(winnerTeamName)) champs.push(winnerTeamName);
+    const runners = [...(prev?.runnerUpsCredited ?? [])];
+    if (runnerUpTeamName && !runners.includes(runnerUpTeamName)) runners.push(runnerUpTeamName);
+    setAwardedWinner(tournId, {
+      winner: winnerTeamName,
+      participantsCredited: true,
+      championsCredited: champs,
+      runnerUpsCredited: runners,
+    });
   };
   useEffect(() => {
     const p = auth?.profile;
@@ -2034,12 +2093,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // players +250 / tournamentsWon +1 / form 'W'; runner-up's players +150 /
   // form 'L'). NO participant +50, NO tournamentsPlayed increments —
   // every participant was already credited exactly once by the first award.
-  // Anti-double-dip (2026-10-22): the previously recorded champion is
-  // skipped in the runner-up branch — without this, a correction swapping
-  // champion and runner-up would stack +150 on top of the old champion's
-  // +250/tournamentsWon (400 points for one tournament). The old champion's
-  // award stands untouched (deliberate product constraint), nothing is
-  // revoked and nothing extra is added.
+  // Anti-double-dip (2026-10-22): a team already placement-credited for
+  // this tournament is never re-credited — the previously recorded
+  // champion is skipped in the runner-up branch (a champion/runner-up swap
+  // used to stack +150 on the old champion's +250), an UNCHANGED runner-up
+  // is skipped too (it used to get +150 twice: 300 points for one
+  // tournament), and a re-crowned original champion is skipped in the
+  // winner branch (+250 was awarded twice: 500 points, tournamentsWon +2).
+  // The old champion's award stands untouched (deliberate product
+  // constraint), nothing is revoked and nothing extra is added.
   // Same sort + rank recompute as the full award; same StrictMode caveat
   // (must be called outside state updaters).
   const awardChampionPointsOnly = (
@@ -2048,26 +2110,37 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     runnerUpTeamName: string,
     previousWinnerTeamName?: string
   ) => {
+    const norm = (s: string) => s.trim();
+    // Teams already placement-credited for THIS tournament: never re-credited.
+    // (2026-10-22) Two holes the old "previous winner only" skip missed:
+    //  1. a corrected final with an UNCHANGED runner-up re-awarded the
+    //     runner-up +150 a second time (300 points for one tournament);
+    //  2. a second correction re-crowning the ORIGINAL champion re-awarded
+    //     the +250 champion credit (500 points, tournamentsWon +2) because
+    //     the record only remembered the latest winner.
+    // The record's championsCredited/runnerUpsCredited arrays are the source
+    // of truth; previousWinnerTeamName stays as a legacy fallback.
+    const record = getAwardedRecord(tourn.id);
+    const champTeams = new Set(
+      [...(record?.championsCredited ?? []), ...(previousWinnerTeamName ? [previousWinnerTeamName] : [])].map(norm)
+    );
+    const runnerTeams = new Set((record?.runnerUpsCredited ?? []).map(norm));
+    const winnerAlreadyCredited = champTeams.has(norm(winnerTeamName));
+    const runnerUpAlreadyCredited =
+      runnerTeams.has(norm(runnerUpTeamName)) || champTeams.has(norm(runnerUpTeamName));
     setRankings((prev) => {
-      const norm = (s: string) => s.trim();
       const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
       const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
       const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
-      // Players already crowned champion by the earlier full award: never
-      // re-credited through the runner-up branch on correction.
-      const oldWinnerTeam = previousWinnerTeamName
-        ? tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(previousWinnerTeamName))
-        : undefined;
-      const oldWinnerNames = oldWinnerTeam ? [oldWinnerTeam.player1Name, oldWinnerTeam.player2Name] : [];
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
       return prev.map((player) => {
-        if (winnerNames.includes(player.name)) {
+        if (winnerNames.includes(player.name) && !winnerAlreadyCredited) {
           return { ...player, points: player.points + 250, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
-        if (runnerUpNames.includes(player.name) && !oldWinnerNames.includes(player.name)) {
+        if (runnerUpNames.includes(player.name) && !runnerUpAlreadyCredited) {
           return { ...player, points: player.points + 150, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // participants already credited by the first full award: untouched
@@ -2155,10 +2228,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const awarded = getAwardedRecord(tournId);
     if (!awarded) {
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
-      setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
+      recordFullAward(tournId, winnerTeamName, runnerUpTeamName);
     } else if (awarded.winner !== winnerTeamName) {
       awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName, awarded.winner);
-      setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
+      recordCorrectionAward(tournId, winnerTeamName, runnerUpTeamName);
     }
   };
 
@@ -2352,10 +2425,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const awarded = getAwardedRecord(tournId);
       if (!awarded) {
         awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
-        setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
+        recordFullAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
       } else if (awarded.winner !== next.winnerTeam) {
         awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
-        setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
+        recordCorrectionAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
       }
     }
   };
