@@ -2026,12 +2026,19 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // players +250 / tournamentsWon +1 / form 'W'; runner-up's players +150 /
   // form 'L'). NO participant +50, NO tournamentsPlayed increments —
   // every participant was already credited exactly once by the first award.
+  // Anti-double-dip (2026-10-22): the previously recorded champion is
+  // skipped in the runner-up branch — without this, a correction swapping
+  // champion and runner-up would stack +150 on top of the old champion's
+  // +250/tournamentsWon (400 points for one tournament). The old champion's
+  // award stands untouched (deliberate product constraint), nothing is
+  // revoked and nothing extra is added.
   // Same sort + rank recompute as the full award; same StrictMode caveat
   // (must be called outside state updaters).
   const awardChampionPointsOnly = (
     tourn: Tournament,
     winnerTeamName: string,
-    runnerUpTeamName: string
+    runnerUpTeamName: string,
+    previousWinnerTeamName?: string
   ) => {
     setRankings((prev) => {
       const norm = (s: string) => s.trim();
@@ -2039,6 +2046,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
       const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
       const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
+      // Players already crowned champion by the earlier full award: never
+      // re-credited through the runner-up branch on correction.
+      const oldWinnerTeam = previousWinnerTeamName
+        ? tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(previousWinnerTeamName))
+        : undefined;
+      const oldWinnerNames = oldWinnerTeam ? [oldWinnerTeam.player1Name, oldWinnerTeam.player2Name] : [];
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
@@ -2046,7 +2059,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (winnerNames.includes(player.name)) {
           return { ...player, points: player.points + 250, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
-        if (runnerUpNames.includes(player.name)) {
+        if (runnerUpNames.includes(player.name) && !oldWinnerNames.includes(player.name)) {
           return { ...player, points: player.points + 150, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // participants already credited by the first full award: untouched
@@ -2136,7 +2149,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
       setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
     } else if (awarded.winner !== winnerTeamName) {
-      awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName);
+      awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName, awarded.winner);
       setAwardedWinner(tournId, { winner: winnerTeamName, participantsCredited: true });
     }
   };
@@ -2333,7 +2346,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
         setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
       } else if (awarded.winner !== next.winnerTeam) {
-        awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '');
+        awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
         setAwardedWinner(tournId, { winner: next.winnerTeam, participantsCredited: true });
       }
     }
