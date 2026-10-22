@@ -1,4 +1,4 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface ApkInstallerPlugin {
@@ -15,49 +15,79 @@ export interface DownloadProgress {
 }
 
 /**
+ * Resolve the final download URL before handing it to the native
+ * downloader. CDN/jsDelivr URLs 302-redirect to edge nodes; the native
+ * download stack does not reliably follow those, which left users staring
+ * at 0% forever (2026-10-22: dialog appeared, download never started).
+ * HEAD with redirect:follow first; if the server refuses HEAD, fall back
+ * to a 1-byte Range GET (the 206 response carries the final URL).
+ * Never throws — worst case returns the original URL.
+ */
+async function resolveFinalUrl(url: string, timeoutMs = 10000): Promise<string> {
+  const once = async (init: RequestInit): Promise<string | null> => {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...init, redirect: 'follow', signal: controller.signal });
+      if (res.url && res.url !== url) return res.url;
+      if (res.ok) return url;
+      return null;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  return (await once({ method: 'HEAD' }))
+      ?? (await once({ headers: { Range: 'bytes=0-0' } }))
+      ?? url;
+}
+
+/**
  * Download the APK natively (bypassing the browser, which gets stuck on a
  * black screen for APK URLs on some devices) and launch the Android package
- * installer via FileProvider. On failure the caller is told via
- * report({status:'error'}) — the UI offers a retry and an explicit
- * "download with browser" button; we deliberately do NOT auto-open the
- * browser here (that was the 2026-10-17 black-screen incident).
+ * installer via FileProvider. Uses Filesystem.downloadFile with REAL
+ * progress events (the old CapacitorHttp.get approach reported 0% for the
+ * whole download, so on slow networks it looked like the download never
+ * started). On failure the caller is told via report({status:'error'}) —
+ * the UI offers a retry and an explicit "download with browser" button;
+ * we deliberately do NOT auto-open the browser here (that was the
+ * 2026-10-17 black-screen incident).
  */
 export async function downloadAndInstallApk(
   url: string,
   onProgress?: (p: DownloadProgress) => void
 ): Promise<void> {
   const report = (p: DownloadProgress) => onProgress?.(p);
+  const fileName = 'padelpro-update.apk';
   try {
     report({ progress: 0, status: 'downloading' });
-    // CapacitorHttp gives us raw bytes without CORS issues on native
-    const res = await CapacitorHttp.get({
-      url,
-      responseType: 'arraybuffer',
-      connectTimeout: 20000,
-      readTimeout: 120000,
+    // 1. Pre-resolve CDN redirects to a direct file URL.
+    const finalUrl = await resolveFinalUrl(url);
+    // 2. Download with real progress events.
+    const handle = await Filesystem.addListener('progress', (status: { bytes?: number; contentLength?: number }) => {
+      const bytes = Number(status?.bytes) || 0;
+      const total = Number(status?.contentLength) || 0;
+      if (total > 0 && bytes >= 0) {
+        report({ progress: Math.min(0.99, bytes / total), status: 'downloading' });
+      }
     });
-    if (res.status < 200 || res.status >= 300 || !res.data) {
-      throw new Error(`HTTP ${res.status}`);
+    try {
+      await Filesystem.downloadFile({
+        url: finalUrl,
+        path: fileName,
+        directory: Directory.Cache,
+        progress: true,
+      });
+    } finally {
+      await handle.remove();
     }
-    // res.data is an ArrayBuffer — convert to base64 for Filesystem
-    const bytes = new Uint8Array(res.data as ArrayBuffer);
-    // Collect chunks first and join once: string += in a loop over ~17MB
-    // is O(n²) and stalls the main thread.
-    const parts: string[] = [];
-    const CHUNK = 0x8000;
-    for (let i = 0; i < bytes.length; i += CHUNK) {
-      parts.push(String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]));
+    // 3. Sanity gate: refuse to install a truncated/HTML error page.
+    const stat = await Filesystem.stat({ path: fileName, directory: Directory.Cache });
+    if (!stat || Number(stat.size) < 1024 * 1024) {
+      throw new Error(`incomplete download (${stat ? stat.size : 0} bytes)`);
     }
-    const binary = parts.join('');
-    const base64 = btoa(binary);
-    report({ progress: 0.9, status: 'downloading' });
-
-    const fileName = 'padelpro-update.apk';
-    await Filesystem.writeFile({
-      path: fileName,
-      data: base64,
-      directory: Directory.Cache,
-    });
+    report({ progress: 1, status: 'downloading' });
     const uri = await Filesystem.getUri({ path: fileName, directory: Directory.Cache });
     // uri.uri is like file:///data/user/0/ir.padelpro.arena/cache/padelpro-update.apk
     // Strip the file:// prefix for the native File constructor
@@ -83,8 +113,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 90;
-export const CURRENT_VERSION_NAME = '3.15.37';
+export const CURRENT_VERSION_CODE = 91;
+export const CURRENT_VERSION_NAME = '3.15.38';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   const r = await checkForAppUpdateDetailed();
