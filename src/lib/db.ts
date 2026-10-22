@@ -616,6 +616,20 @@ export async function updateUserRole(userId: string, role: 'player' | 'club_admi
     // The admin_province column only exists after migration 0011 is run;
     // the caller must catch its error and guide Reza accordingly.
     update.admin_province = managedProvince || '';
+  } else {
+    // Demotion hygiene: a former province_admin would keep a stale
+    // admin_province (PadelContext trusts the column without re-checking
+    // the role). Only touch the column when the current row actually has
+    // the province_admin role — that proves migration 0011 ran, so the
+    // column exists and the clear cannot break pre-migration databases.
+    const { data: current } = await sb
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+    if (current && (current as any).role === 'province_admin') {
+      update.admin_province = null;
+    }
   }
   const { error } = await sb.from('profiles').update(update).eq('id', userId);
   if (error) throw error;
