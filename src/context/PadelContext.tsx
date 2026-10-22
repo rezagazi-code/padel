@@ -2224,8 +2224,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // - record exists and the winner CHANGED (corrected final) → champion-only
     //   award for the NEW champion (no participant credit again — the old
     //   champion's points are NOT revoked, deliberate product constraint).
-    // - record exists and the winner is UNCHANGED → nothing (re-recording
-    //   the same result after a reload must not double-award).
+    // - record exists and the winner is UNCHANGED → runner-up-only check
+    //   below (a corrected final may change only the runner-up — the new
+    //   runner-up's players must get their +150; re-recording the identical
+    //   result must not double-award).
     // The status/winner update stays unconditional — only the points award
     // is deduped.
     const awarded = getAwardedRecord(tournId);
@@ -2233,6 +2235,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
       recordFullAward(tournId, winnerTeamName, runnerUpTeamName);
     } else if (awarded.winner !== winnerTeamName) {
+      awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName, awarded.winner);
+      recordCorrectionAward(tournId, winnerTeamName, runnerUpTeamName);
+    } else if (norm(tourn.runnerUpTeam ?? '') !== norm(runnerUpTeamName)) {
+      // Winner unchanged, runner-up CHANGED: awardChampionPointsOnly skips
+      // the already-credited champion internally and credits only the new
+      // runner-up (+150); its own re-credit guard makes a repeat harmless.
       awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName, awarded.winner);
       recordCorrectionAward(tournId, winnerTeamName, runnerUpTeamName);
     }
@@ -2420,16 +2428,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // award zero). Guarded by getAwardedRecord/setAwardedWinner
     // (localStorage-backed): re-recording the final doesn't double-award;
     // a corrected final crowning a NEW champion gives the new champion the
-    // champion-only award (participant credit stays given exactly once; the
-    // old champion's points are not revoked — deliberate). Placed AFTER
+    // champion-only award, and a corrected final changing only the runner-up
+    // credits the new runner-up's +150 (participant credit stays given
+    // exactly once; the old champion's points are not revoked — deliberate). Placed AFTER
     // setTournaments on purpose — React StrictMode double-invokes state
     // updaters, and the award must never run inside one.
     if (next && next.status === 'completed' && next.winnerTeam) {
       const awarded = getAwardedRecord(tournId);
+      const normRu = (s: string) => s.trim();
       if (!awarded) {
         awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
         recordFullAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
       } else if (awarded.winner !== next.winnerTeam) {
+        awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
+        recordCorrectionAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
+      } else if (normRu(tourn?.runnerUpTeam ?? '') !== normRu(next.runnerUpTeam ?? '')) {
+        // Winner unchanged, runner-up CHANGED (corrected final via bracket):
+        // credit the new runner-up's +150 via the champion-only award (its
+        // internal re-credit guard skips the champion and any already
+        // placement-credited team). `tourn` is the pre-update tournament,
+        // so its runnerUpTeam is the previous one.
         awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
         recordCorrectionAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
       }

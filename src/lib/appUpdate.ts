@@ -62,6 +62,12 @@ export async function downloadAndInstallApk(
   const fileName = 'padelpro-update.apk';
   try {
     report({ progress: 0, status: 'downloading' });
+    // 0. Wipe any stale APK from a previous attempt FIRST: the 1MB size
+    // gate below must only ever see bytes from THIS download. Without this,
+    // a failed download (DNS/404/abort before anything is written) leaves
+    // the old file in place, the gate passes on the STALE file, and
+    // installApk launches the old build while the UI reports success.
+    await Filesystem.deleteFile({ path: fileName, directory: Directory.Cache }).catch(() => {});
     // 1. Pre-resolve CDN redirects to a direct file URL.
     const finalUrl = await resolveFinalUrl(url);
     // 2. Download with real progress events.
