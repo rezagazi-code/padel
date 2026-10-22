@@ -895,7 +895,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // court_id are uuid columns): route them through the local fallback even
     // when signed in — otherwise the insert fails with 22P02 and the user
     // cannot book at all (2026-10-22).
-    if (getSupabase() && authUserId && !bookingData.clubId.startsWith('club-')) {
+    if (getSupabase() && authUserId && bookingData.clubId && !bookingData.clubId.startsWith('club-')) {
       try {
         const remote = await insertBooking(
           {
@@ -1826,7 +1826,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Real backend path: insert into Supabase so every user sees it. Dates
     // must be ISO (YYYY-MM-DD) for the `date` columns — the form now collects
     // them with native date inputs.
-    if (getSupabase() && authUserId) {
+    // Bundled local clubs ('club-…') have no server rows (tournaments.club_id
+    // is a uuid column): route them through the local fallback even when
+    // signed in — otherwise the insert fails with 22P02 and the tournament
+    // is never created (same shape as the 2026-10-22 booking fix).
+    if (getSupabase() && authUserId && !tournData.clubId.startsWith('club-')) {
       try {
         const remote = await insertTournament(
           {

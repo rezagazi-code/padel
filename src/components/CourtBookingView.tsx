@@ -429,7 +429,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     // Additive «دنگی» ledger entry — never touches the booking itself.
     if (dongiEnabled) {
       const names = [playerProfile.name, ...dongiOthers];
-      const perPerson = Math.round(totalPrice / Math.max(1, names.length));
+      const n = Math.max(1, names.length);
+      const perPerson = Math.round(totalPrice / n);
+      // Rounding residue: the last share absorbs the remainder so the shares
+      // always sum to the total (e.g. 700000/3 = 233333×2 + 233334).
+      const lastShare = Math.max(0, totalPrice - perPerson * (n - 1));
       saveDongiRecord({
         bookingId: newBooking.id,
         total: totalPrice,
@@ -438,7 +442,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         courtName: newBooking.courtName,
         date: newBooking.date,
         timeSlot: newBooking.timeSlot,
-        shares: names.map((name, idx) => ({ name, amount: perPerson, paid: idx === 0 })),
+        shares: names.map((name, idx) => ({ name, amount: idx === n - 1 ? lastShare : perPerson, paid: idx === 0 })),
       });
       setDongiNames(['', '', '']);
       setDongiEnabled(false);

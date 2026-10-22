@@ -54,7 +54,9 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
     let managedClubId: string | null = null;
     let managedProvince: string | null = null;
     if (newRole === 'club_admin') {
-      managedClubId = clubSelect[userId] || target.managedClubId || clubs[0]?.id || null;
+      // Default to a server-backed club: bundled 'club-…' ids have no server
+      // row (managed_club_id is a uuid column) and the role update would fail.
+      managedClubId = clubSelect[userId] || target.managedClubId || clubs.find((c) => !c.id.startsWith('club-'))?.id || clubs[0]?.id || null;
       if (!managedClubId) {
         alert('اول یک باشگاه انتخاب کنید.');
         return;
