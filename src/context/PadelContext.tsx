@@ -1889,7 +1889,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // is a uuid column): route them through the local fallback even when
     // signed in — otherwise the insert fails with 22P02 and the tournament
     // is never created (same shape as the 2026-10-22 booking fix).
-    if (getSupabase() && authUserId && !tournData.clubId.startsWith('club-')) {
+    // The `tournData.clubId &&` guard matches the booking path: a falsy
+    // clubId must never reach .startsWith (TypeError would bypass both the
+    // remote catch and the local fallback below).
+    if (getSupabase() && authUserId && tournData.clubId && !tournData.clubId.startsWith('club-')) {
       try {
         const remote = await insertTournament(
           {
