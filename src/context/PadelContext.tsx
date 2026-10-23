@@ -988,7 +988,22 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    // Local fallback (offline / not signed in)
+    // Local fallback (offline / not signed in, or bundled 'club-…' clubs with
+    // no server rows): the server UNIQUE(court_id, date, time_slot) constraint
+    // does NOT apply here, so guard against double-booking the same
+    // court/date/slot at the context level — same class of fix as the
+    // bookCoach dup-guard (2026-10-23). Returns null so callers show a clear
+    // message (the server path already returns null on DOUBLE_BOOKED).
+    const dup = bookings.some(
+      (b) =>
+        b.courtId === bookingData.courtId &&
+        b.date === bookingData.date &&
+        b.timeSlot === bookingData.timeSlot
+    );
+    if (dup) {
+      setSyncNotification('این سانس قبلاً رزرو شده است. لطفاً سانس دیگری انتخاب کنید.');
+      return null;
+    }
     const newBooking: Booking = {
       ...bookingData,
       id: `booking-${Date.now()}`,

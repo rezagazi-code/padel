@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
 import type { UserRole } from '../types';
@@ -61,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
+  // Generation counter for profile loads — hoisted to a ref so signOut can
+  // invalidate in-flight loads too (see the race note below).
+  const loadSeqRef = useRef(0);
 
   useEffect(() => {
     const sb = getSupabase();
@@ -75,15 +78,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // still pending). Only the newest load may commit — a stale one would
     // otherwise clobber the current session's profile (wrong role briefly,
     // or a signed-out user's profile reappearing).
-    let loadSeq = 0;
     const syncProfile = async (userId: string | null) => {
-      const seq = ++loadSeq;
+      const seq = ++loadSeqRef.current;
       if (!userId) {
         setProfile(null);
         return;
       }
       const p = await loadProfile(userId);
-      if (!cancelled && seq === loadSeq) setProfile(p);
+      if (!cancelled && seq === loadSeqRef.current) setProfile(p);
     };
     sb.auth.getSession().then(async ({ data }) => {
       if (cancelled) return;
@@ -126,6 +128,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const sb = getSupabase();
     if (sb) await sb.auth.signOut();
+    // Invalidate in-flight profile loads: the old user's SELECT may resolve
+    // after this but before the SIGNED_OUT auth event reaches syncProfile —
+    // without this bump the stale profile would briefly reappear.
+    loadSeqRef.current++;
     setSession(null);
     setProfile(null);
   }, []);

@@ -57,6 +57,9 @@ export async function fetchSubscriptionProducts(): Promise<ProductDetails[]> {
     const res = await CafebazaarPoolakey.getProducts({ skus: SUBSCRIPTION_SKUS });
     return res.products ?? [];
   } catch {
+    // The Bazaar billing service connection may have dropped — force a
+    // re-init on the next call instead of failing silently forever.
+    initialized = false;
     return [];
   }
 }
@@ -81,6 +84,9 @@ export async function buySubscription(sku: string, payload?: string): Promise<Pu
     }
     return { ok: false, error: res.state };
   } catch (e) {
+    // The Bazaar billing service connection may have dropped — force a
+    // re-init on the next call instead of failing silently forever.
+    initialized = false;
     return { ok: false, error: e instanceof Error ? e.message : 'purchase_failed' };
   }
 }
@@ -92,6 +98,9 @@ export async function restorePurchases(): Promise<PurchaseInfo[]> {
     const res = await CafebazaarPoolakey.getPurchaseInfo();
     return res.purchases ?? [];
   } catch {
+    // The Bazaar billing service connection may have dropped — force a
+    // re-init on the next call instead of failing silently forever.
+    initialized = false;
     return [];
   }
 }
