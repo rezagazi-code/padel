@@ -54,9 +54,17 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
     let managedClubId: string | null = null;
     let managedProvince: string | null = null;
     if (newRole === 'club_admin') {
-      // Default to a server-backed club: bundled 'club-…' ids have no server
-      // row (managed_club_id is a uuid column) and the role update would fail.
-      managedClubId = clubSelect[userId] || target.managedClubId || clubs.find((c) => !c.id.startsWith('club-'))?.id || clubs[0]?.id || null;
+      // Bundled 'club-…' clubs are local-only (no server row) and
+      // managed_club_id is a uuid column — a bundled id would fail the role
+      // update with a 22P02. Filter them out of EVERY source: the dropdown
+      // pick, the user's existing value, and the default fallback.
+      const serverClubId = (id?: string | null): string | null =>
+        id && !id.startsWith('club-') ? id : null;
+      managedClubId =
+        serverClubId(clubSelect[userId]) ||
+        serverClubId(target.managedClubId) ||
+        clubs.find((c) => !c.id.startsWith('club-'))?.id ||
+        null;
       if (!managedClubId) {
         alert('اول یک باشگاه انتخاب کنید.');
         return;
@@ -181,7 +189,10 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
                     title="باشگاه تحت مدیریت"
                   >
                     <option value="">انتخاب باشگاه...</option>
-                    {clubs.map((c) => (
+                    {/* Bundled 'club-…' clubs are local-only: a club_admin's
+                        managed_club_id is a server uuid column, so only
+                        server-backed clubs are assignable here. */}
+                    {clubs.filter((c) => !c.id.startsWith('club-')).map((c) => (
                       <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
                     ))}
                   </select>
