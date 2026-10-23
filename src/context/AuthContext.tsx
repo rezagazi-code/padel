@@ -69,22 +69,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
+    // Generation counter for profile loads: several async loads can be in
+    // flight at once (mount getSession + INITIAL_SESSION event, or a fast
+    // logout→login as a different account while the old profile SELECT is
+    // still pending). Only the newest load may commit — a stale one would
+    // otherwise clobber the current session's profile (wrong role briefly,
+    // or a signed-out user's profile reappearing).
+    let loadSeq = 0;
+    const syncProfile = async (userId: string | null) => {
+      const seq = ++loadSeq;
+      if (!userId) {
+        setProfile(null);
+        return;
+      }
+      const p = await loadProfile(userId);
+      if (!cancelled && seq === loadSeq) setProfile(p);
+    };
     sb.auth.getSession().then(async ({ data }) => {
       if (cancelled) return;
       setSession(data.session);
-      if (data.session?.user) {
-        setProfile(await loadProfile(data.session.user.id));
-      }
+      await syncProfile(data.session?.user?.id ?? null);
       setReady(true);
     });
     const { data: sub } = sb.auth.onAuthStateChange(async (_event, newSession) => {
       if (cancelled) return;
       setSession(newSession);
-      if (newSession?.user) {
-        setProfile(await loadProfile(newSession.user.id));
-      } else {
-        setProfile(null);
-      }
+      await syncProfile(newSession?.user?.id ?? null);
     });
     return () => {
       cancelled = true;
