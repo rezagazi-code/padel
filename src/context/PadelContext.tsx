@@ -811,7 +811,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Local fallback
     const newCourt: Court = {
       ...courtData,
-      id: `court-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `court-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-24
       clubId,
     };
 
