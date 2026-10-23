@@ -382,6 +382,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // it (a flag set inside the updater can never be read at return time —
   // React 18 batches the updater — so the ref only covers the race window).
   const pendingJoinRef = useRef<Set<string>>(new Set());
+  // In-flight slot keys for the local (client-side) booking paths below.
+  // The dup guards in createBooking/bookCoach read closure state, which is
+  // stale when the confirm button is tapped twice before React re-renders,
+  // so a rapid double-tap could book the same slot twice. The key stays in
+  // the set only for the synchronous local-path body (no awaits between
+  // add and delete), blocking the second tap in the same tick.
+  const bookingInFlightRef = useRef<Set<string>>(new Set());
+  const coachBookingInFlightRef = useRef<Set<string>>(new Set());
   // Guard against double-awarding tournament ranking points: a tournament's
   // participant credit must be given exactly once. StrictMode double-invokes
   // state updaters and both the free-text finalize path and the bracket path
@@ -994,31 +1002,45 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // court/date/slot at the context level — same class of fix as the
     // bookCoach dup-guard (2026-10-23). Returns null so callers show a clear
     // message (the server path already returns null on DOUBLE_BOOKED).
-    const dup = bookings.some(
-      (b) =>
-        b.courtId === bookingData.courtId &&
-        b.date === bookingData.date &&
-        b.timeSlot === bookingData.timeSlot
-    );
-    if (dup) {
+    // In-flight guard: `bookings` above is closure state and stays stale when
+    // the confirm button is double-tapped before React re-renders. A second
+    // synchronous call with the same slot key is a duplicate tap, not a new
+    // intent — block it (same tick, same pattern as pendingJoinRef above).
+    const slotKey = `${bookingData.courtId}|${bookingData.date}|${bookingData.timeSlot}`;
+    if (bookingInFlightRef.current.has(slotKey)) {
       setSyncNotification('این سانس قبلاً رزرو شده است. لطفاً سانس دیگری انتخاب کنید.');
       return null;
     }
-    const newBooking: Booking = {
-      ...bookingData,
-      // Date.now() alone can collide for two bookings in the same millisecond
-      // (same class as the coach-booking fix, 2026-10-23): the random suffix
-      // keeps React keys and the local list unique.
-      id: `booking-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      createdAt: new Date().toISOString(),
-    };
-    setBookings((prev) => [newBooking, ...prev]);
+    bookingInFlightRef.current.add(slotKey);
+    try {
+      const dup = bookings.some(
+        (b) =>
+          b.courtId === bookingData.courtId &&
+          b.date === bookingData.date &&
+          b.timeSlot === bookingData.timeSlot
+      );
+      if (dup) {
+        setSyncNotification('این سانس قبلاً رزرو شده است. لطفاً سانس دیگری انتخاب کنید.');
+        return null;
+      }
+      const newBooking: Booking = {
+        ...bookingData,
+        // Date.now() alone can collide for two bookings in the same millisecond
+        // (same class as the coach-booking fix, 2026-10-23): the random suffix
+        // keeps React keys and the local list unique.
+        id: `booking-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt: new Date().toISOString(),
+      };
+      setBookings((prev) => [newBooking, ...prev]);
 
-    // If host needs players, automatically create a NeedPlayerPost!
-    if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
+      // If host needs players, automatically create a NeedPlayerPost!
+      if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
 
-    setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
-    return newBooking;
+      setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
+      return newBooking;
+    } finally {
+      bookingInFlightRef.current.delete(slotKey);
+    }
   };
 
   const createNeedPostForBooking = (newBooking: Booking) => {
@@ -1888,20 +1910,31 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // (no server insert — see the coach_bookings table gap), so this check is
     // the only thing stopping the same coach/day/hour from being booked
     // twice. Returns null so the caller can show a clear message.
-    const dup = coachBookings.some(
-      (b) => b.coachId === bookingData.coachId && b.date === bookingData.date && b.time === bookingData.time
-    );
-    if (dup) return null;
-    const newBooking: CoachBooking = {
-      ...bookingData,
-      // Date.now() alone can collide for two bookings in the same millisecond;
-      // the random suffix keeps React keys and the local list unique.
-      id: `cb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      status: 'confirmed',
-    };
-    setCoachBookings((prev) => [newBooking, ...prev]);
-    setSyncNotification(`جلسه تمرینی با مربی ${newBooking.coachName} تایید و رزرو شد!`);
-    return newBooking;
+    // In-flight guard: `coachBookings` is closure state and stays stale when
+    // the confirm button is double-tapped before React re-renders. A second
+    // synchronous call with the same slot key is a duplicate tap, not a new
+    // intent — block it (same pattern as pendingJoinRef above).
+    const slotKey = `${bookingData.coachId}|${bookingData.date}|${bookingData.time}`;
+    if (coachBookingInFlightRef.current.has(slotKey)) return null;
+    coachBookingInFlightRef.current.add(slotKey);
+    try {
+      const dup = coachBookings.some(
+        (b) => b.coachId === bookingData.coachId && b.date === bookingData.date && b.time === bookingData.time
+      );
+      if (dup) return null;
+      const newBooking: CoachBooking = {
+        ...bookingData,
+        // Date.now() alone can collide for two bookings in the same millisecond;
+        // the random suffix keeps React keys and the local list unique.
+        id: `cb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        status: 'confirmed',
+      };
+      setCoachBookings((prev) => [newBooking, ...prev]);
+      setSyncNotification(`جلسه تمرینی با مربی ${newBooking.coachName} تایید و رزرو شد!`);
+      return newBooking;
+    } finally {
+      coachBookingInFlightRef.current.delete(slotKey);
+    }
   };
 
   const createTournament = async (
