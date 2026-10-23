@@ -1006,7 +1006,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     const newBooking: Booking = {
       ...bookingData,
-      id: `booking-${Date.now()}`,
+      // Date.now() alone can collide for two bookings in the same millisecond
+      // (same class as the coach-booking fix, 2026-10-23): the random suffix
+      // keeps React keys and the local list unique.
+      id: `booking-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       createdAt: new Date().toISOString(),
     };
     setBookings((prev) => [newBooking, ...prev]);
@@ -1020,7 +1023,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const createNeedPostForBooking = (newBooking: Booking) => {
     const needPost: NeedPlayerPost = {
-      id: `np-${Date.now()}`,
+      // Same ms-collision guard as the booking id above.
+      id: `np-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       bookingId: newBooking.id,
       clubName: newBooking.clubName,
       province: playerProfile.province,
