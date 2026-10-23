@@ -754,7 +754,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Local fallback (offline / not signed in)
     const newClub: Club = {
       ...clubData,
-      id: `club-${Date.now()}`,
+      id: `club-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
       rating: 5.0,
       reviewCount: 1,
     };
@@ -922,7 +922,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Local fallback
     const newCoach: Coach = {
       ...coachData,
-      id: `coach-${Date.now()}`,
+      id: `coach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
       rating: 5.0,
       reviewsCount: 0,
     };
@@ -1098,7 +1098,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const createOpenMatch = (matchData: Omit<OpenMatch, 'id' | 'slots' | 'status'>): OpenMatch => {
     const newMatch: OpenMatch = {
       ...matchData,
-      id: `match-${Date.now()}`,
+      // Same-ms collision guard (same class as booking/coach-booking fixes, 2026-10-23).
+      id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       status: 'open',
       slots: [
         {
@@ -1239,7 +1240,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     const newSession: GroupSession = {
       ...data,
-      id: `gs-${Date.now()}`,
+      id: `gs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
       status: 'open',
       courts,
       createdAt: new Date().toISOString(),
@@ -1346,7 +1347,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   ): FriendlyTournament => {
     const newT: FriendlyTournament = {
       ...data,
-      id: `ft-${Date.now()}`,
+      id: `ft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
       status: 'open',
       teams: [],
       bracket: [],
@@ -1749,7 +1750,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const createNeedPlayerPost = (postData: Omit<NeedPlayerPost, 'id' | 'joinedPlayers' | 'status'>) => {
     const newPost: NeedPlayerPost = {
       ...postData,
-      id: `np-${Date.now()}`,
+      // Same-ms collision guard (same class as createNeedPostForBooking fix, 2026-10-23).
+      id: `np-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       joinedPlayers: [],
       status: 'active',
     };
@@ -1958,7 +1960,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Local fallback (offline / not signed in)
     const newTourn: Tournament = {
       ...tournData,
-      id: `tourn-${Date.now()}`,
+      id: `tourn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
       registeredTeamsCount: 0,
       registeredTeams: [],
       status: 'registration',
@@ -2015,7 +2017,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const newTeam = {
-      id: `tm-${Date.now()}`,
+      // Same-ms collision guard (same class as booking/coach-booking fixes, 2026-10-23).
+      id: `tm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       teamName,
       player1Name: playerProfile.name,
       player1Level: playerProfile.level,
