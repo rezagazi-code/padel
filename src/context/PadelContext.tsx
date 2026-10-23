@@ -198,7 +198,7 @@ interface PadelContextType {
   addCoach: (coach: Omit<Coach, 'id' | 'rating' | 'reviewsCount'>) => Promise<Coach>;
   deleteCoach: (coachId: string) => Promise<void>;
   coachBookings: CoachBooking[];
-  bookCoach: (booking: Omit<CoachBooking, 'id' | 'status'>) => CoachBooking;
+  bookCoach: (booking: Omit<CoachBooking, 'id' | 'status'>) => CoachBooking | null;
   tournaments: Tournament[];
   createTournament: (tourn: Omit<Tournament, 'id' | 'registeredTeamsCount' | 'registeredTeams' | 'status'>) => Promise<Tournament>;
   registerTournamentTeam: (tournId: string, teamName: string, partnerName: string, partnerLevel: number) => boolean;
@@ -1862,10 +1862,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const bookCoach = (bookingData: Omit<CoachBooking, 'id' | 'status'>): CoachBooking => {
+  const bookCoach = (bookingData: Omit<CoachBooking, 'id' | 'status'>): CoachBooking | null => {
+    // Local duplicate-slot guard: coach bookings are stored client-side only
+    // (no server insert — see the coach_bookings table gap), so this check is
+    // the only thing stopping the same coach/day/hour from being booked
+    // twice. Returns null so the caller can show a clear message.
+    const dup = coachBookings.some(
+      (b) => b.coachId === bookingData.coachId && b.date === bookingData.date && b.time === bookingData.time
+    );
+    if (dup) return null;
     const newBooking: CoachBooking = {
       ...bookingData,
-      id: `cb-${Date.now()}`,
+      // Date.now() alone can collide for two bookings in the same millisecond;
+      // the random suffix keeps React keys and the local list unique.
+      id: `cb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       status: 'confirmed',
     };
     setCoachBookings((prev) => [newBooking, ...prev]);

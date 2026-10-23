@@ -160,6 +160,15 @@ export const CoachBookingView: React.FC = () => {
         playerPhone: playerProfile.phone,
       });
 
+      // bookCoach returns null when the same coach/day/hour is already booked
+      // (duplicate-slot guard): show the error and unlock so the user can
+      // pick another slot — no receipt modal.
+      if (!newBooking) {
+        setBookingError('این سانس قبلاً برای این مربی رزرو شده است. لطفاً روز یا ساعت دیگری انتخاب کنید.');
+        setBookingLocked(false);
+        return;
+      }
+
       setSelectedCoach(null);
       setShowReceiptModal(newBooking);
     } finally {
