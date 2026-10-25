@@ -59,6 +59,12 @@ export async function downloadAndInstallApk(
   onProgress?: (p: DownloadProgress) => void
 ): Promise<void> {
   const report = (p: DownloadProgress) => onProgress?.(p);
+  // APK install is Android-only: on iOS there is no package installer, so
+  // refuse immediately instead of downloading an APK that can never install.
+  if (Capacitor.getPlatform() !== 'android') {
+    report({ progress: 0, status: 'error', error: 'APK install is Android-only' });
+    return;
+  }
   const fileName = 'padelpro-update.apk';
   try {
     report({ progress: 0, status: 'downloading' });
@@ -139,9 +145,10 @@ export type UpdateCheckResult =
   | { status: 'failed' };
 
 export async function checkForAppUpdateDetailed(): Promise<UpdateCheckResult> {
-  // Only check in native app — on web there is nothing to check, which is
-  // "up to date", never a failure (no failure banner on web).
-  if (!Capacitor.isNativePlatform()) return { status: 'up-to-date' };
+  // Android-only: the updater downloads + installs an APK, which is
+  // meaningless on iOS. On iOS (and web) there is nothing to check, which is
+  // "up to date", never a failure (no failure banner on iOS).
+  if (Capacitor.getPlatform() !== 'android') return { status: 'up-to-date' };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {
@@ -175,7 +182,9 @@ export async function checkForAppUpdateDetailed(): Promise<UpdateCheckResult> {
  * down) apart from "no newer version" so it can offer retry/explicit-continue.
  */
 export async function isUpdateEndpointReachable(timeoutMs = 8000): Promise<boolean> {
-  if (!Capacitor.isNativePlatform()) return true;
+  // Android-only probe (see checkForAppUpdateDetailed): on iOS the updater
+  // never runs, so the endpoint is trivially "reachable" — no retry UI.
+  if (Capacitor.getPlatform() !== 'android') return true;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
