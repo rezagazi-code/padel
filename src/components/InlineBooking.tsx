@@ -369,6 +369,12 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       setLastBookingInfo(newBooking);
       notifiedOnBookedRef.current = false;
       setShowConfirmation(true);
+      // The pick is consumed: when the bookings state updates, this slot
+      // flips to isBooked, which the stale-pick effect would otherwise
+      // misread as "grabbed by someone else" and report as an error on top
+      // of the success receipt. Clearing the ref keeps the effect silent
+      // for our own booking; a real steal (no booking made) still errors.
+      userPickedSlotRef.current = false;
 
       if (dongiEnabled) {
         const names = [playerProfile.name, ...dongiOthers];

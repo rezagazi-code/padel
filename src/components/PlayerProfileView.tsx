@@ -178,11 +178,14 @@ export const PlayerProfileView: React.FC = () => {
   const [city, setCity] = useState(playerProfile.city);
   const [province, setProvince] = useState(playerProfile.province);
   const [level, setLevel] = useState<number>(playerProfile.level);
-  const [themeColor, setThemeColor] = useState(playerProfile.themeColor);
+  const [themeColor, setThemeColor] = useState(playerProfile.themeColor ?? '#ff2d55');
 
-  // Lighten a hex color so theme-colored text stays readable on the dark card
-  const lighten = (hex: string, amt = 0.45) => {
-    const h = hex.replace('#', '');
+  // Lighten a hex color so theme-colored text stays readable on the dark card.
+  // Null-safe: a profile restored from older/incomplete storage may carry
+  // no themeColor, and this runs before the auth gate below — an undefined
+  // hex used to crash the whole tab (white screen, no error boundary).
+  const lighten = (hex: string | undefined, amt = 0.45) => {
+    const h = (hex ?? '#ff2d55').replace('#', '');
     const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
     const n = parseInt(full, 16);
     const f = (v: number) => Math.min(255, Math.round(v + (255 - v) * amt));
@@ -213,7 +216,7 @@ export const PlayerProfileView: React.FC = () => {
     setCity(playerProfile.city);
     setProvince(playerProfile.province);
     setLevel(playerProfile.level);
-    setThemeColor(playerProfile.themeColor);
+    setThemeColor(playerProfile.themeColor ?? '#ff2d55');
     setPreferredSide(playerProfile.preferredSide);
     setHand(playerProfile.hand);
     setRacketBrand(playerProfile.racketBrand);
