@@ -1,10 +1,15 @@
 // In-app billing for the native Android build via Cafe Bazaar (Poolakey).
 // Web builds: every function degrades gracefully (available === false).
+// iOS builds: the Poolakey plugin ships Android-only native code (no iOS
+// target), so billing is reported unavailable on iOS — the plugin's JS is
+// just registerPlugin (safe to import), but no native side exists to call.
+// Android behavior is unchanged by the iOS guard below.
 //
 // Setup needed in the Bazaar developer panel (Lucka's part):
 //   1. Register the app with the same package name as the APK.
 //   2. Create the subscription products below (SKUs must match exactly).
 //   3. Copy the app's RSA public key into VITE_BAZAAR_RSA_KEY at build time.
+import { Capacitor } from '@capacitor/core';
 import { CafebazaarPoolakey } from '@salarizadi/capacitor-cafebazaar-poolakey';
 import type { ProductDetails, PurchaseInfo } from '@salarizadi/capacitor-cafebazaar-poolakey';
 
@@ -30,6 +35,13 @@ let initialized = false;
 export async function getBillingStatus(): Promise<BillingStatus> {
   if (!isNativeApp()) {
     return { available: false, reason: 'billing_unavailable_web' };
+  }
+  // iOS has no Poolakey native side (Android-only plugin): never report
+  // billing as available there, or the UI would offer purchases that can
+  // never complete. initBilling would fail gracefully anyway (try/catch),
+  // but the status must not promise what iOS cannot do.
+  if (Capacitor.getPlatform() === 'ios') {
+    return { available: false, reason: 'billing_unavailable_ios' };
   }
   const rsaKey = (import.meta.env.VITE_BAZAAR_RSA_KEY as string | undefined) || '';
   if (!rsaKey) {
