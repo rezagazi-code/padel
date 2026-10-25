@@ -119,8 +119,8 @@ export interface AppUpdateInfo {
 
 const UPDATE_CHECK_URL = 'https://cdn.jsdelivr.net/gh/rezagazi-code/padel@apk-releases/releases/latest.json';
 // Current version - must match android/app/build.gradle
-export const CURRENT_VERSION_CODE = 92;
-export const CURRENT_VERSION_NAME = '3.15.39';
+export const CURRENT_VERSION_CODE = 93;
+export const CURRENT_VERSION_NAME = '3.15.40';
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   const r = await checkForAppUpdateDetailed();
