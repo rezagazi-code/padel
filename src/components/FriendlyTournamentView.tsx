@@ -151,7 +151,9 @@ export const FriendlyTournamentView: React.FC = () => {
   const prizePool = liveTourn ? liveTourn.teams.length * liveTourn.entryFeePerTeam : 0;
   const splitParts = liveTourn?.prizeSplit === '70-30' ? [0.7, 0.3] : [0.6, 0.4];
   const prizeFirst = Math.round(prizePool * splitParts[0]);
-  const prizeSecond = Math.round(prizePool * splitParts[1]);
+  // Second share is the exact remainder: rounding both shares independently
+  // can overshoot the pool by 1 (e.g. pool 25 at 70-30 -> 18 + 8 = 26).
+  const prizeSecond = prizePool - prizeFirst;
 
   const suggestion = calculateSuggestion(
     liveTourn?.teams.length || 0,
