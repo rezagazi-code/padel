@@ -1,0 +1,63 @@
+# iOS build (unsigned) — «پدل‌پرو»
+#
+# Runs on a GitHub macOS runner because iOS builds need Xcode (unavailable
+# on Linux). This workflow produces an UNSIGNED .ipa: it proves the Xcode
+# project compiles and packages, but an unsigned IPA does NOT install on a
+# stock iPhone. Installing on a real device needs Apple signing:
+#   - a free personal Apple ID via Xcode/AltStore (7-day cert, own device), or
+#   - an Apple Developer account ($99/yr) for TestFlight / App Store.
+# When signing secrets are added, extend the archive step with
+# CODE_SIGN_IDENTITY + a provisioning profile instead of CODE_SIGNING_ALLOWED=NO.
+#
+# Notes specific to PadelPro:
+# - Install uses --legacy-peer-deps, same as build-apk.yml (vite 8 wants
+#   esbuild ^0.27/0.28 while the repo pins esbuild ^0.25).
+# - The Cafe Bazaar billing plugin (@salarizadi/capacitor-cafebazaar-poolakey)
+#   is Android-only: `cap sync ios` skips it (no iOS target), and
+#   src/lib/billing.ts reports billing unavailable on iOS, so the iOS
+#   build succeeds despite the plugin. Android billing is untouched.
+name: Build iOS (unsigned)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "capacitor.config.ts"
+      - "vite.config.ts"
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
+      - run: npx cap sync ios
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive archive \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/App.xcarchive/Products/Applications/App.app Payload/
+          zip -r padel-unsigned.ipa Payload
+          ls -la padel-unsigned.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: padel-ios-unsigned
+          path: padel-unsigned.ipa
