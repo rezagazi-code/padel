@@ -2126,6 +2126,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return true;
   };
 
+  // Recompute the derived ranking columns after any award: overall rank
+  // (points desc), province rank (position within the player's own
+  // province, points desc), and win rate (won/played). These columns were
+  // never written by any award path, so the table rendered empty
+  // province-rank / win-rate cells even for players with points.
+  const recomputeRankingDerived = (list: RankingPlayer[]): RankingPlayer[] => {
+    const provinceCounters = new Map<string, number>();
+    return [...list]
+      .sort((a, b) => b.points - a.points)
+      .map((p, idx) => {
+        const n = (provinceCounters.get(p.province) ?? 0) + 1;
+        provinceCounters.set(p.province, n);
+        return {
+          ...p,
+          rank: idx + 1,
+          provinceRank: n,
+          winRate: p.tournamentsPlayed > 0 ? Math.round((p.tournamentsWon / p.tournamentsPlayed) * 100) : 0,
+        };
+      });
+  };
+
   // Awards provincial/country ranking points for a tournament result.
   // Extracted (verbatim logic) so the free-text finalize path and the
   // bracket-completion path award IDENTICAL points. Callers guard with
@@ -2151,7 +2172,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
-      return prev.map((player) => {
+      const updated = prev.map((player) => {
         if (winnerNames.includes(player.name)) {
           return { ...player, points: player.points + 250, tournamentsPlayed: player.tournamentsPlayed + 1, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
@@ -2162,7 +2183,39 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return { ...player, points: player.points + 50, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // non-participants: completely untouched
-      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
+      });
+      // A first-time winner/participant used to never appear: the map
+      // above only updates existing rows, so on a fresh install (empty
+      // rankings) the "rankings updated!" toast lied and the table stayed
+      // empty forever. Insert a row for every participant missing one,
+      // with the same credit the map branch would have given them.
+      const present = new Set(updated.map((p) => p.name));
+      const extras: RankingPlayer[] = [];
+      const insertRow = (name: string, level: number, points: number, won: number) => {
+        if (!name || present.has(name)) return;
+        present.add(name);
+        extras.push({
+          rank: 0,
+          provinceRank: 0,
+          id: name === playerProfile.name ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
+          name,
+          avatar: '',
+          province: tourn?.province ?? '',
+          level,
+          points,
+          tournamentsPlayed: 1,
+          tournamentsWon: won,
+          winRate: 0,
+          form: [(won ? 'W' : 'L') as 'W' | 'L'],
+        });
+      };
+      for (const tm of tourn?.registeredTeams ?? []) {
+        const isWinner = norm(tm.teamName) === norm(winnerTeamName);
+        const isRunnerUp = norm(tm.teamName) === norm(runnerUpTeamName);
+        insertRow(tm.player1Name, tm.player1Level, isWinner ? 250 : isRunnerUp ? 150 : 50, isWinner ? 1 : 0);
+        insertRow(tm.player2Name, tm.player2Level, isWinner ? 250 : isRunnerUp ? 150 : 50, isWinner ? 1 : 0);
+      }
+      return recomputeRankingDerived([...updated, ...extras]);
     });
 
     setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
@@ -2217,7 +2270,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
-      return prev.map((player) => {
+      const updated = prev.map((player) => {
         if (winnerNames.includes(player.name) && !winnerAlreadyCredited) {
           return { ...player, points: player.points + 250, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
@@ -2225,7 +2278,41 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return { ...player, points: player.points + 150, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // participants already credited by the first full award: untouched
-      }).sort((a, b) => b.points - a.points).map((p, idx) => ({ ...p, rank: idx + 1 }));
+      });
+      // Same insert-missing rule as the full award: a corrected final can
+      // crown a player with no row (e.g. the first award ran pre-fix and
+      // inserted nothing). A missing row means the credit never
+      // materialized anywhere visible, so inserting it is a repair, not a
+      // double credit — existing rows are still never re-credited.
+      const present = new Set(updated.map((p) => p.name));
+      const extras: RankingPlayer[] = [];
+      const insertRow = (name: string, level: number, points: number, won: number) => {
+        if (!name || present.has(name)) return;
+        present.add(name);
+        extras.push({
+          rank: 0,
+          provinceRank: 0,
+          id: name === playerProfile.name ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
+          name,
+          avatar: '',
+          province: tourn?.province ?? '',
+          level,
+          points,
+          tournamentsPlayed: 1,
+          tournamentsWon: won,
+          winRate: 0,
+          form: [(won ? 'W' : 'L') as 'W' | 'L'],
+        });
+      };
+      if (winnerTeam) {
+        insertRow(winnerTeam.player1Name, winnerTeam.player1Level, 250, 1);
+        insertRow(winnerTeam.player2Name, winnerTeam.player2Level, 250, 1);
+      }
+      if (runnerUpTeam) {
+        insertRow(runnerUpTeam.player1Name, runnerUpTeam.player1Level, 150, 0);
+        insertRow(runnerUpTeam.player2Name, runnerUpTeam.player2Level, 150, 0);
+      }
+      return recomputeRankingDerived([...updated, ...extras]);
     });
 
     setSyncNotification(`نتایج تورنومنت اصلاح و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
