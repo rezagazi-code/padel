@@ -992,6 +992,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
                 {dongiEnabled && (
                   <div className="pt-3 border-t border-white/10 space-y-3">
+                    {splitPayment && (
+                      <p className="text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">
+                        در حالت «دنگ ۴ نفره» هر نفر سهم خودش را در باشگاه می‌پردازد، پس دنگی در «حساب دنگی» ذخیره نمی‌شود. برای ذخیره‌ی دنگی، پرداخت یکجا را انتخاب کنید.
+                      </p>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {dongiNames.map((name, idx) => (
                         <input
