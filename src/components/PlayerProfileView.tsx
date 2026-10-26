@@ -55,8 +55,10 @@ export const PlayerProfileView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
   const [showUserMgmt, setShowUserMgmt] = useState(false);
-  const { user, changePassword } = useAuth();
-  const isSuperAdmin = user?.role === 'super_admin';
+  const { user, role, changePassword } = useAuth();
+  // NOTE: user.role is the Supabase JWT role ('authenticated'), not the app
+  // role — the app role comes from AuthContext's profile-backed `role`.
+  const isSuperAdmin = role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   // In-flight guard: cancelBooking awaits a remote delete + re-read, so a

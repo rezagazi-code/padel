@@ -23,8 +23,10 @@ import {
 
 export const CoachBookingView: React.FC = () => {
   const { coaches, coachBookings, bookCoach, playerProfile, addCoach, deleteCoach } = usePadel();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'super_admin' || user?.role === 'club_admin';
+  const { role } = useAuth();
+  // NOTE: user.role is the Supabase JWT role ('authenticated'), not the app
+  // role — the app role comes from AuthContext's profile-backed `role`.
+  const isAdmin = role === 'super_admin' || role === 'club_admin';
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [formName, setFormName] = useState('');

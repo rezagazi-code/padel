@@ -378,6 +378,9 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       userPickedSlotRef.current = false;
 
       if (dongiEnabled) {
+        // No teammates tagged → no split to record; a self-only entry would
+        // just sit in the Dongi panel as a dead record to delete by hand.
+        if (dongiOthers.length > 0) {
         const names = [playerProfile.name, ...dongiOthers];
         const n = Math.max(1, names.length);
         const perPerson = Math.round(totalPrice / n);
@@ -394,6 +397,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           timeSlot: newBooking.timeSlot,
           shares: names.map((name, idx) => ({ name, amount: idx === n - 1 ? lastShare : perPerson, paid: idx === 0 })),
         });
+        }
         setDongiNames(['', '', '']);
         setDongiEnabled(false);
       }
