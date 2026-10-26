@@ -1528,6 +1528,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Seeded draw: sort by rank (lower = stronger), then snake-seed into a true
   // bracket — seeds 1&2 can only meet in the final.
   const drawFriendlyBracket = (tournId: string) => {
+    // Round keys only go up to 64 teams: beyond that the first-round key
+    // would fall back to 'round16' and crown a champion with matches
+    // unplayed. Refuse the draw honestly instead of building a wrong bracket.
+    const drawTourn = friendlyTournaments.find((x) => x.id === tournId);
+    if (drawTourn && drawTourn.teams.length > 64) {
+      setSyncNotification('قرعه‌کشی دوستانه فعلاً برای حداکثر ۶۴ تیم پشتیبانی می‌شود.');
+      return;
+    }
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open' || t.teams.length < 2) return t;
@@ -1747,6 +1755,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('نتیجه مساوی معتبر نیست؛ لطفاً برنده را مشخص کنید.');
       return;
     }
+    // Unknown match (e.g. stale UI after a corrected-score invalidation
+    // dropped later rounds): the updater below would be a no-op, so the
+    // success toast at the end would lie. Fail honestly instead.
+    const friendlyTourn = friendlyTournaments.find((x) => x.id === tournId);
+    if (!friendlyTourn || !friendlyTourn.bracket.some((m) => m.id === matchId)) {
+      setSyncNotification('این مسابقه یافت نشد؛ نتیجه ثبت نشد.');
+      return;
+    }
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId) return t;
@@ -1849,8 +1865,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 status = 'in_progress';
               }
             } else if (winners.length === 1) {
-              // Single winner = champion (happens with byes)
+              // Single winner = champion (happens with byes). The runner-up
+              // is the other side of the deciding match, when it is known —
+              // otherwise the completed tournament showed a blank runner-up.
               winnerTeamId = winners[0];
+              const decidingMatch = latestMatches.find((m) => m.winnerId === winners[0]);
+              runnerUpTeamId = decidingMatch
+                ? (decidingMatch.winnerId === decidingMatch.team1Id
+                    ? decidingMatch.team2Id ?? undefined
+                    : decidingMatch.team1Id ?? undefined)
+                : undefined;
               status = 'completed';
             }
           }
