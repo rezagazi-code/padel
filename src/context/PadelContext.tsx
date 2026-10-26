@@ -2078,7 +2078,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // the updater, so a flag set inside it is never visible at return time
     // (the old `success` flag was always false → modal never closed, no toast).
     const t = tournaments.find((x) => x.id === tournId);
-    if (!t) return false;
+    // Silent `return false` here left the register modal open with no
+    // feedback when the tournament vanished between list render and submit
+    // — every other refusal branch toasts, so this one does too.
+    if (!t) {
+      setSyncNotification('این تورنومنت دیگر موجود نیست.');
+      return false;
+    }
     // Registration is only open while the tournament is in 'registration'
     // status: the server RLS policy rejects team inserts for ongoing /
     // completed tournaments, so refuse locally with the same

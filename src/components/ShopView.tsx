@@ -82,10 +82,12 @@ function formatPrice(t: number): string {
   return `${t.toLocaleString('fa-IR')} تومان`;
 }
 
-/** Product photo with skeleton shimmer until loaded. */
+/** Product photo with skeleton shimmer until loaded; a broken URL hides the
+ *  photo block instead of shimmering forever (img stays hidden until onLoad). */
 const ProductPhoto: React.FC<{ p: ShopProduct; eager?: boolean }> = ({ p, eager }) => {
   const [loaded, setLoaded] = useState(false);
-  if (!p.image) return null;
+  const [errored, setErrored] = useState(false);
+  if (!p.image || errored) return null;
   return (
     <div className={`relative ${loaded ? '' : 'img-loading'} rounded-[18px]`}>
       <img
@@ -95,6 +97,7 @@ const ProductPhoto: React.FC<{ p: ShopProduct; eager?: boolean }> = ({ p, eager 
         decoding="async"
         fetchPriority={eager ? 'high' : 'auto'}
         onLoad={() => setLoaded(true)}
+        onError={() => setErrored(true)}
         className="product-photo"
         style={loaded ? undefined : { visibility: 'hidden' }}
       />

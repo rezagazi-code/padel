@@ -515,6 +515,11 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               <span>در حال بارگذاری سانس‌ها…</span>
             </div>
           )}
+          {!slotsLoading && timeSlots.length === 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
+              برای این روز سانسی موجود نیست
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             {timeSlots.map((slot, index) => {
               const isSelected = selectedTimeSlot === slot.time;

@@ -345,7 +345,7 @@ export const TournamentsView: React.FC = () => {
               }`}
             >
               <Trophy className="w-4 h-4 text-amber-500" />
-              <span>تقویم تورنومنت‌های باشگاهی ({tournaments.length})</span>
+              <span>تقویم تورنومنت‌های باشگاهی ({filteredTournaments.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('rankings')}
@@ -382,6 +382,11 @@ export const TournamentsView: React.FC = () => {
       {/* Sub-Tab 1: Tournaments List */}
       {activeTab === 'tournaments' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredTournaments.length === 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
+              در این استان هنوز تورنومنتی ثبت نشده است
+            </div>
+          )}
           {filteredTournaments.map((tourn, idx) => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
             // Same match as registerTournamentTeam: without this the button stays
