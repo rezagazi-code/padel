@@ -390,7 +390,10 @@ export const TournamentsView: React.FC = () => {
               (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
             );
             const isCompleted = tourn.status === 'completed';
-            const isRegistrationOpen = tourn.status === 'registration' && !(tourn.bracket && tourn.bracket.length > 0);
+            // Mirror registerTournamentTeam: a passed deadline closes
+            // registration on the card too, not just on submit.
+            const todayStr = new Date().toLocaleDateString('en-CA');
+            const isRegistrationOpen = tourn.status === 'registration' && !(tourn.bracket && tourn.bracket.length > 0) && !(tourn.registrationDeadline && todayStr > tourn.registrationDeadline);
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
             return (

@@ -436,7 +436,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     userPickedSlotRef.current = false;
 
     // Additive «دنگی» ledger entry — never touches the booking itself.
-    if (dongiEnabled) {
+    // Skipped under split payment: with split_active the booker pays only
+    // their own quarter at the club, so there is no full amount paid by
+    // them for teammates to owe — recording one would inflate every
+    // balance in the Dongi panel.
+    if (dongiEnabled && !splitPayment) {
       // No teammates tagged → no split to record; a self-only entry would
       // just sit in the Dongi panel as a dead record to delete by hand.
       if (dongiOthers.length > 0) {

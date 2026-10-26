@@ -2094,6 +2094,18 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('قرعه‌کشی این تورنومنت انجام شده و ثبت‌نام بسته است.');
       return false;
     }
+    // Registration deadline: stored at creation (and validated ≤ start
+    // date) but never enforced here — a team could register after the
+    // deadline as long as the status was still 'registration'. ISO
+    // YYYY-MM-DD strings compare lexicographically; the deadline day
+    // itself is still open.
+    if (t.registrationDeadline) {
+      const todayStr = new Date().toLocaleDateString('en-CA');
+      if (todayStr > t.registrationDeadline) {
+        setSyncNotification('مهلت ثبت‌نام این تورنومنت به پایان رسیده است.');
+        return false;
+      }
+    }
     if (t.registeredTeamsCount >= t.maxTeams) {
       setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
       return false;
@@ -2173,6 +2185,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           'registerTournamentTeam remote insert failed, keeping local registration',
           err
         );
+        // The success toast above already fired, so a silent failure would
+        // leave a team that is invisible on other devices with no hint.
+        // Surface it: the registration survives locally, but it never
+        // reached the server.
+        setSyncNotification('تیم به‌صورت محلی ثبت شد ولی همگام‌سازی با سرور ناموفق بود؛ در دستگاه‌های دیگر دیده نمی‌شود.');
       });
     }
     return true;
