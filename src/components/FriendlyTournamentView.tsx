@@ -34,6 +34,7 @@ export const FriendlyTournamentView: React.FC = () => {
     drawFriendlyBracket,
     recordFriendlyScore,
     resetFriendlyBracket,
+    setSyncNotification,
     clubs,
     playerProfile,
   } = usePadel();
@@ -122,7 +123,12 @@ export const FriendlyTournamentView: React.FC = () => {
   const handleScore = (matchId: string) => {
     if (!selected) return;
     const inp = scoreInputs[matchId];
-    if (!inp) return;
+    // Silent `return` here left the admin guessing why «ثبت» did nothing
+    // on an untouched row — both fields are required, so say so.
+    if (!inp) {
+      setSyncNotification('برای ثبت نتیجه، هر دو ست را وارد کنید.');
+      return;
+    }
     // Inputs prefill visually from the recorded score, but scoreInputs only
     // gains the field the user actually types — an untouched field stays
     // undefined and faDigitsToEn(undefined) throws, killing the save with
@@ -139,7 +145,12 @@ export const FriendlyTournamentView: React.FC = () => {
     // codebase convention).
     const s1 = Math.max(0, parseInt(faDigitsToEn(raw1)));
     const s2 = Math.max(0, parseInt(faDigitsToEn(raw2)));
-    if (isNaN(s1) || isNaN(s2)) return;
+    // Same silent-return trap as above: a half-filled row (one field
+    // empty, no recorded score to fall back to) parses to NaN.
+    if (isNaN(s1) || isNaN(s2)) {
+      setSyncNotification('برای ثبت نتیجه، هر دو ست را وارد کنید.');
+      return;
+    }
     recordFriendlyScore(selected.id, matchId, s1, s2);
     // Only clear the inputs when the score was accepted: a tie is
     // rejected by recordFriendlyScore (toast only), so the inputs must
