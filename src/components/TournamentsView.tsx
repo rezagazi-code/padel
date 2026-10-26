@@ -384,6 +384,11 @@ export const TournamentsView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredTournaments.map((tourn, idx) => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
+            // Same match as registerTournamentTeam: without this the button stays
+            // enabled for an already-registered user and submit dies on a toast.
+            const isAlreadyRegistered = (tourn.registeredTeams || []).some(
+              (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
+            );
             const isCompleted = tourn.status === 'completed';
             const isRegistrationOpen = tourn.status === 'registration' && !(tourn.bracket && tourn.bracket.length > 0);
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
@@ -495,15 +500,15 @@ export const TournamentsView: React.FC = () => {
                         {isRegistrationOpen ? (
                           <button
                             onClick={() => setShowRegisterModal(tourn)}
-                            disabled={isFull}
+                            disabled={isFull || isAlreadyRegistered}
                             className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                              isFull
+                              isFull || isAlreadyRegistered
                                 ? 'bg-white/[0.04] text-slate-500 cursor-not-allowed'
                                 : 'bubble-btn text-white font-black rounded-2xl'
                             }`}
                           >
                             <Users className="w-4 h-4" />
-                            <span>{isFull ? 'ظرفیت تکمیل' : 'ثبت‌نام تیم در تورنومنت'}</span>
+                            <span>{isFull ? 'ظرفیت تکمیل' : isAlreadyRegistered ? 'تیم شما ثبت شده است' : 'ثبت‌نام تیم در تورنومنت'}</span>
                           </button>
                         ) : (
                           <span className="text-xs font-bold text-slate-500 flex items-center gap-1 flex-1 py-3 justify-center">

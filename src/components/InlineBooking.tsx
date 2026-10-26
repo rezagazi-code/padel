@@ -256,7 +256,8 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
 
   const selectedSlot = timeSlots.find((s) => s.time === selectedTimeSlot);
   const isCurrentSlotPeak = selectedSlot ? selectedSlot.isPeak : false;
-  const baseRate = court ? (isCurrentSlotPeak ? court.peakHourlyRate : court.hourlyRate) : 700000;
+  // Legacy server rows can carry a NULL peak rate (mapped to 0): never price a peak slot at 0.
+  const baseRate = court ? (isCurrentSlotPeak ? (court.peakHourlyRate > 0 ? court.peakHourlyRate : court.hourlyRate) : court.hourlyRate) : 700000;
   const totalPrice = Math.round((baseRate * duration) / 60);
   const splitPrice = Math.round(totalPrice / 4);
 

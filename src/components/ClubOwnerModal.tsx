@@ -117,6 +117,14 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       setSubmitError('ساعت پایان باید بعد از ساعت بازگشایی باشد.');
       return;
     }
+    // Rates have no validation: clearing the peak input stores Number('') = 0
+    // and the booking views price peak slots straight from peakHourlyRate, so
+    // a peak slot could book for free. Reject bad rates here instead.
+    const badRate = courts.find((c) => !(c.hourlyRate > 0) || !(c.peakHourlyRate >= c.hourlyRate));
+    if (badRate) {
+      setSubmitError('نرخ هر زمین باید بیشتر از صفر باشد و نرخ پیک آن حداقل برابر نرخ عادی همان زمین باشد.');
+      return;
+    }
     setSubmitting(true);
     setSubmitError('');
     try {
