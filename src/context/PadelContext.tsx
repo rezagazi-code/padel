@@ -353,8 +353,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Sync the local test role with the real authenticated user role.
   // When a user logs in, their actual Supabase role takes precedence.
+  // NOTE: auth.user.role is the Supabase JWT role ('authenticated' for every
+  // signed-in user), NOT the app role — reading it made this sync a no-op
+  // for real users, so internal consumers of currentUserRole (e.g.
+  // bindNewClubAsAdminClub, deleteNeedPlayerPost) kept the stale demo role
+  // while the context value (which already reads profile.role) looked right.
+  // The app role lives on auth.profile.role.
   useEffect(() => {
-    const realRole = auth?.user?.role;
+    const realRole = auth?.profile?.role;
     if (realRole && ['player', 'club_admin', 'super_admin', 'province_admin'].includes(realRole)) {
       setCurrentUserRole(realRole as UserRole);
     }
@@ -367,7 +373,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setAdminProvince(realProvince);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.user?.role, (auth?.profile as any)?.adminClubId, (auth?.profile as any)?.adminProvince]);
+  }, [auth?.profile?.role, (auth?.profile as any)?.adminClubId, (auth?.profile as any)?.adminProvince]);
 
   // ---- «پروفایل من» <-> AuthProfile sync ----
   // On sign-in, pull the server identity (name/email/avatar/level) into the

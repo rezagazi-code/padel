@@ -119,12 +119,12 @@ export function toggleDongiSharePaid(bookingId: string, name: string): DongiReco
 
 /** Net running balance for every person across all دنگی records. */
 export function getBalances(): BalanceEntry[] {
-  const map = new Map<string, { fronted: number; settled: number; owed: number }>();
+  const map = new Map<string, { fronted: number; settled: number; owed: number; received: number }>();
 
   const entry = (name: string) => {
     let e = map.get(name);
     if (!e) {
-      e = { fronted: 0, settled: 0, owed: 0 };
+      e = { fronted: 0, settled: 0, owed: 0, received: 0 };
       map.set(name, e);
     }
     return e;
@@ -138,7 +138,14 @@ export function getBalances(): BalanceEntry[] {
       // The payer's own share can never be "settled" — settling with
       // yourself is meaningless, and counting it credits the payer with
       // money they never received (off by exactly one share).
-      if (s.paid && s.name !== r.paidBy) e.settled += s.amount;
+      // But when another person pays their share, the payer RECEIVES that
+      // money: without tracking it, the payer's net balance stays stuck at
+      // (total - own share) even after everyone has paid, while the
+      // settlement suggestions are already empty — a self-contradicting card.
+      if (s.paid && s.name !== r.paidBy) {
+        e.settled += s.amount;
+        if (r.paidBy) entry(r.paidBy).received += s.amount;
+      }
     }
   }
 
@@ -147,7 +154,7 @@ export function getBalances(): BalanceEntry[] {
     fronted: e.fronted,
     settled: e.settled,
     owed: e.owed,
-    balance: e.fronted + e.settled - e.owed,
+    balance: e.fronted + e.settled - e.owed - e.received,
   }));
 }
 

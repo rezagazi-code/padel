@@ -427,6 +427,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     setLastBookingInfo(newBooking);
     setShowConfirmationModal(true);
 
+    // The pick is consumed: when the bookings state updates, this slot
+    // flips to isBooked, which the stale-pick effect would otherwise
+    // misread as "grabbed by someone else" and report as an error behind
+    // the success receipt. Clearing the ref keeps the effect silent for
+    // our own booking (mirrors the InlineBooking fix); a real steal
+    // (no booking made) still errors.
+    userPickedSlotRef.current = false;
+
     // Additive «دنگی» ledger entry — never touches the booking itself.
     if (dongiEnabled) {
       const names = [playerProfile.name, ...dongiOthers];
