@@ -116,12 +116,22 @@ export const FriendlyTournamentView: React.FC = () => {
     if (!selected) return;
     const inp = scoreInputs[matchId];
     if (!inp) return;
+    // Inputs prefill visually from the recorded score, but scoreInputs only
+    // gains the field the user actually types — an untouched field stays
+    // undefined and faDigitsToEn(undefined) throws, killing the save with
+    // no feedback. Fall back to the recorded score for untouched fields,
+    // so fixing a single typo number works.
+    const match =
+      friendlyTournaments.find((t) => t.id === selected.id)?.bracket.find((m) => m.id === matchId) ??
+      selected.bracket.find((m) => m.id === matchId);
+    const raw1 = inp.s1 ?? (match?.score1 != null ? String(match.score1) : '');
+    const raw2 = inp.s2 ?? (match?.score2 != null ? String(match.score2) : '');
     // Persian/Arabic-Indic digits → Latin, so «۶-۴» on a fa-IR keyboard
     // parses instead of silently failing (faDigitsToEn is the module-level
     // shared helper; same pattern as InlineBooking's, kept local per
     // codebase convention).
-    const s1 = Math.max(0, parseInt(faDigitsToEn(inp.s1)));
-    const s2 = Math.max(0, parseInt(faDigitsToEn(inp.s2)));
+    const s1 = Math.max(0, parseInt(faDigitsToEn(raw1)));
+    const s2 = Math.max(0, parseInt(faDigitsToEn(raw2)));
     if (isNaN(s1) || isNaN(s2)) return;
     recordFriendlyScore(selected.id, matchId, s1, s2);
     // Only clear the inputs when the score was accepted: a tie is
