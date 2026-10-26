@@ -544,6 +544,11 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           </div>
 
           <div className="space-y-3">
+            {filteredClubs.length === 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-xs font-bold text-slate-400">
+                در این استان هنوز باشگاهی ثبت نشده است
+              </div>
+            )}
             {filteredClubs.map((club) => {
               const isSelected = club.id === selectedClubId;
               return (
