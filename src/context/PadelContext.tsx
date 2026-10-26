@@ -710,6 +710,22 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return true;
   };
 
+  // A club_admin who registers a club must be able to run tournaments
+  // under it: bind the new club as their admin club when their current
+  // binding points at no existing club (the default 'club-1' matches no
+  // bundled club, and a null server managed_club_id binds nothing).
+  // Deliberately a no-op when the admin already has a working club, so
+  // registering a second club never silently unbinds the first. The
+  // provider falls back to this local binding when the server value is
+  // null; a super_admin-assigned managed_club_id still wins on login.
+  const bindNewClubAsAdminClub = (clubId: string) => {
+    if (currentUserRole !== 'club_admin') return;
+    const effectiveAdminClubId = auth?.profile ? auth.profile.adminClubId : adminClubId;
+    if (!effectiveAdminClubId || !clubs.some((c) => c.id === effectiveAdminClubId)) {
+      setAdminClubId(clubId);
+    }
+  };
+
   const addClub = async (clubData: Omit<Club, 'id' | 'rating' | 'reviewCount'>): Promise<Club> => {
     const authUserId = auth?.user?.id ?? null;
 
@@ -754,6 +770,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const fullClub: Club = { ...remote, courts, courtsCount: courts.length };
         setClubs((prev) => [fullClub, ...prev]);
         setSyncNotification(`باشگاه «${fullClub.name}» با موفقیت افزوده شد!`);
+        bindNewClubAsAdminClub(fullClub.id);
         return fullClub;
       } catch (err) {
         console.error('addClub remote failed', err);
@@ -771,6 +788,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     setClubs((prev) => [newClub, ...prev]);
     setSyncNotification(`باشگاه «${newClub.name}» با موفقیت افزوده شد!`);
+    bindNewClubAsAdminClub(newClub.id);
     return newClub;
   };
 
@@ -2464,14 +2482,24 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           for (let i = 0; i < updatedMatches.length; i++) {
             const m = updatedMatches[i];
             if ((roundOrder[m.round] ?? -1) > recOrder) {
+              // Only the immediate next round keeps its teams: its other
+              // slot still comes from an unchanged feeder match, and the
+              // advance step below overwrites the slot fed by the
+              // corrected match. Rounds beyond that were fed by the
+              // now-invalidated results, so their teams are stale — clear
+              // them to TBD, otherwise the final stays playable between
+              // the wrong teams and can crown a wrong champion before
+              // the semifinal is re-played (score entry is blocked only
+              // for TBD matches, and stale teams are not TBD).
+              const isImmediateNext = (roundOrder[m.round] ?? -1) === recOrder + 1;
               updatedMatches[i] = {
                 ...m,
                 status: 'pending',
                 winnerId: undefined,
-                team1: m.team1
+                team1: isImmediateNext && m.team1
                   ? { id: m.team1.id, name: m.team1.name, seed: m.team1.seed }
                   : undefined,
-                team2: m.team2
+                team2: isImmediateNext && m.team2
                   ? { id: m.team2.id, name: m.team2.name, seed: m.team2.seed }
                   : undefined,
               };
@@ -2734,7 +2762,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         currentUserId: auth?.user?.id ?? '',
         currentUserRole: auth?.profile ? auth.profile.role : currentUserRole,
         setCurrentUserRole,
-        adminClubId: auth?.profile ? auth.profile.adminClubId ?? '' : adminClubId,
+        // Server managed_club_id wins when set; when it is null, fall back
+        // to the local binding (e.g. a club the admin just registered via
+        // addClub) instead of exposing '' — otherwise the local binding
+        // could never take effect for a signed-in club_admin.
+        adminClubId: auth?.profile ? (auth.profile.adminClubId ?? adminClubId) : adminClubId,
         setAdminClubId,
         adminProvince,
         setAdminProvince,
