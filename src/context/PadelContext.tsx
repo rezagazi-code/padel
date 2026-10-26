@@ -733,6 +733,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // every user sees the new club. Throws on failure so the UI can show an
     // error instead of silently keeping a local-only club.
     if (getSupabase() && authUserId) {
+      // Track the remote club so a court-insert failure can roll it back
+      // instead of leaving a court-less club on the server.
+      let remoteId: string | null = null;
       try {
         const remote = await insertClub(
           {
@@ -751,6 +754,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           },
           authUserId
         );
+        remoteId = remote.id;
         const courts: Court[] = [];
         for (let i = 0; i < clubData.courts.length; i++) {
           const c = clubData.courts[i];
@@ -773,6 +777,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         bindNewClubAsAdminClub(fullClub.id);
         return fullClub;
       } catch (err) {
+        // Best-effort rollback: a club whose courts failed to insert must
+        // not survive as a court-less club. If the delete itself is denied
+        // (RLS) or fails, the original error still surfaces unchanged.
+        if (remoteId) {
+          try {
+            await deleteClubById(remoteId);
+          } catch {
+            /* keep the original addClub error */
+          }
+        }
         console.error('addClub remote failed', err);
         setSyncNotification('خطا در ثبت باشگاه روی سرور. دوباره تلاش کنید.');
         throw err;
@@ -2454,6 +2468,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (matchIdx === -1) return t;
 
         const currentMatch = t.bracket[matchIdx];
+        // A winnerId matching neither team must not silently crown team2
+        // via the `?: team2` fallback below — ignore the bogus record.
+        if (winnerId !== currentMatch.team1?.id && winnerId !== currentMatch.team2?.id) return t;
         const isTeam1Winner = currentMatch.team1?.id === winnerId;
         const winnerTeam = isTeam1Winner ? currentMatch.team1 : currentMatch.team2;
 
@@ -2762,11 +2779,17 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         currentUserId: auth?.user?.id ?? '',
         currentUserRole: auth?.profile ? auth.profile.role : currentUserRole,
         setCurrentUserRole,
-        // Server managed_club_id wins when set; when it is null, fall back
-        // to the local binding (e.g. a club the admin just registered via
-        // addClub) instead of exposing '' — otherwise the local binding
-        // could never take effect for a signed-in club_admin.
-        adminClubId: auth?.profile ? (auth.profile.adminClubId ?? adminClubId) : adminClubId,
+        // Server managed_club_id wins when set AND it matches an existing
+        // club; a stale server id (deleted club, or a default that matches
+        // nothing) must NOT shadow the local binding — otherwise a
+        // club_admin who just registered a club still hits «باشگاه شما
+        // پیدا نشد» on tournament creation. When the server value is null
+        // or stale, fall back to the local binding.
+        adminClubId: auth?.profile
+          ? (auth.profile.adminClubId && clubs.some((c) => c.id === auth.profile!.adminClubId)
+              ? auth.profile.adminClubId
+              : adminClubId)
+          : adminClubId,
         setAdminClubId,
         adminProvince,
         setAdminProvince,
