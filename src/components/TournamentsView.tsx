@@ -826,7 +826,7 @@ export const TournamentsView: React.FC = () => {
               </div>
 
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px]">
-                مبلغ ورودی تیم: {showRegisterModal.entryFee.toLocaleString('fa-IR')} تومان به حساب باشگاه منظور خواهد شد.
+                مبلغ ورودی تیم: {showRegisterModal.entryFee.toLocaleString('fa-IR')} تومان در باشگاه تسویه می‌شود؛ در اپ پرداختی انجام نمی‌شود.
               </div>
 
               <div className="pt-2 flex gap-2">
@@ -1120,7 +1120,7 @@ export const TournamentsView: React.FC = () => {
       <ConfirmDialog
         open={!!tournamentToDelete}
         title="حذف تورنمنت"
-        message={tournamentToDelete ? `تورنمنت «${tournamentToDelete.title}» حذف شود؟\nتمام تیم‌های ثبت‌نام‌شده هم پاک می‌شوند.` : ''}
+        message={tournamentToDelete ? `تورنمنت «${tournamentToDelete.title}» حذف شود؟\nتمام تیم‌های ثبت‌نام‌شده هم پاک می‌شوند.${tournamentToDelete.status === 'completed' ? '\nتوجه: این تورنمنت تکمیل شده است؛ امتیازهای رنکینگ اعطاشده پس از حذف باقی می‌مانند.' : ''}` : ''}
         confirmLabel="حذف تورنمنت"
         onConfirm={async () => {
           if (!tournamentToDelete) return;

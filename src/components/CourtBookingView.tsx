@@ -1138,7 +1138,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <span className="font-bold text-slate-100">{lastBookingInfo.bookedByPlayerName}</span>
               </div>
               <div className="pt-2 border-t border-white/10 flex justify-between text-sm">
-                <span className="text-slate-500 font-bold">مبلغ پرداختی:</span>
+                <span className="text-slate-500 font-bold">مبلغ قابل پرداخت در باشگاه:</span>
                 <span className="text-[#ff6b81] font-black">
                   {(lastBookingInfo.paymentStatus === 'split_active'
                     ? lastBookingInfo.splitPricePerPerson

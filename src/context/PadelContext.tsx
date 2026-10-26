@@ -1288,6 +1288,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Validate against current state first (same batching reason as joinMatchSlot).
     const g = groupSessions.find((x) => x.id === sessionId);
     if (!g) return false;
+    // Seeded sample sessions (gs-sample-*) are display-only: joining one
+    // used to report success while nothing real happened.
+    if (g.id.startsWith('gs-sample-') || g.creatorId.startsWith('player-sample-')) {
+      setSyncNotification('این سانس نمونه است و امکان پیوستن به آن وجود ندارد.');
+      return false;
+    }
     // Player may hold only one slot per session
     if (g.courts.some((c) => c.slots.some((s) => s.playerId === playerProfile.id))) {
       setSyncNotification('شما قبلاً در این سانس گروهی شرکت کرده‌اید.');
@@ -2166,9 +2172,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const norm = (s: string) => s.trim();
       const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
-      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
-      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
-      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]));
+      // The registration form defaults an empty partner to the placeholder
+      // «هم‌تیمی انتخابی» — a label, not a player: never credit it points.
+      const isPlaceholderPlayer = (n: string) => n.trim() === 'هم‌تیمی انتخابی';
+      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)) : [];
+      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)) : [];
+      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]).filter((n) => !isPlaceholderPlayer(n)));
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
@@ -2192,7 +2201,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const present = new Set(updated.map((p) => p.name));
       const extras: RankingPlayer[] = [];
       const insertRow = (name: string, level: number, points: number, won: number) => {
-        if (!name || present.has(name)) return;
+        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(name)) return;
         present.add(name);
         extras.push({
           rank: 0,
@@ -2265,8 +2274,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setRankings((prev) => {
       const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
-      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name] : [];
-      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name] : [];
+      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی') : [];
+      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی') : [];
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
@@ -2287,7 +2296,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const present = new Set(updated.map((p) => p.name));
       const extras: RankingPlayer[] = [];
       const insertRow = (name: string, level: number, points: number, won: number) => {
-        if (!name || present.has(name)) return;
+        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(name)) return;
         present.add(name);
         extras.push({
           rank: 0,
