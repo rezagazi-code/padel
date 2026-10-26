@@ -205,6 +205,7 @@ interface PadelContextType {
   finalizeTournamentResults: (tournId: string, winnerTeamId: string, runnerUpTeamId: string) => void;
   updateTournamentBracketMatch: (tournId: string, matchId: string, winnerId: string, score: number[]) => void;
   // Role & Admin Permissions
+  currentUserId: string;
   currentUserRole: UserRole;
   setCurrentUserRole: (role: UserRole) => void;
   adminClubId: string;
@@ -2730,6 +2731,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         registerTournamentTeam,
         finalizeTournamentResults,
         updateTournamentBracketMatch,
+        currentUserId: auth?.user?.id ?? '',
         currentUserRole: auth?.profile ? auth.profile.role : currentUserRole,
         setCurrentUserRole,
         adminClubId: auth?.profile ? auth.profile.adminClubId ?? '' : adminClubId,

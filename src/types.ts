@@ -305,6 +305,7 @@ export interface Tournament {
   runnerUpTeam?: string;
   organizerType?: 'club' | 'province'; // Created by club admin or provincial federative admin
   organizerName?: string;
+  organizerId?: string; // Supabase auth id of the creator; server delete RLS allows only organizer or super_admin
   bracket?: BracketMatch[];
 }
 

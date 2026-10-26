@@ -109,6 +109,14 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       setSubmitError('ساعت بازگشایی و پایان باید به قالب ساعت باشد (مثلاً 07:00 تا 24:00).');
       return;
     }
+    // Format-only validation used to accept inverted hours (e.g. 20:00–
+    // 07:00), which then generated zero bookable slots — the club listed
+    // normally but could never be booked, with no error anywhere.
+    const toMin = (h: string) => h === '24:00' ? 1440 : Number(h.split(':')[0]) * 60 + Number(h.split(':')[1]);
+    if (toMin(closingHourEn) <= toMin(openingHourEn)) {
+      setSubmitError('ساعت پایان باید بعد از ساعت بازگشایی باشد.');
+      return;
+    }
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -365,6 +373,25 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                         onChange={(e) => {
                           const updated = [...courts];
                           updated[index].hourlyRate = Number(e.target.value);
+                          setCourts(updated);
+                        }}
+                        className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-100"
+                      />
+                    </div>
+
+                    <div>
+                      {/* Peak rate was never editable here and stayed at the
+                          hardcoded default, so raising the normal rate above
+                          it silently made evening (peak) slots cheaper than
+                          off-peak ones. */}
+                      <span className="text-slate-500 text-[10px] block mb-0.5">نرخ پیک (تومان / ساعت):</span>
+                      <input
+                        type="number"
+                        step="50000"
+                        value={court.peakHourlyRate}
+                        onChange={(e) => {
+                          const updated = [...courts];
+                          updated[index].peakHourlyRate = Number(e.target.value);
                           setCourts(updated);
                         }}
                         className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-100"

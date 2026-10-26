@@ -294,23 +294,30 @@ export const FriendlyTournamentView: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     {tourn.bracket.map((m) => (
-                      !m.winnerId && m.team1Id && m.team2Id ? (
+                      m.team1Id && m.team2Id ? (
                         <div key={m.id} className="flex items-center gap-2 text-sm">
                           <span className="text-slate-400 text-xs flex-1">{m.roundFa}: {getTeamName(tourn, m.team1Id)} در برابر {getTeamName(tourn, m.team2Id)}</span>
+                          {/* Scored matches stay editable: a typo used to be
+                              unfixable because the row vanished once a winner
+                              existed, even though recordFriendlyScore already
+                              handles corrections (drops later rounds built
+                              from the old winner). Prefill with the recorded
+                              score; `??` (not `||`) so clearing an input
+                              doesn't snap back to the old value. */}
                           <input
-                            value={scoreInputs[m.id]?.s1 || ''}
+                            value={scoreInputs[m.id]?.s1 ?? (m.score1 != null ? String(m.score1) : '')}
                             onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s1: e.target.value } }))}
                             placeholder="0" inputMode="numeric"
                             className="w-14 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
                           />
                           <span className="text-slate-500">-</span>
                           <input
-                            value={scoreInputs[m.id]?.s2 || ''}
+                            value={scoreInputs[m.id]?.s2 ?? (m.score2 != null ? String(m.score2) : '')}
                             onChange={(e) => setScoreInputs((p) => ({ ...p, [m.id]: { ...p[m.id], s2: e.target.value } }))}
                             placeholder="0" inputMode="numeric"
                             className="w-14 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-center text-sm text-slate-200"
                           />
-                          <button onClick={() => handleScore(m.id)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">ثبت</button>
+                          <button onClick={() => handleScore(m.id)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">{m.winnerId ? 'ویرایش' : 'ثبت'}</button>
                         </div>
                       ) : null
                     ))}

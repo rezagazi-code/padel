@@ -57,6 +57,7 @@ export const TournamentsView: React.FC = () => {
     clubs,
     selectedProvince,
     setSelectedProvince,
+    currentUserId,
     currentUserRole,
     setCurrentUserRole,
     adminClubId,
@@ -116,6 +117,18 @@ export const TournamentsView: React.FC = () => {
     if (currentUserRole === 'province_admin' && tourn.province === adminProvince) return true;
     if (currentUserRole === 'club_admin' && tourn.clubId === adminClubId) return true;
     return false;
+  };
+
+  // Delete is narrower than the other manage actions: server RLS allows
+  // only the organizer or a super_admin, so a club/province admin who did
+  // not create the tournament used to see a delete button that always
+  // failed with a generic error. Local tournaments and ones with an
+  // unknown organizer keep the manage gate so nothing legitimate hides.
+  const canDeleteTournament = (tourn: Tournament) => {
+    if (currentUserRole === 'super_admin') return true;
+    if (tourn.id.startsWith('tourn-')) return canManageTournament(tourn);
+    if (tourn.organizerId) return tourn.organizerId === currentUserId;
+    return canManageTournament(tourn);
   };
 
   const filteredTournaments = tournaments.filter((t) => {
@@ -380,7 +393,7 @@ export const TournamentsView: React.FC = () => {
                 key={tourn.id}
                 className={`court-card flex flex-col justify-between space-y-4 ${riseClass}`}
                 onLongPress={() => {
-                  if (canManageTournament(tourn)) setTournamentToDelete(tourn);
+                  if (canDeleteTournament(tourn)) setTournamentToDelete(tourn);
                 }}
               >
                 <div>
@@ -516,8 +529,8 @@ export const TournamentsView: React.FC = () => {
                         )}
                       </>
                     )}
-                    {/* RBAC Protected Delete: organizer or super_admin - shown for all tournaments */}
-                    {canManageTournament(tourn) && (
+                    {/* Delete: only the organizer or a super_admin (server RLS) — see canDeleteTournament */}
+                    {canDeleteTournament(tourn) && (
                       <button
                         onClick={() => setTournamentToDelete(tourn)}
                         className="px-3.5 py-3 bg-[#ff2d55]/10 text-[#ff6b81] border border-[#ff2d55]/40 hover:bg-[#ff2d55]/20 font-black text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"

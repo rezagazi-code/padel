@@ -232,6 +232,7 @@ function mapTournament(r: Row, teams: Row[]): Tournament {
     winnerTeam: r.winner_team || undefined,
     runnerUpTeam: r.runner_up_team || undefined,
     organizerType: r.organizer_type === 'province' ? 'province' : r.organizer_type === 'official' ? 'club' : undefined,
+    organizerId: r.organizer_id ? String(r.organizer_id) : undefined,
     bracket: r.bracket ?? undefined,
   };
 }
