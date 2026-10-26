@@ -143,8 +143,20 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       });
 
       onClose();
-    } catch {
-      setSubmitError('ثبت باشگاه روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
+    } catch (err) {
+      // Club inserts are super_admin-only on the server (clubs_insert_admin),
+      // so a signed-in club owner hitting this form gets an RLS denial — not
+      // a network problem. Say so instead of blaming their connection.
+      const code = (err as { code?: unknown } | null)?.code;
+      const message = (err as { message?: unknown } | null)?.message;
+      const denied =
+        code === '42501' ||
+        (typeof message === 'string' && message.includes('row-level security'));
+      setSubmitError(
+        denied
+          ? 'ثبت باشگاه جدید فقط توسط مدیر اصلی انجام می‌شود. اگر باشگاه‌دار هستید، مشخصات باشگاه را برای مدیر اصلی بفرستید تا آن را ثبت کند.'
+          : 'ثبت باشگاه روی سرور ناموفق بود. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.'
+      );
     } finally {
       setSubmitting(false);
     }
