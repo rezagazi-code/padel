@@ -97,6 +97,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   // «دنگی» split-cost tagging (stored in padelpro:dongi:v1, additive to bookings)
   const [dongiEnabled, setDongiEnabled] = useState<boolean>(false);
   const [dongiNames, setDongiNames] = useState<string[]>(['', '', '']);
+  // Dongi was ON but no teammate was tagged → nothing was recorded;
+  // the receipt must say so instead of silently implying a split was saved.
+  const [dongiSkippedNoNames, setDongiSkippedNoNames] = useState<boolean>(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [needsExtraPlayers, setNeedsExtraPlayers] = useState<boolean>(false);
   const [playersNeededCount, setPlayersNeededCount] = useState<number>(1);
@@ -440,9 +443,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     // their own quarter at the club, so there is no full amount paid by
     // them for teammates to owe — recording one would inflate every
     // balance in the Dongi panel.
+    setDongiSkippedNoNames(false);
     if (dongiEnabled && !splitPayment) {
       // No teammates tagged → no split to record; a self-only entry would
       // just sit in the Dongi panel as a dead record to delete by hand.
+      // Flag it so the receipt warns instead of implying a split was saved.
+      if (dongiOthers.length === 0) setDongiSkippedNoNames(true);
       if (dongiOthers.length > 0) {
       const names = [playerProfile.name, ...dongiOthers];
       const n = Math.max(1, names.length);
@@ -1186,6 +1192,15 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <Info className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
                 <span>
                   آگهی نیاز به {lastBookingInfo.playersNeeded} بازیکن در بخش بازیکن‌های آزاد ثبت شد تا سایر بازیکنان ملحق شوند.
+                </span>
+              </div>
+            )}
+
+            {dongiSkippedNoNames && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-start gap-2">
+                <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <span>
+                  «دنگی» فعال بود ولی نام هیچ هم‌بازی‌ای ثبت نشد، پس سهمی در «حساب دنگی» ذخیره نشد. برای تقسیم هزینه، نام هم‌بازی‌ها را وارد کنید.
                 </span>
               </div>
             )}

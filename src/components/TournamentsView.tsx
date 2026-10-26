@@ -397,7 +397,13 @@ export const TournamentsView: React.FC = () => {
             const isCompleted = tourn.status === 'completed';
             // Mirror registerTournamentTeam: a passed deadline closes
             // registration on the card too, not just on submit.
-            const todayStr = new Date().toLocaleDateString('en-CA');
+            // Tehran date, matching the submit guard.
+            const todayStr = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Tehran',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date());
             const isRegistrationOpen = tourn.status === 'registration' && !(tourn.bracket && tourn.bracket.length > 0) && !(tourn.registrationDeadline && todayStr > tourn.registrationDeadline);
             const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 

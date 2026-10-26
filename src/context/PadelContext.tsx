@@ -866,8 +866,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newClub: Club = {
       ...clubData,
       id: `club-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
-      rating: 5.0,
-      reviewCount: 1,
+      // No fabricated rating: a brand-new club has no reviews, and the
+      // card already renders '—' / 0 stars when reviewCount is 0.
+      rating: 0,
+      reviewCount: 0,
     };
     setClubs((prev) => [newClub, ...prev]);
     setSyncNotification(`باشگاه «${newClub.name}» با موفقیت افزوده شد!`);
@@ -2193,7 +2195,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // YYYY-MM-DD strings compare lexicographically; the deadline day
     // itself is still open.
     if (t.registrationDeadline) {
-      const todayStr = new Date().toLocaleDateString('en-CA');
+      // Tehran date, like every other date guard in the app (booking,
+      // cancellation): the device timezone must not move the deadline.
+      const todayStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
       if (todayStr > t.registrationDeadline) {
         setSyncNotification('مهلت ثبت‌نام این تورنومنت به پایان رسیده است.');
         return false;
