@@ -84,6 +84,13 @@ export const FriendlyTournamentView: React.FC = () => {
   const handleAddTeam = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selected || !tName.trim()) return;
+    // Stale detail view: the form only renders while open, but `selected`
+    // can lag behind a draw done elsewhere — never clear the form on a
+    // tournament that is no longer open.
+    if (selected.status !== 'open') {
+      setTNameError('این تورنمنت دیگر برای ثبت تیم باز نیست.');
+      return;
+    }
     // Duplicate team names: reject trimmed + case-insensitive, exactly like
     // registerTournamentTeam does for official tournaments — with a Persian
     // inline error, never a silent accept.

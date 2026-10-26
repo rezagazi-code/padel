@@ -1438,6 +1438,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
       return false;
     }
+    // Not-open (or unknown) tournament: the state updater below is a no-op
+    // for these, so returning true + the success toast here would lie about
+    // a team that was never added. Fail honestly instead.
+    if (!tourn || tourn.status !== 'open') {
+      setSyncNotification('این تورنمنت دیگر برای ثبت تیم باز نیست.');
+      return false;
+    }
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open') return t;
