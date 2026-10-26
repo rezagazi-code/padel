@@ -526,6 +526,32 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setTournaments((prev) => {
               const prevById = new Map(prev.map((t) => [t.id, t]));
               const remoteIds = new Set(remoteTournaments.map((t) => t.id));
+              // Canonical JSON: server rows round-trip through Postgres
+              // jsonb, which normalizes object key order — a plain
+              // JSON.stringify comparison would spuriously differ and make
+              // the local bracket always win over newer server data.
+              const canon = (v: unknown): string =>
+                v === null || typeof v !== 'object'
+                  ? JSON.stringify(v)
+                  : Array.isArray(v)
+                    ? `[${v.map(canon).join(',')}]`
+                    : `{${Object.keys(v as Record<string, unknown>)
+                        .sort()
+                        .map(
+                          (k) =>
+                            `${JSON.stringify(k)}:${canon(
+                              (v as Record<string, unknown>)[k],
+                            )}`,
+                        )
+                        .join(',')}}`;
+              const statusRank = (s: string) =>
+                s === 'completed'
+                  ? 3
+                  : s === 'ongoing'
+                    ? 2
+                    : s === 'draw_done'
+                      ? 1
+                      : 0;
               const merged = remoteTournaments.map((rt) => {
                 const local = prevById.get(rt.id);
                 if (!local) return rt;
@@ -539,12 +565,49 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 const localOnly = local.registeredTeams.filter(
                   (tm) => !remoteNames.has(normName(tm.teamName))
                 );
-                if (localOnly.length === 0) return rt;
-                const mergedTeams = [...rt.registeredTeams, ...localOnly];
+                const mergedTeams =
+                  localOnly.length > 0
+                    ? [...rt.registeredTeams, ...localOnly]
+                    : rt.registeredTeams;
+                // Local bracket/result edits whose server persist failed
+                // must survive the reload: the failure toasts promise the
+                // local edit is kept, but returning the server row
+                // wholesale dropped it (draw, recorded result, finalize).
+                // Server data still wins when it already carries the edit;
+                // local wins only for bracket/winner/status the server row
+                // doesn't have yet. 'draw_done' intentionally still flips
+                // back to 'registration' (documented on the Tournament
+                // type: the Postgres enum rejects it) — only
+                // 'ongoing'/'completed' are carried forward.
+                const bracketDiffers =
+                  (local.bracket ?? []).length > 0 &&
+                  canon(local.bracket) !== canon(rt.bracket ?? []);
+                const keepWinner =
+                  !!local.winnerTeam && !rt.winnerTeam;
+                const keepRunnerUp =
+                  !!local.runnerUpTeam && !rt.runnerUpTeam;
+                const keepStatus =
+                  (local.status === 'ongoing' ||
+                    local.status === 'completed') &&
+                  statusRank(local.status) > statusRank(rt.status);
+                if (
+                  localOnly.length === 0 &&
+                  !bracketDiffers &&
+                  !keepWinner &&
+                  !keepRunnerUp &&
+                  !keepStatus
+                )
+                  return rt;
                 return {
                   ...rt,
                   registeredTeams: mergedTeams,
                   registeredTeamsCount: mergedTeams.length,
+                  ...(bracketDiffers ? { bracket: local.bracket } : {}),
+                  ...(keepWinner ? { winnerTeam: local.winnerTeam } : {}),
+                  ...(keepRunnerUp
+                    ? { runnerUpTeam: local.runnerUpTeam }
+                    : {}),
+                  ...(keepStatus ? { status: local.status } : {}),
                 };
               });
               // Preserve local-only tournaments (ids like `tourn-…`) that
