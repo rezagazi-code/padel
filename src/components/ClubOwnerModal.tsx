@@ -96,7 +96,11 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clubName.trim() || !city.trim() || !address.trim() || submitting) return;
+    if (submitting) return;
+    if (!clubName.trim() || !city.trim() || !address.trim()) {
+      setSubmitError('نام مجموعه، شهر و آدرس دقیق الزامی است.');
+      return;
+    }
     // Slot generators parse hours with Number() — Persian digits become NaN
     // and the club ends up with zero bookable slots. Normalize everything to
     // Latin digits before saving.
