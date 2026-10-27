@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { Court, CourtType } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -37,6 +37,27 @@ const fa2en = (s: string): string =>
     return fa !== -1 ? fa.toString() : '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString();
   });
 
+const defaultCourts = (): CourtDraft[] => [
+  {
+    name: 'کورت پانورامیک ۱ (سنترال)',
+    type: 'panoramic',
+    turfColor: '#2563eb',
+    hourlyRate: 850000,
+    peakHourlyRate: 1100000,
+    hasLighting: true,
+    hasCameras: true,
+  },
+  {
+    name: 'کورت شیشه‌ای ۲',
+    type: 'panoramic',
+    turfColor: '#1d4ed8',
+    hourlyRate: 750000,
+    peakHourlyRate: 950000,
+    hasLighting: true,
+    hasCameras: false,
+  },
+];
+
 export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose }) => {
   const { addClub } = usePadel();
 
@@ -51,26 +72,28 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [courts, setCourts] = useState<CourtDraft[]>([
-    {
-      name: 'کورت پانورامیک ۱ (سنترال)',
-      type: 'panoramic',
-      turfColor: '#2563eb',
-      hourlyRate: 850000,
-      peakHourlyRate: 1100000,
-      hasLighting: true,
-      hasCameras: true,
-    },
-    {
-      name: 'کورت شیشه‌ای ۲',
-      type: 'panoramic',
-      turfColor: '#1d4ed8',
-      hourlyRate: 750000,
-      peakHourlyRate: 950000,
-      hasLighting: true,
-      hasCameras: false,
-    },
-  ]);
+  const [courts, setCourts] = useState<CourtDraft[]>(defaultCourts);
+
+  // The modal is always mounted and `!isOpen` only hides it, so without a
+  // reset a reopened modal shows the previous submission (and its old
+  // error) and can be resubmitted into a duplicate club. Clear everything
+  // whenever it closes.
+  const resetForm = () => {
+    setClubName('');
+    setProvince('تهران');
+    setCity('تهران');
+    setAddress('');
+    setPhone('۰۲۱-');
+    setOpeningHour('07:00');
+    setClosingHour('24:00');
+    setCoverImage('/covers/club-2.jpg');
+    setSubmitError('');
+    setCourts(defaultCourts());
+  };
+  useEffect(() => {
+    if (!isOpen) resetForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -129,24 +152,35 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       setSubmitError('نرخ هر زمین باید بیشتر از صفر باشد و نرخ پیک آن حداقل برابر نرخ عادی همان زمین باشد.');
       return;
     }
+    // Court names are free text with no validation: clearing one saves a
+    // nameless court and booking views then show a blank court row.
+    if (courts.some((c) => !c.name.trim())) {
+      setSubmitError('نام همه زمین‌ها الزامی است.');
+      return;
+    }
     setSubmitting(true);
     setSubmitError('');
     try {
+      // The phone field ships prefilled with the '۰۲۱-' placeholder: if the
+      // admin never edits it, that placeholder would be saved as the club's
+      // contact. Treat an untouched placeholder as "no phone given".
+      const phoneClean = phoneEn.trim() === '021-' ? '' : phoneEn.trim();
       await addClub({
         name: clubName.trim(),
         province,
         city: city.trim(),
         address: address.trim(),
-        phone: phoneEn.trim(),
+        phone: phoneClean,
         openingHour: openingHourEn,
         closingHour: closingHourEn,
         coverImage,
         galleryImages: [coverImage],
         ownerName: 'مدیر مجموعه پدل',
-        ownerPhone: phoneEn.trim(),
+        ownerPhone: phoneClean,
         courtsCount: courts.length,
         courts: courts.map((c, i) => ({
           ...c,
+          name: c.name.trim(),
           id: `c-${Date.now()}-${i}`,
           clubId: '',
           courtNumber: i + 1,

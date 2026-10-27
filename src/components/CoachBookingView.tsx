@@ -58,6 +58,18 @@ export const CoachBookingView: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
+  // Rate input is plain text: admins type Persian digits ('۵۰۰۰۰۰') or
+  // Latin separators ('500,000'), and raw parseInt mangles both — '500,000'
+  // parses as 500 (a near-free booking) and '۵۰۰۰۰۰' as NaN (a valid rate
+  // falsely rejected). Normalize digits and strip separators first.
+  const parseRate = (raw: string): number => {
+    const latin = raw.replace(/[۰-۹٠-٩]/g, (d) => {
+      const fa = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+      return fa !== -1 ? fa.toString() : '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString();
+    });
+    return parseInt(latin.replace(/[,٬،\s]/g, ''), 10) || 0;
+  };
+
   const handleAddCoach = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -73,10 +85,11 @@ export const CoachBookingView: React.FC = () => {
       setFormError('حداقل یک روز و یک ساعت قابل رزرو برای مربی مشخص کنید.');
       return;
     }
-    // A cleared rate stores 0 via `parseInt(formRate) || 0` and then books
-    // sessions with a 0-toman receipt — same "free by accident" class as the
-    // court-booking zero-price fix. There is no free-coach concept, so reject.
-    if (!(parseInt(formRate) > 0)) {
+    // A cleared rate stores 0 and then books sessions with a 0-toman
+    // receipt — same "free by accident" class as the court-booking
+    // zero-price fix. There is no free-coach concept, so reject.
+    // parseRate normalizes Persian digits and separators first (see above).
+    if (!(parseRate(formRate) > 0)) {
       setFormError('نرخ ساعتی مربی باید بیشتر از صفر باشد.');
       return;
     }
@@ -91,7 +104,7 @@ export const CoachBookingView: React.FC = () => {
         experienceYears: 0,
         province: '',
         clubs: [],
-        hourlyRate: parseInt(formRate) || 0,
+        hourlyRate: parseRate(formRate),
         bio: formBio.trim(),
         specialties: [],
         availableDays: days,
@@ -141,6 +154,13 @@ export const CoachBookingView: React.FC = () => {
     // availableDays/availableHours).
     if (selectedCoach.availableDays.length === 0 || selectedCoach.availableHours.length === 0) {
       setBookingError('این مربی برنامه‌ای ثبت نکرده است.');
+      return;
+    }
+    // Confirm-time mirror of the court zero-price guard: a legacy or
+    // server-side coach with rate 0 (or a bad rate that slipped past the
+    // add form) must never book a session with a 0-toman receipt.
+    if (!(selectedCoach.hourlyRate > 0)) {
+      setBookingError('این مربی نرخ معتبری ندارد و قابل رزرو نیست.');
       return;
     }
     // Double-submit guard: bookCoach is synchronous, so a ref blocks a
