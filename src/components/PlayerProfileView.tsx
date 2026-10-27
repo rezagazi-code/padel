@@ -417,7 +417,7 @@ export const PlayerProfileView: React.FC = () => {
 
             <p className="text-xs text-slate-400 flex items-center justify-center md:justify-start gap-1">
               <MapPin className="w-3.5 h-3.5" style={{ color: themeColorLight }} />
-              {playerProfile.city}، {playerProfile.province} | {playerProfile.phone}
+              {playerProfile.city}، {playerProfile.province}{playerProfile.phone?.trim() ? ` | ${playerProfile.phone}` : ''}
             </p>
 
             <p className="text-xs text-slate-500 max-w-xl italic">

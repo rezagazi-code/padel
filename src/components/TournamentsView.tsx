@@ -677,6 +677,11 @@ export const TournamentsView: React.FC = () => {
             </div>
           </div>
 
+          {filteredRankings.length === 0 ? (
+            <div className="px-4 py-5 text-center text-xs font-bold text-slate-400">
+              در این استان هنوز بازیکنی در جدول رنکینگ ثبت نشده است
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <div className="rounded-b-2xl overflow-hidden">
             <table className="w-full text-right text-xs">
@@ -798,6 +803,7 @@ export const TournamentsView: React.FC = () => {
             </table>
             </div>
           </div>
+          )}
 
         </div>
       )}
