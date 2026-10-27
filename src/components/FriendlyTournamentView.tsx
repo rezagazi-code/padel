@@ -70,7 +70,10 @@ export const FriendlyTournamentView: React.FC = () => {
       clubId: club?.id || '',
       clubName: club?.name || '',
       date: fDate || 'تعیین نشده',
-      entryFeePerTeam: parseInt(faDigitsToEn(fFee)) || 0,
+      // Fee is free text like the coach rate: separators must be stripped
+      // before parseInt, or '500,000' stores as 500 (near-free entry) and
+      // the prize pool (teams × fee) is wrong by 1000×.
+      entryFeePerTeam: parseInt(faDigitsToEn(fFee).replace(/[,٬،\s]/g, '')) || 0,
       courtsCount: parseInt(faDigitsToEn(fCourts)) || 1,
       hoursReserved: parseFloat(faDigitsToEn(fHours)) || 2,
       matchDurationMin: 90,
