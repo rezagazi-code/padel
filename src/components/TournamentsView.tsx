@@ -85,7 +85,12 @@ export const TournamentsView: React.FC = () => {
 
   // Create Tournament Form
   const [newTitle, setNewTitle] = useState('');
-  const [newClubId, setNewClubId] = useState(adminClubId || clubs[0]?.id || '');
+  // The default adminClubId ('club-1') matches no real club, so blindly
+  // taking it left super/province admins with a blank host-club select
+  // that failed loudly on submit — start from a real club instead.
+  const [newClubId, setNewClubId] = useState(() =>
+    clubs.some((c) => c.id === adminClubId) ? adminClubId : clubs[0]?.id || ''
+  );
   const [newOrganizerType, setNewOrganizerType] = useState<'club' | 'province'>('club');
   const [newCategory, setNewCategory] = useState<TournamentCategory>('Cat 1 (پیشرفته)');
   const [newFormat, setNewFormat] = useState<TournamentFormat>('Group + Knockout (گروهی و حذفی)');

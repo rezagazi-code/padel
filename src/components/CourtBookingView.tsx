@@ -450,7 +450,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       // Flag it so the receipt warns instead of implying a split was saved.
       if (dongiOthers.length === 0) setDongiSkippedNoNames(true);
       if (dongiOthers.length > 0) {
-      const names = [playerProfile.name, ...dongiOthers];
+      // A blank profile name would save blank payer/share cards in the
+      // Dongi panel — fall back to an honest "you" label, never a fake name.
+      const payerName = playerProfile.name.trim() || 'شما';
+      const names = [payerName, ...dongiOthers];
       const n = Math.max(1, names.length);
       const perPerson = Math.round(totalPrice / n);
       // Rounding residue: the last share absorbs the remainder so the shares
@@ -459,7 +462,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       saveDongiRecord({
         bookingId: newBooking.id,
         total: totalPrice,
-        paidBy: playerProfile.name,
+        paidBy: payerName,
         clubName: newBooking.clubName,
         courtName: newBooking.courtName,
         date: newBooking.date,
@@ -670,8 +673,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
           {currentClub && (
             <div className="court-card p-6 space-y-6">
               
-              {/* Club Header Info — on mobile this lives in the bottom sheet */}
-              <div className="hidden lg:block">
+              {/* Club Header Info — visible on all sizes: no bottom sheet exists in this view */}
+              <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
                 <div>
                   <div className="flex items-center gap-2">
@@ -710,8 +713,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               </div>
 
-              {/* Player ratings → club rank — on mobile this lives in the bottom sheet */}
-              <div className="hidden lg:block">
+              {/* Player ratings → club rank — visible on all sizes */}
+              <div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="flex items-center gap-2">
                   <StarRating value={currentClub.reviewCount > 0 ? currentClub.rating : 0} size={18} />
@@ -739,8 +742,8 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               </div>
 
-              {/* Amenities Tags — on mobile these live in the bottom sheet */}
-              <div className="hidden lg:block">
+              {/* Amenities Tags — visible on all sizes */}
+              <div>
               <div>
                 <div className="court-title text-xs font-bold text-slate-400 mb-2">
                   <span>امکانات ویژه باشگاه</span>

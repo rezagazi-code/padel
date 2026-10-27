@@ -391,7 +391,10 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         // Flag it so the receipt warns instead of implying a split was saved.
         if (dongiOthers.length === 0) setDongiSkippedNoNames(true);
         if (dongiOthers.length > 0) {
-        const names = [playerProfile.name, ...dongiOthers];
+        // A blank profile name would save blank payer/share cards in the
+        // Dongi panel — fall back to an honest "you" label, never a fake name.
+        const payerName = playerProfile.name.trim() || 'شما';
+        const names = [payerName, ...dongiOthers];
         const n = Math.max(1, names.length);
         const perPerson = Math.round(totalPrice / n);
         // Rounding residue: the last share absorbs the remainder so the shares
@@ -400,7 +403,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         saveDongiRecord({
           bookingId: newBooking.id,
           total: totalPrice,
-          paidBy: playerProfile.name,
+          paidBy: payerName,
           clubName: newBooking.clubName,
           courtName: newBooking.courtName,
           date: newBooking.date,
