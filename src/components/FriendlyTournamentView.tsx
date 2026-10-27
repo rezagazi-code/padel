@@ -73,9 +73,12 @@ export const FriendlyTournamentView: React.FC = () => {
       // Fee is free text like the coach rate: separators must be stripped
       // before parseInt, or '500,000' stores as 500 (near-free entry) and
       // the prize pool (teams × fee) is wrong by 1000×.
-      entryFeePerTeam: parseInt(faDigitsToEn(fFee).replace(/[,٬،\s]/g, '')) || 0,
-      courtsCount: parseInt(faDigitsToEn(fCourts)) || 1,
-      hoursReserved: parseFloat(faDigitsToEn(fHours)) || 2,
+      // Sign clamp: `||` only rescues empty/NaN/0 — a negative parses
+      // truthy and survives, making the prize pool (teams × fee) negative
+      // and the court/hour hint render «با ‎-۲ زمین».
+      entryFeePerTeam: Math.max(0, parseInt(faDigitsToEn(fFee).replace(/[,٬،\s]/g, '')) || 0),
+      courtsCount: Math.max(1, parseInt(faDigitsToEn(fCourts)) || 1),
+      hoursReserved: Math.max(0, parseFloat(faDigitsToEn(fHours)) || 2),
       matchDurationMin: 90,
       prizeSplit: fSplit,
       createdBy: playerProfile.name || 'ناشناس',
@@ -422,7 +425,7 @@ export const FriendlyTournamentView: React.FC = () => {
                   <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bubble-btn-fire border-transparent text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor((parseInt(faDigitsToEn(fCourts)) || 2) * (parseFloat(faDigitsToEn(fHours)) || 4) * 60 / 90)} بازی برگزار کنید.</p>
+              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor(Math.max(1, parseInt(faDigitsToEn(fCourts)) || 2) * Math.max(0, parseFloat(faDigitsToEn(fHours)) || 4) * 60 / 90)} بازی برگزار کنید.</p>
               <button type="submit" className="w-full py-3 rounded-2xl bubble-btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
