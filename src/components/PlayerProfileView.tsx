@@ -460,7 +460,7 @@ export const PlayerProfileView: React.FC = () => {
             <div className="border-r border-white/10 pr-3">
               <span className="text-[10px] text-slate-500 block">درصد پیروزی</span>
               <span className="text-lg font-black text-emerald-600">
-                {playerProfile.winRate ?? (playerProfile.matchesPlayed > 0 ? Math.round((playerProfile.matchesWon / playerProfile.matchesPlayed) * 100) : 75)}٪
+                {playerProfile.winRate ?? (playerProfile.matchesPlayed > 0 ? Math.round((playerProfile.matchesWon / playerProfile.matchesPlayed) * 100) : 0)}٪
               </span>
             </div>
             <div className="border-r border-white/10 pr-3">

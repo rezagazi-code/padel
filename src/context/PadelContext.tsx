@@ -399,6 +399,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // server fetch, long after the first call returned.
   const bookingInFlightRef = useRef<Set<string>>(new Set());
   const coachBookingInFlightRef = useRef<Set<string>>(new Set());
+  // Friendly-draw guard (2026-10-27): drawFriendlyBracket's updater silently
+  // refuses a second draw (status is no longer 'open'), but the success
+  // toast fired unconditionally — a same-tick double-click drew once and
+  // toasted twice. The updater can't report back (it runs later, and
+  // StrictMode double-invokes it), so a synchronously-set ref is the
+  // authority for "already drawn in this session". Cleared by
+  // resetFriendlyBracket so an undone draw can be re-run; a fresh session
+  // relies on the closure status check below instead.
+  const friendlyDrawGuardRef = useRef<Set<string>>(new Set());
   // Guard against double-awarding tournament ranking points: a tournament's
   // participant credit must be given exactly once. StrictMode double-invokes
   // state updaters and both the free-text finalize path and the bracket path
@@ -1540,6 +1549,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('قرعه‌کشی دوستانه فعلاً برای حداکثر ۶۴ تیم پشتیبانی می‌شود.');
       return;
     }
+    // The updater below silently refuses a non-open tournament or one
+    // with fewer than 2 teams, but the success toast used to fire anyway
+    // — a stale button or same-tick double-click reported a draw that
+    // never happened. Refuse honestly here instead; the ref guard covers
+    // the same-tick double-click, where both closures still see 'open'.
+    if (!drawTourn || drawTourn.status !== 'open' || drawTourn.teams.length < 2) {
+      setSyncNotification('قرعه‌کشی ممکن نیست؛ تورنمنت باید در وضعیت ثبت‌نام و حداقل ۲ تیم داشته باشد.');
+      return;
+    }
+    if (friendlyDrawGuardRef.current.has(tournId)) {
+      setSyncNotification('برای این تورنمنت قبلاً قرعه‌کشی انجام شده است.');
+      return;
+    }
+    friendlyDrawGuardRef.current.add(tournId);
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open' || t.teams.length < 2) return t;
@@ -1915,6 +1938,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       (m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)
     );
     if (anyResult) return;
+    // Release the draw guard so the undone tournament can be re-drawn.
+    friendlyDrawGuardRef.current.delete(tournId);
     setFriendlyTournaments((prev) =>
       prev.map((x) => (x.id === tournId ? { ...x, bracket: [], status: 'open' as const } : x))
     );
