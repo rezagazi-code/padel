@@ -156,8 +156,11 @@ export const TournamentsView: React.FC = () => {
     try {
       const success = registerTournamentTeam(
         showRegisterModal.id,
-        teamNameInput || `تیم ${playerProfile.name}`,
-        partnerNameInput || 'هم‌تیمی انتخابی',
+        // Trim: a whitespace-only name is truthy, so without trim it would
+        // register as a blank-looking team (and collide with other blank
+        // names in the trimmed duplicate check). Fall back to defaults.
+        teamNameInput.trim() || `تیم ${playerProfile.name}`,
+        partnerNameInput.trim() || 'هم‌تیمی انتخابی',
         GRADE_MIDPOINT[partnerGradeInput]
       );
 
