@@ -210,13 +210,23 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/[0.05] border border-white/10 hover:border-white/10 transition cursor-pointer"
             >
               <div className="relative">
-                <img
-                  src={playerProfile.avatar}
-                  alt=""
-                  aria-hidden="true"
-                  className="w-8 h-8 rounded-lg object-cover ring-2"
-                  style={{ borderColor: playerProfile.themeColor }}
-                />
+                {playerProfile.avatar ? (
+                  <img
+                    src={playerProfile.avatar}
+                    alt=""
+                    aria-hidden="true"
+                    className="w-8 h-8 rounded-lg object-cover ring-2"
+                    style={{ borderColor: playerProfile.themeColor }}
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="w-8 h-8 rounded-lg ring-2 flex items-center justify-center text-sm font-bold text-white"
+                    style={{ borderColor: playerProfile.themeColor, backgroundColor: playerProfile.themeColor }}
+                  >
+                    {playerProfile.name?.trim().charAt(0) || '؟'}
+                  </div>
+                )}
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-black" />
               </div>
               <div className="text-right hidden sm:block">

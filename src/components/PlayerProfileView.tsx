@@ -319,12 +319,21 @@ export const PlayerProfileView: React.FC = () => {
           {/* Avatar with customized player color frame - bigger for half-body photos */}
           <div className="relative">
             <label className="cursor-pointer block">
-              <img
-                src={playerProfile.avatar}
-                alt={playerProfile.name}
-                className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl object-cover ring-4 shadow-2xl hover:opacity-90 transition"
-                style={{ borderColor: themeColor }}
-              />
+              {playerProfile.avatar ? (
+                <img
+                  src={playerProfile.avatar}
+                  alt={playerProfile.name}
+                  className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl object-cover ring-4 shadow-2xl hover:opacity-90 transition"
+                  style={{ borderColor: themeColor }}
+                />
+              ) : (
+                <div
+                  className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl ring-4 shadow-2xl hover:opacity-90 transition flex items-center justify-center text-7xl font-bold text-white"
+                  style={{ borderColor: themeColor, backgroundColor: themeColor }}
+                >
+                  {playerProfile.name?.trim().charAt(0) || '؟'}
+                </div>
+              )}
               <input
                 type="file"
                 accept="image/*"
