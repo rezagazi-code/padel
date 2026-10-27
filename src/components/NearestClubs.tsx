@@ -296,7 +296,7 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
                 </span>
                 <span className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 text-amber-400" />
-                  {faNum(selected.rating?.toFixed(1) || '۵.۰')}
+                  {selected.reviewCount > 0 ? faNum(selected.rating?.toFixed(1) ?? '—') : '—'}
                 </span>
                 <span>
                   {faNum(selected.courts?.length || selected.courtsCount || 0)}{' '}
