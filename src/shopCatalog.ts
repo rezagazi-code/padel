@@ -1,7 +1,7 @@
 import { ShopProduct } from './types';
 
 /** Last time the AI price research refreshed this catalog (Jalali display). */
-export const SHOP_LAST_UPDATED = '۲۵ مهر ۱۴۰۵';
+export const SHOP_LAST_UPDATED = '۵ آبان ۱۴۰۵';
 
 /**
  * Curated padel gear with real Iranian market prices.
@@ -17,7 +17,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Dunlop',
     category: 'racket',
     offers: [
-      { store: 'پدلا (ترب)', priceToman: 19800000, url: 'https://torob.com/p/43d4e257-4c65-42ec-90d2-0cdf45f6a1aa/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%AF%D8%A7%D9%86%D9%84%D9%88%D9%BE-%D9%85%D8%AF%D9%84-boost-20/', condition: 'نو', note: 'ارزان‌ترین آفر موجود در ترب؛ دامنه قیمت ۱۹٫۸ تا ۲۴٫۷ میلیون' },
+      { store: 'کیان بایک (ترب)', priceToman: 24700000, url: 'https://torob.com/p/43d4e257-4c65-42ec-90d2-0cdf45f6a1aa/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%AF%D8%A7%D9%86%D9%84%D9%88%D9%BE-%D9%85%D8%AF%D9%84-boost-20/', condition: 'نو', note: 'ارزان‌ترین آفر موجود در ترب' },
     ],
   },
   {
@@ -37,7 +37,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Head',
     category: 'racket',
     offers: [
-      { store: 'تنیسفا', priceToman: 26700000, url: 'https://tennisfa.com/shop/product/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%87%D8%AF-evo-speed-2025/', condition: 'نو', note: 'موجود' },
+      { store: 'تنیسفا', priceToman: 26700000, url: 'https://tennisfa.com/shop/product/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%87%D8%AF-evo-speed-2025/', condition: 'نو', note: 'ناموجود در تنیسفا (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -57,7 +57,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'متفرقه',
     category: 'racket',
     offers: [
-      { store: 'دیوار تهران (زعفرانیه)', priceToman: 11000000, url: 'https://divar.ir/s/tehran?q=%D8%B1%D8%A7%DA%A9%D8%AA%20%D9%BE%D8%AF%D9%84', condition: 'کارکرده', note: 'آگهی جاری: راکت پدل رادیکال هد کارکرده' },
+      { store: 'دیوار تهران (سعادت‌آباد)', priceToman: 15000000, url: 'https://divar.ir/s/tehran?q=%D8%B1%D8%A7%DA%A9%D8%AA%20%D9%BE%D8%AF%D9%84', condition: 'کارکرده', note: 'آگهی جاری: راکت پدل آدیداس کارکرده' },
     ],
   },
   {
@@ -97,7 +97,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nox',
     category: 'racket',
     offers: [
-      { store: 'هیوا پدل (ترب، تهران)', priceToman: 89923700, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
+      { store: 'هیوا پدل (ترب، تهران)', priceToman: 91451400, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
     ],
   },
   {
@@ -140,7 +140,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Head',
     category: 'balls',
     offers: [
-      { store: 'تنیسفا (tennisfa.com)', priceToman: 1380000, url: 'https://tennisfa.com/shop/product/%d8%aa%d9%88%d9%be-%d9%be%d8%af%d9%84-%d9%87%d8%af-head-padel-team/', condition: 'نو', note: 'قوطی ۳ عددی؛ موجود' },
+      { store: 'تنیسفا (tennisfa.com)', priceToman: 1380000, url: 'https://tennisfa.com/shop/product/%d8%aa%d9%88%d9%be-%d9%be%d8%af%d9%84-%d9%87%d8%af-head-padel-team/', condition: 'نو', note: 'قوطی ۳ عددی؛ فعلاً ناموجود (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -150,7 +150,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'متفرقه',
     category: 'balls',
     offers: [
-      { store: 'ترب (۴ فروشگاه)', priceToman: 1485000, url: 'https://torob.com/price-list/2554/%D8%AA%D9%88%D9%BE-%D8%AA%D9%86%DB%8C%D8%B3-%D9%88-%D9%BE%DB%8C%D9%86%DA%AF-%D9%BE%D9%86%DA%AF-%D9%84%DB%8C%D8%B3%D8%AA-%D9%82%DB%8C%D9%85%D8%AA/', condition: 'نو', note: 'توپ پدل بابولات Court X3؛ ارزان‌ترین بسته ۳تایی' },
+      { store: 'تنیسفا (tennisfa.com)', priceToman: 1800000, url: 'https://tennisfa.com/shop/product/%d8%aa%d9%88%d9%be-%d9%be%d8%af%d9%84-%d8%a8%d8%a7%d8%a8%d9%88%d9%84%d8%a7%d8%aa-babolat-court/', condition: 'نو', note: 'توپ پدل بابولات Court؛ قوطی ۳تایی' },
     ],
   },
   {
@@ -180,7 +180,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Asics',
     category: 'shoes',
     offers: [
-      { store: 'ترب', priceToman: 9500000, url: 'https://torob.com/p/88f7aa75-be21-4c01-b862-dbadb258301c/%DA%A9%D9%81%D8%B4-%D8%AA%D9%86%DB%8C%D8%B3-%D8%A7%D8%B3%DB%8C%DA%A9%D8%B3-%D9%85%D8%AF%D9%84-solution-speed-ff2-%D8%B1%D9%86%DA%AF-%D8%A7%D8%A8%DB%8C/', condition: 'نو', note: 'ارزون‌ترین اسیکس مناسب پدل' },
+      { store: 'ترب', priceToman: 9500000, url: 'https://torob.com/p/88f7aa75-be21-4c01-b862-dbadb258301c/%DA%A9%D9%81%D8%B4-%D8%AA%D9%86%DB%8C%D8%B3-%D8%A7%D8%B3%DB%8C%DA%A9%D8%B3-%D9%85%D8%AF%D9%84-solution-speed-ff2-%D8%B1%D9%86%DA%AF-%D8%A7%D8%A8%DB%8C/', condition: 'نو', note: 'فعلاً ناموجود در ترب (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -190,7 +190,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Joma',
     category: 'shoes',
     offers: [
-      { store: 'پشمکو (تهران، ترب)', priceToman: 28040000, url: 'https://torob.com/p/5b188492-49f2-4bd1-8e15-bb7ac3756a45/%DA%A9%D9%81%D8%B4-%D8%AA%D9%86%DB%8C%D8%B3-%D8%B2%D9%86%D8%A7%D9%86%D9%87-%D8%A7%D8%B3%D9%BE%DB%8C%D9%86-%D8%B2%D9%86-%D8%B3%D9%81%DB%8C%D8%AF-%D9%BE%D8%AF%D9%84-joma/', condition: 'نو' },
+      { store: 'پشمکو (تهران، ترب)', priceToman: 28040000, url: 'https://torob.com/p/5b188492-49f2-4bd1-8e15-bb7ac3756a45/%DA%A9%D9%81%D8%B4-%D8%AA%D9%86%DB%8C%D8%B3-%D8%B2%D9%86%D8%A7%D9%86%D9%87-%D8%A7%D8%B3%D9%BE%DB%8C%D9%86-%D8%B2%D9%86-%D8%B3%D9%81%DB%8C%D8%AF-%D9%BE%D8%AF%D9%84-joma/', condition: 'نو', note: 'فعلاً فروشنده‌ای ندارد در ترب (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -250,7 +250,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nike',
     category: 'apparel',
     offers: [
-      { store: 'تنیس ۲۴ (ترب)', priceToman: 7649000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک' },
+      { store: 'تنیس ۲۴ (ترب)', priceToman: 7649000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک؛ آخرین فروشنده ناموجود (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -260,7 +260,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nike',
     category: 'apparel',
     offers: [
-      { store: 'تنیس ۲۴ (ترب)', priceToman: 9649000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک' },
+      { store: 'تنیس ۲۴ (ترب)', priceToman: 9649000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک؛ آخرین فروشنده ناموجود (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -270,7 +270,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nike',
     category: 'apparel',
     offers: [
-      { store: 'تنیس ۲۴ (ترب)', priceToman: 11549000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک' },
+      { store: 'تنیس ۲۴ (ترب)', priceToman: 11549000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک؛ آخرین فروشنده ناموجود (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -280,7 +280,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nike',
     category: 'apparel',
     offers: [
-      { store: 'تنیس ۲۴ (ترب)', priceToman: 13599000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک' },
+      { store: 'تنیس ۲۴ (ترب)', priceToman: 13599000, url: 'https://torob.com/p/12ed3a58-9891-450c-b042-497941c7ddf7/', condition: 'نو', note: 'صفحه مشترک تیشرت‌های نایک؛ آخرین فروشنده ناموجود (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -321,7 +321,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Wilson',
     category: 'bags',
     offers: [
-      { store: 'جزیره کالا (تهران، ترب)', priceToman: 19500000, url: 'https://torob.com/p/c6a24428-4ac1-4aa4-95f0-2c64b67b607c/', condition: 'نو' },
+      { store: 'جزیره کالا (تهران، ترب)', priceToman: 22500000, url: 'https://torob.com/p/c6a24428-4ac1-4aa4-95f0-2c64b67b607c/', condition: 'نو' },
     ],
   },
   {
@@ -352,7 +352,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Wilson',
     category: 'accessories',
     offers: [
-      { store: 'هیوا پدل (hivapadel.com)', priceToman: 1079100, url: 'https://hivapadel.com/product/%D8%A7%D9%88%D8%B1%DA%AF%D8%B1%DB%8C%D9%BE-%D9%88%DB%8C%D9%84%D8%B3%D9%88%D9%86-%DA%A9%D8%A7%D9%85%D9%81%D9%88%D8%B1%D8%AA-%D8%B1%D9%86%DA%A9%DB%8C-%D8%AA%DA%A9%DB%8C/', condition: 'نو' },
+      { store: 'هیوا پدل (hivapadel.com)', priceToman: 1079100, url: 'https://hivapadel.com/product/%D8%A7%D9%88%D8%B1%DA%AF%D8%B1%DB%8C%D9%BE-%D9%88%DB%8C%D9%84%D8%B3%D9%88%D9%86-%DA%A9%D8%A7%D9%85%D9%81%D9%88%D8%B1%D8%AA-%D8%B1%D9%86%DA%A9%DB%8C-%D8%AA%DA%A9%DB%8C/', condition: 'نو', note: 'صفحه هیوا پدل یافت نشد (آخرین قیمت ثبت‌شده)' },
     ],
   },
   {
@@ -404,7 +404,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Tuyo',
     category: 'racket',
     offers: [
-      { store: 'اسپرت سعید (ترب)', priceToman: 18600000, url: 'https://torob.com/p/73192667-c001-48eb-bed5-e4d2eb6fbd70/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%A8%D8%B1%D9%86%D8%AF-tuyo-%D8%B3%D8%B1%DB%8C-tyro/', condition: 'نو' },
+      { store: 'اسپرت سعید (ترب)', priceToman: 19800000, url: 'https://torob.com/p/73192667-c001-48eb-bed5-e4d2eb6fbd70/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%A8%D8%B1%D9%86%D8%AF-tuyo-%D8%B3%D8%B1%DB%8C-tyro/', condition: 'نو' },
       { store: 'الو ورزش شاپ (ترب)', priceToman: 19900000, url: 'https://torob.com/search/?query=%D8%B3%D8%AA%20%D8%B1%D8%A7%DA%A9%D8%AA%20%D9%BE%D8%AF%D9%84', condition: 'نو', note: 'از جست‌وجوی ترب' },
     ],
   },
@@ -457,7 +457,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Head',
     category: 'racket',
     offers: [
-      { store: 'تنیسفا', priceToman: 30500000, url: 'https://tennisfa.com/shop/product/%d8%b1%d8%a7%da%a9%d8%aa-%d9%be%d8%af%d9%84-%d9%87%d8%af-bolt-2025-black-print/', condition: 'نو', note: 'مناسب شروع سطح باشگاهی' },
+      { store: 'تنیسفا', priceToman: 30500000, url: 'https://tennisfa.com/shop/product/%d8%b1%d8%a7%da%a9%d8%aa-%d9%be%d8%af%d9%84-%d9%87%d8%af-bolt-2025-black-print/', condition: 'نو', note: 'مناسب شروع سطح باشگاهی؛ ناموجود (آخرین قیمت)' },
     ],
   },
   {
