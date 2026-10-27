@@ -38,8 +38,18 @@ import {
 /** ISO date (YYYY-MM-DD) N days from today — for native date inputs, which the
  *  Supabase `date` columns require. Displayed to users via toJalaliDisplay. */
 function isoPlusDays(days: number): string {
-  const t = new Date();
-  t.setDate(t.getDate() + days);
+  // Tehran calendar date, not UTC: toISOString() is a day behind between
+  // 00:00–03:30 Asia/Tehran, while the deadline check below compares
+  // against the Tehran date — so UTC defaults disagreed with it in that
+  // window. Parse the Tehran date as UTC midnight, then add whole days.
+  const tehranToday = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tehran',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  const t = new Date(`${tehranToday}T00:00:00.000Z`);
+  t.setUTCDate(t.getUTCDate() + days);
   return t.toISOString().slice(0, 10);
 }
 
