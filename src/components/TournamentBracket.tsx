@@ -225,8 +225,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
       const setWinner = Math.max(t1[i], t2[i]);
       const setLoser = Math.min(t1[i], t2[i]);
       const validSet =
-        (setWinner === 6 && setLoser <= 4) ||
-        (setWinner === 7 && (setLoser === 5 || setLoser === 6));
+        setLoser >= 0 &&
+        ((setWinner === 6 && setLoser <= 4) ||
+          (setWinner === 7 && (setLoser === 5 || setLoser === 6)));
       if (!validSet) {
         setScoreError('امتیاز هر ست باید معتبر باشد (۶-۰ تا ۶-۴، ۷-۵ یا ۷-۶).');
         return;
