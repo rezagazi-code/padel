@@ -220,6 +220,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
         setScoreError('امتیاز ست‌ها نمی‌تواند مساوی باشد. لطفاً امتیازها را اصلاح کنید.');
         return;
       }
+      // A padel set is won 6-0…6-4, 7-5, or 7-6 (tiebreak) — 6-5 or 7-0
+      // are impossible scores, so reject them instead of recording bad data.
+      const setWinner = Math.max(t1[i], t2[i]);
+      const setLoser = Math.min(t1[i], t2[i]);
+      const validSet =
+        (setWinner === 6 && setLoser <= 4) ||
+        (setWinner === 7 && (setLoser === 5 || setLoser === 6));
+      if (!validSet) {
+        setScoreError('امتیاز هر ست باید معتبر باشد (۶-۰ تا ۶-۴، ۷-۵ یا ۷-۶).');
+        return;
+      }
     }
     const t1SetWins = t1.filter((_, i) => t1[i] > t2[i]).length;
     const t2SetWins = t2.filter((_, i) => t2[i] > t1[i]).length;

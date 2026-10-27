@@ -173,17 +173,22 @@ export const TournamentsView: React.FC = () => {
     // The host-club select locks club_admin to their own club; resolve it
     // the same way here so create and display can never disagree.
     const effectiveClubId = currentUserRole === 'club_admin' && adminClubId ? adminClubId : newClubId;
-    // Never silently reassign a club_admin's tournament: the default
+    // Never silently reassign a tournament's club: the default
     // adminClubId ('club-1') matches no bundled club, so the old
     // `|| clubs[0]` fallback filed the tournament under another club
-    // (e.g. padelpoint) while canManageTournament still required
-    // tourn.clubId === adminClubId — the creator lost all manage/delete/
-    // draw buttons for their own tournament. Fail loudly instead.
-    if (currentUserRole === 'club_admin' && !clubs.some((c) => c.id === adminClubId)) {
-      setTournSubmitError('باشگاه شما پیدا نشد؛ تورنمنت ثبت نشد. لطفاً باشگاه مدیر را بررسی کنید و دوباره تلاش کنید.');
+    // (e.g. padelpoint) — for a club_admin the creator then lost all
+    // manage/delete/draw buttons for their own tournament, and for other
+    // admins the tournament silently landed under the wrong club.
+    // Fail loudly instead, for every role.
+    // Never silently file under the wrong club, for ANY admin role: the
+    // default adminClubId ('club-1') matches no bundled club, so for
+    // super/province admins the old `|| clubs[0]` fallback filed the
+    // tournament under the first club in the list. Fail loudly instead.
+    if (!clubs.some((c) => c.id === effectiveClubId)) {
+      setTournSubmitError('باشگاه میزبان پیدا نشد؛ تورنمنت ثبت نشد. لطفاً باشگاه را بررسی کنید و دوباره تلاش کنید.');
       return;
     }
-    const club = clubs.find((c) => c.id === effectiveClubId) || clubs[0];
+    const club = clubs.find((c) => c.id === effectiveClubId) as (typeof clubs)[number];
 
     // Date validation (ISO YYYY-MM-DD strings compare lexicographically):
     // the tournament can't end before it starts, and registration must

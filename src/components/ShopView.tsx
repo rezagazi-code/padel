@@ -195,6 +195,9 @@ const ProductSheet: React.FC<{
               src={p.image}
               alt={p.name}
               className="w-16 h-16 rounded-2xl object-cover bg-[#EAF2F8] shrink-0"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
             />
           )}
           <div className="flex-1 min-w-0">

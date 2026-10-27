@@ -254,8 +254,10 @@ export const CoachBookingView: React.FC = () => {
                       )}
                       <div className="flex items-center gap-1 text-[#facc15] text-xs font-black">
                         <Star className="w-3.5 h-3.5 fill-current" />
-                        <span>{coach.rating}</span>
-                        <span className="text-slate-500 font-normal">({coach.reviewsCount})</span>
+                        <span>{coach.reviewsCount > 0 ? coach.rating : '—'}</span>
+                        {coach.reviewsCount > 0 && (
+                          <span className="text-slate-500 font-normal">({coach.reviewsCount})</span>
+                        )}
                       </div>
                     </div>
                   </div>

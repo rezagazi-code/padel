@@ -1033,11 +1033,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         throw err;
       }
     }
-    // Local fallback
+    // Local fallback — no fabricated rating: a new coach has zero reviews,
+    // so rating stays 0 until real reviews exist (same class as the club
+    // rating fix; CoachBookingView gates the display on reviewsCount > 0).
     const newCoach: Coach = {
       ...coachData,
       id: `coach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
-      rating: 5.0,
+      rating: 0,
       reviewsCount: 0,
     };
     setCoaches((prev) => [newCoach, ...prev]);
@@ -2210,6 +2212,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     if (t.registeredTeamsCount >= t.maxTeams) {
       setSyncNotification('ظرفیت ثبت‌نام این تورنومنت تکمیل شده است.');
+      return false;
+    }
+    // A blank profile name must never register: the duplicate check below
+    // is name-equality, so one blank-captain team ('' === '') would block
+    // every other anonymous visitor from registering in this tournament.
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس تیم ثبت کنید.');
       return false;
     }
     const isRegistered = t.registeredTeams.some(
