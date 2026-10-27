@@ -265,16 +265,16 @@ export const PlayerProfileView: React.FC = () => {
     // (old void signature) is treated as success, not failure.
     const ok = (await updatePlayerProfile({
       name: name.trim(),
-      phone,
-      city,
-      province,
+      phone: phone.trim(),
+      city: city.trim(),
+      province: province.trim(),
       level: Number(level),
       themeColor,
       preferredSide,
       hand,
-      racketBrand,
-      racketModel,
-      bio,
+      racketBrand: racketBrand.trim(),
+      racketModel: racketModel.trim(),
+      bio: bio.trim(),
     })) as unknown as boolean | undefined;
 
     if (ok !== false) {

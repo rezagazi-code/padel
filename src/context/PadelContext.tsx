@@ -2532,6 +2532,21 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     runnerUpTeamName: string
   ) => {
     const tourn = tournaments.find((t) => t.id === tournId);
+    // Defense in depth (the UI validates too): a tournament cannot be
+    // finalized before its start date — otherwise permanent ranking
+    // points would be awarded for matches never played.
+    if (tourn?.startDate) {
+      const todayStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
+      if (todayStr < tourn.startDate) {
+        setSyncNotification('نتیجه نهایی ثبت نشد: تورنمنت هنوز شروع نشده است.');
+        return;
+      }
+    }
     // Defense in depth (the UI validates too): winner/runner-up must be
     // registered teams and must differ — otherwise rankings get points
     // for ghost teams and the tournament is wrongly marked completed.

@@ -266,6 +266,20 @@ export const TournamentsView: React.FC = () => {
     e.preventDefault();
     if (!showFinalizeModal) return;
     setFinalizeError('');
+    // A tournament cannot be finalized before it starts: otherwise an
+    // admin could award permanent ranking points for matches never
+    // played. The offline-results flow still works — it runs on/after
+    // the start date, when the tournament has actually taken place.
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    if (showFinalizeModal.startDate && todayStr < showFinalizeModal.startDate) {
+      setFinalizeError('این تورنمنت هنوز شروع نشده است؛ ثبت نتایج فقط از روز برگزاری به بعد ممکن است.');
+      return;
+    }
     // Validate the free-text inputs: both names must be registered teams
     // in this tournament and must differ — otherwise rankings get points
     // for ghost teams and the tournament is wrongly marked completed.
