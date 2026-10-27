@@ -224,7 +224,7 @@ export const TournamentsView: React.FC = () => {
     setTournSubmitError('');
     try {
       await createTournament({
-        title: newTitle || `جام پدل ${club.name}`,
+        title: newTitle.trim() || `جام پدل ${club.name}`,
         clubId: club.id,
         clubName: club.name,
         // A province admin files the tournament under their own province
@@ -242,7 +242,7 @@ export const TournamentsView: React.FC = () => {
         startDate: newStartDate,
         endDate: newEndDate,
         registrationDeadline: newDeadline,
-        entryFee: Number(newEntryFee),
+        entryFee: Math.max(0, Number(newEntryFee) || 0),
         prizePool: newPrizePool,
         maxTeams: Math.min(Number(newMaxTeams), 16),
         levelRange: '۳.۰۰+',
@@ -1095,6 +1095,7 @@ export const TournamentsView: React.FC = () => {
                   <input
                     type="number"
                     step="100000"
+                    min={0}
                     value={newEntryFee}
                     onChange={(e) => setNewEntryFee(Number(e.target.value))}
                     className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
