@@ -17,44 +17,19 @@ export const initialPlayerProfile: PlayerProfile = {
   email: '',
   bio: '',
   reliabilityScore: 98,
-  rankingPoints: 1640,
-  rankingPosition: 4,
-  matchesPlayed: 48,
-  matchesWon: 34,
-  tournamentsPlayed: 6,
-  tournamentsWon: 2,
+  // Fresh-install profile shows ZERO competitive stats (owner decision
+  // 2026-10-27): no fabricated rank/points/match history presented as
+  // the user's own. Real numbers arrive only from played tournaments.
+  rankingPoints: 0,
+  rankingPosition: 0,
+  matchesPlayed: 0,
+  matchesWon: 0,
+  tournamentsPlayed: 0,
+  tournamentsWon: 0,
   isFreeAgent: true,
   freeAgentNote: '',
   availableDays: ['شنبه', 'دوشنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'],
-  recentMatches: [
-    {
-      id: 'rm-1',
-      date: '۱۴۰۳/۰۶/۲۵',
-      opponent: 'سهراب مرادی & علی شایان',
-      partner: 'مهدی کریمی',
-      score: '۶-۴ , ۷-۵',
-      won: true,
-      levelChange: +0.08
-    },
-    {
-      id: 'rm-2',
-      date: '۱۴۰۳/۰۶/۲۱',
-      opponent: 'کامیار رهنما & پویا فرهمند',
-      partner: 'سامان فتاحی',
-      score: '۴-۶ , ۶-۳ , ۶-۴',
-      won: true,
-      levelChange: +0.06
-    },
-    {
-      id: 'rm-3',
-      date: '۱۴۰۳/۰۶/۱۷',
-      opponent: 'امیرحسین زارعی & نیما نوری',
-      partner: 'مهدی کریمی',
-      score: '۵-۷ , ۴-۶',
-      won: false,
-      levelChange: -0.05
-    }
-  ]
+  recentMatches: []
 };
 
 export const initialClubs: Club[] = [
