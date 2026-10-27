@@ -329,6 +329,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     if (!selectedTimeSlot) return; // no empty-slot bookings on fully-booked days
     if (!currentClub || !currentCourt) return;
     setBookingError(null);
+    // A NULL hourly_rate maps to 0 in db.ts: never confirm a 0-toman booking
+    // as "paid" — a missing rate is a data defect, not a free court.
+    if (totalPrice <= 0) {
+      setBookingError('قیمت این زمین ثبت نشده است؛ لطفاً با باشگاه تماس بگیرید.');
+      return;
+    }
     // Stale-pick guard: the user may have tapped a slot long ago — if
     // midnight crossed (the selected day is now past) or the picked slot
     // already started today, the pick is no longer bookable. Never book a
