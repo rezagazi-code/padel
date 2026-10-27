@@ -141,7 +141,7 @@ export const MatchmakingView: React.FC = () => {
         type: newType,
         minLevel: Number(newMinLevel),
         maxLevel: Number(newMaxLevel),
-        pricePerPlayer: Number(newPrice),
+        pricePerPlayer: Math.max(0, Number(newPrice) || 0),
         gender: newGender,
         creatorId: playerProfile.id,
         creatorName: playerProfile.name,
@@ -619,6 +619,7 @@ export const MatchmakingView: React.FC = () => {
                   <label className="block text-slate-400 font-bold mb-1">هزینه هر بازیکن (تومان):</label>
                   <input
                     type="number"
+                    min="0"
                     step="10000"
                     value={newPrice}
                     onChange={(e) => setNewPrice(Number(e.target.value))}
@@ -763,7 +764,7 @@ const GroupSessionsTab: React.FC = () => {
           type: gType,
           minLevel: Number(gMinLevel),
           maxLevel: Number(gMaxLevel),
-          pricePerPlayer: Number(gPrice),
+          pricePerPlayer: Math.max(0, Number(gPrice) || 0),
           gender: 'all',
           creatorId: playerProfile.id,
           creatorName: playerProfile.name,
@@ -1126,6 +1127,7 @@ const GroupSessionsTab: React.FC = () => {
                   <label className="block text-slate-400 font-bold mb-1">هزینه هر بازیکن (تومان):</label>
                   <input
                     type="number"
+                    min="0"
                     step="10000"
                     value={gPrice}
                     onChange={(e) => setGPrice(Number(e.target.value))}

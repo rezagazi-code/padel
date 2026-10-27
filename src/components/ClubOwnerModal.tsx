@@ -96,7 +96,7 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clubName.trim() || submitting) return;
+    if (!clubName.trim() || !city.trim() || !address.trim() || submitting) return;
     // Slot generators parse hours with Number() — Persian digits become NaN
     // and the club ends up with zero bookable slots. Normalize everything to
     // Latin digits before saving.
@@ -131,15 +131,15 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
       await addClub({
         name: clubName.trim(),
         province,
-        city,
-        address,
-        phone: phoneEn,
+        city: city.trim(),
+        address: address.trim(),
+        phone: phoneEn.trim(),
         openingHour: openingHourEn,
         closingHour: closingHourEn,
         coverImage,
         galleryImages: [coverImage],
         ownerName: 'مدیر مجموعه پدل',
-        ownerPhone: phoneEn,
+        ownerPhone: phoneEn.trim(),
         courtsCount: courts.length,
         courts: courts.map((c, i) => ({
           ...c,

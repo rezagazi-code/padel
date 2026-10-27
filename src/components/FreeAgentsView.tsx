@@ -94,7 +94,7 @@ export const FreeAgentsView: React.FC = () => {
         preferredSide: reqSide,
         minLevel: hostMinLevel,
         maxLevel: hostMaxLevel,
-        costPerPerson: Number(reqCost),
+        costPerPerson: Math.max(0, Number(reqCost) || 0),
         hostPlayerId: playerProfile.id,
         hostName: playerProfile.name,
         hostAvatar: playerProfile.avatar,
@@ -572,6 +572,7 @@ export const FreeAgentsView: React.FC = () => {
                 <label className="block text-slate-400 font-bold mb-1">سهم هزینه هر نفر (تومان):</label>
                 <input
                   type="number"
+                  min="0"
                   step="10000"
                   value={reqCost}
                   onChange={(e) => setReqCost(Number(e.target.value))}

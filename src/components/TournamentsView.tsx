@@ -249,7 +249,7 @@ export const TournamentsView: React.FC = () => {
         endDate: newEndDate,
         registrationDeadline: newDeadline,
         entryFee: Math.max(0, Number(newEntryFee) || 0),
-        prizePool: newPrizePool,
+        prizePool: newPrizePool.trim(),
         maxTeams: Math.min(Number(newMaxTeams), 16),
         levelRange: '۳.۰۰+',
         bannerImage: club.coverImage,

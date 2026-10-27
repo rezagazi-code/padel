@@ -73,6 +73,13 @@ export const CoachBookingView: React.FC = () => {
       setFormError('حداقل یک روز و یک ساعت قابل رزرو برای مربی مشخص کنید.');
       return;
     }
+    // A cleared rate stores 0 via `parseInt(formRate) || 0` and then books
+    // sessions with a 0-toman receipt — same "free by accident" class as the
+    // court-booking zero-price fix. There is no free-coach concept, so reject.
+    if (!(parseInt(formRate) > 0)) {
+      setFormError('نرخ ساعتی مربی باید بیشتر از صفر باشد.');
+      return;
+    }
     setFormSaving(true);
     try {
       await addCoach({
