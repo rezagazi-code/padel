@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { displayProvinceRank } from '../lib/rankingDisplay';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
 import { AuthModal } from './AuthModal';
@@ -45,6 +46,7 @@ const PALETTE_COLORS = [
 export const PlayerProfileView: React.FC = () => {
   const {
     playerProfile,
+    rankings,
     updatePlayerProfile,
     bookings,
     coachBookings,
@@ -52,6 +54,7 @@ export const PlayerProfileView: React.FC = () => {
     cancelBooking,
     setSyncNotification
   } = usePadel();
+  const displayRank = displayProvinceRank(rankings, playerProfile.name, playerProfile.province, playerProfile.rankingPosition);
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
   const [showUserMgmt, setShowUserMgmt] = useState(false);
@@ -411,7 +414,7 @@ export const PlayerProfileView: React.FC = () => {
                   borderColor: `${themeColor}50`,
                 }}
               >
-                رتبه #{playerProfile.rankingPosition} {playerProfile.province}
+                رتبه #{displayRank} {playerProfile.province}
               </span>
             </div>
 

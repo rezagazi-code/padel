@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { displayProvinceRank } from '../lib/rankingDisplay';
 import { Tournament, TournamentCategory, TournamentFormat, UserRole } from '../types';
 import GradeBadge from './GradeBadge';
 import { levelToGrade, SKILL_GRADES, GRADE_MIDPOINT, gradeBandFa, type SkillGrade } from '../utils/skillGrades';
@@ -155,6 +156,11 @@ export const TournamentsView: React.FC = () => {
     if (selectedProvince !== 'همه استان‌ها' && r.province !== selectedProvince) return false;
     return true;
   });
+
+  // "Your rank" must come from the live rankings table, not the static
+  // profile field (which no award path updates). Raw rankings, not the
+  // province-filtered view, so the badge stays correct under any filter.
+  const displayRank = displayProvinceRank(rankings, playerProfile.name, playerProfile.province, playerProfile.rankingPosition);
 
   const handleRegisterTeam = (e: React.FormEvent) => {
     e.preventDefault();
@@ -687,7 +693,7 @@ export const TournamentsView: React.FC = () => {
 
             <div className="flex items-center gap-2 text-xs text-slate-400 bg-white/[0.05] px-3 py-1.5 rounded-xl border border-white/10">
               <Sparkles className="w-4 h-4 text-[#ff6b81]" />
-              <span>موقعیت شما: رتبه #{playerProfile.rankingPosition} در {playerProfile.province}</span>
+              <span>موقعیت شما: رتبه #{displayRank} در {playerProfile.province}</span>
             </div>
           </div>
 

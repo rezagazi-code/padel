@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { displayProvinceRank } from '../lib/rankingDisplay';
 import { useAuth } from '../context/AuthContext';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
@@ -42,10 +43,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     isMobileDeviceView,
     setIsMobileDeviceView,
     playerProfile,
+    rankings,
     isSupabaseConfigured,
     selectedProvince,
     setSelectedProvince
   } = usePadel();
+  const displayRank = displayProvinceRank(rankings, playerProfile.name, playerProfile.province, playerProfile.rankingPosition);
   const { user, profile, ready } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -221,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="text-xs font-bold text-slate-100 max-w-[90px] truncate">{playerProfile.name}</span>
                   <GradeBadge grade={levelToGrade(playerProfile.level)} className="text-[10px] min-w-[1.8rem]" />
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium">رنک #{playerProfile.rankingPosition}</p>
+                <p className="text-[10px] text-slate-500 font-medium">رنک #{displayRank}</p>
               </div>
             </button>
           </div>
