@@ -132,10 +132,13 @@ export const MatchmakingView: React.FC = () => {
       const club = clubs.find((c) => c.id === newClubId) || clubs[0];
 
       createOpenMatch({
-        title: newTitle || `مسابقه پدل در ${club.name}`,
+        // Whitespace-only title/court defeat the `||` fallbacks below (a
+        // string of spaces is truthy), so trim first — same class as the
+        // club city/address and tournament prize-pool trims.
+        title: newTitle.trim() || `مسابقه پدل در ${club.name}`,
         clubId: club.id,
         clubName: club.name,
-        courtName: newCourtName,
+        courtName: newCourtName.trim() || 'زمین ۱',
         date: newDate,
         time: newTime,
         type: newType,
@@ -756,7 +759,7 @@ const GroupSessionsTab: React.FC = () => {
       const club = clubs.find((c) => c.id === gClubId) || clubs[0];
       createGroupSession(
         {
-          title: gTitle || `سانس گروهی ${club.name}`,
+          title: gTitle.trim() || `سانس گروهی ${club.name}`,
           clubId: club.id,
           clubName: club.name,
           date: gDate,

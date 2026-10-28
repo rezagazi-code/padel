@@ -44,6 +44,7 @@ export const FriendlyTournamentView: React.FC = () => {
 
   // Create form
   const [fTitle, setFTitle] = useState('');
+  const [fTitleError, setFTitleError] = useState('');
   const [fClubId, setFClubId] = useState('');
   const [fDate, setFDate] = useState('');
   const [fFee, setFFee] = useState('');
@@ -63,7 +64,13 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fTitle.trim()) return;
+    // Blank title used to return silently (the input placeholder marks it
+    // required) — show an inline error like handleAddTeam does for teams.
+    if (!fTitle.trim()) {
+      setFTitleError('عنوان مسابقه را وارد کنید.');
+      return;
+    }
+    setFTitleError('');
     // No silent reassignment: the select visibly defaults to the first club
     // (see value below), so the stored club is always the one shown. Never
     // fall back to clubs[0] behind a blank select.
@@ -433,7 +440,10 @@ export const FriendlyTournamentView: React.FC = () => {
               <button onClick={() => setShowCreate(false)} className="text-slate-400"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleCreate} className="space-y-3">
-              <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} placeholder="عنوان *" className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
+              <input value={fTitle} onChange={(e) => { setFTitle(e.target.value); setFTitleError(''); }} placeholder="عنوان *" className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
+              {fTitleError && (
+                <p className="text-xs text-red-400">{fTitleError}</p>
+              )}
               <select value={fClubId || clubs[0]?.id || ''} onChange={(e) => setFClubId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
                 {clubs.map((c) => <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>)}
               </select>

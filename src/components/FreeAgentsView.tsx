@@ -86,7 +86,10 @@ export const FreeAgentsView: React.FC = () => {
       const hostMinLevel = Math.max(1, playerProfile.level - 0.7);
       const hostMaxLevel = Math.min(7, playerProfile.level + 0.8);
       createNeedPlayerPost({
-        clubName: reqClubName,
+        // Whitespace-only input defeats the `||` fallback on note below
+        // (spaces are truthy) and passes the `required` attribute on the
+        // club field — trim first so blank-looking posts can't be stored.
+        clubName: reqClubName.trim() || clubs[0]?.name || 'باشگاه پدل انقلاب تهران',
         province: playerProfile.province,
         date: reqDate,
         time: reqTime,
@@ -99,7 +102,7 @@ export const FreeAgentsView: React.FC = () => {
         hostName: playerProfile.name,
         hostAvatar: playerProfile.avatar,
         hostLevel: playerProfile.level,
-        note: reqNote || `زمین رزرو شده و به ${reqSpots} بازیکن نیاز داریم.`,
+        note: reqNote.trim() || `زمین رزرو شده و به ${reqSpots} بازیکن نیاز داریم.`,
       });
       setShowCreateRequestModal(false);
     } finally {
