@@ -2221,9 +2221,17 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const inviteFreeAgent = (agentId: string, matchTitle: string) => {
     const agent = freeAgents.find((a) => a.id === agentId);
-    if (agent) {
-      setSyncNotification(`دعوت‌نامه بازی «${matchTitle}» برای ${agent.name} با موفقیت ارسال شد.`);
+    // No SMS/notification channel exists yet (no gateway, inbox, or stored
+    // invite) — claiming a successful send would leave the inviter waiting
+    // for a player who was never contacted. Refuse honestly until real
+    // invite delivery is built (owner decision, not an hourly fix).
+    if (!agent) {
+      setSyncNotification('بازیکن موردنظر یافت نشد؛ دعوتی ارسال نشد.');
+      return;
     }
+    setSyncNotification(
+      `ارسال پیامک و نوتیفیکیشن دعوت هنوز در اپ فعال نیست؛ دعوت‌نامه بازی «${matchTitle}» برای ${agent.name} ارسال نشد.`
+    );
   };
 
   const bookCoach = (bookingData: Omit<CoachBooking, 'id' | 'status'>): CoachBooking | null => {

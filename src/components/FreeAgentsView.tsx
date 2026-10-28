@@ -652,7 +652,7 @@ export const FreeAgentsView: React.FC = () => {
                 onClick={handleSendInvite}
                 className="flex-1 py-2.5 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black rounded-xl cursor-pointer"
               >
-                ارسال دعوت‌نامه پیامکی و نوتیفیکیشن
+                دعوت بازیکن
               </button>
               <button
                 onClick={() => setShowInviteModal(null)}
