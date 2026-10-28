@@ -2432,20 +2432,25 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // The registration form defaults an empty partner to the placeholder
       // «هم‌تیمی انتخابی» — a label, not a player: never credit it points.
       const isPlaceholderPlayer = (n: string) => n.trim() === 'هم‌تیمی انتخابی';
-      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)) : [];
-      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)) : [];
-      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]).filter((n) => !isPlaceholderPlayer(n)));
+      // Player-name matching is normalized (trim + case + collapsed
+      // whitespace), like the registration guards: partner names are
+      // free text, so 'علی  رضایی' must match the existing 'علی رضایی'
+      // row instead of spawning a second row that splits the points.
+      const normPlayer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+      const winnerNames = new Set(winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)).map(normPlayer) : []);
+      const runnerUpNames = new Set(runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => !isPlaceholderPlayer(n)).map(normPlayer) : []);
+      const participantNames = new Set((tourn?.registeredTeams ?? []).flatMap((tm) => [tm.player1Name, tm.player2Name]).filter((n) => !isPlaceholderPlayer(n)).map(normPlayer));
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
       const updated = prev.map((player) => {
-        if (winnerNames.includes(player.name)) {
+        if (winnerNames.has(normPlayer(player.name))) {
           return { ...player, points: player.points + 250, tournamentsPlayed: player.tournamentsPlayed + 1, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
-        if (runnerUpNames.includes(player.name)) {
+        if (runnerUpNames.has(normPlayer(player.name))) {
           return { ...player, points: player.points + 150, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
-        if (participantNames.has(player.name)) {
+        if (participantNames.has(normPlayer(player.name))) {
           return { ...player, points: player.points + 50, tournamentsPlayed: player.tournamentsPlayed + 1, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // non-participants: completely untouched
@@ -2455,15 +2460,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // rankings) the "rankings updated!" toast lied and the table stayed
       // empty forever. Insert a row for every participant missing one,
       // with the same credit the map branch would have given them.
-      const present = new Set(updated.map((p) => p.name));
+      const present = new Set(updated.map((p) => normPlayer(p.name)));
       const extras: RankingPlayer[] = [];
       const insertRow = (name: string, level: number, points: number, won: number) => {
-        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(name)) return;
-        present.add(name);
+        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(normPlayer(name))) return;
+        present.add(normPlayer(name));
         extras.push({
           rank: 0,
           provinceRank: 0,
-          id: name === playerProfile.name ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
+          id: normPlayer(name) === normPlayer(playerProfile.name) ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
           name,
           avatar: '',
           province: tourn?.province ?? '',
@@ -2531,16 +2536,19 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setRankings((prev) => {
       const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
-      const winnerNames = winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی') : [];
-      const runnerUpNames = runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی') : [];
+      // Same normalized player matching as awardTournamentRankingPoints:
+      // free-text partner names must not spawn duplicate ranking rows.
+      const normPlayer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+      const winnerNames = new Set(winnerTeam ? [winnerTeam.player1Name, winnerTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی').map(normPlayer) : []);
+      const runnerUpNames = new Set(runnerUpTeam ? [runnerUpTeam.player1Name, runnerUpTeam.player2Name].filter((n) => n.trim() !== 'هم‌تیمی انتخابی').map(normPlayer) : []);
       if (!winnerTeam) {
         setSyncNotification('نام تیم قهرمان در فهرست ثبت‌نام‌شده‌ها پیدا نشد؛ امتیاز رنکینگ برای قهرمان ثبت نشد.');
       }
       const updated = prev.map((player) => {
-        if (winnerNames.includes(player.name) && !winnerAlreadyCredited) {
+        if (winnerNames.has(normPlayer(player.name)) && !winnerAlreadyCredited) {
           return { ...player, points: player.points + 250, tournamentsWon: player.tournamentsWon + 1, form: (['W', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
-        if (runnerUpNames.includes(player.name) && !runnerUpAlreadyCredited) {
+        if (runnerUpNames.has(normPlayer(player.name)) && !runnerUpAlreadyCredited) {
           return { ...player, points: player.points + 150, form: (['L', ...player.form.slice(0, 4)] as ('W' | 'L')[]) };
         }
         return player; // participants already credited by the first full award: untouched
@@ -2550,15 +2558,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // inserted nothing). A missing row means the credit never
       // materialized anywhere visible, so inserting it is a repair, not a
       // double credit — existing rows are still never re-credited.
-      const present = new Set(updated.map((p) => p.name));
+      const present = new Set(updated.map((p) => normPlayer(p.name)));
       const extras: RankingPlayer[] = [];
       const insertRow = (name: string, level: number, points: number, won: number) => {
-        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(name)) return;
-        present.add(name);
+        if (!name || name.trim() === 'هم‌تیمی انتخابی' || present.has(normPlayer(name))) return;
+        present.add(normPlayer(name));
         extras.push({
           rank: 0,
           provinceRank: 0,
-          id: name === playerProfile.name ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
+          id: normPlayer(name) === normPlayer(playerProfile.name) ? playerProfile.id : `rk-${name.trim().replace(/\s+/g, '-')}`,
           name,
           avatar: '',
           province: tourn?.province ?? '',
