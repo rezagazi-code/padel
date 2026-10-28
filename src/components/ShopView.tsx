@@ -614,7 +614,7 @@ export const ShopView: React.FC = () => {
                     </div>
                     <div className="text-left shrink-0">
                       <p className="text-sm font-black text-[#0E1B2C]">
-                        {(o.priceToman / 1000000).toLocaleString('fa-IR', { maximumFractionDigits: 1 })} میلیون تومان
+                        {formatPrice(o.priceToman)}
                       </p>
                       <button
                         onClick={() => openExternal(o.url)}

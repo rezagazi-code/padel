@@ -479,6 +479,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       setDongiNames(['', '', '']);
       setDongiEnabled(false);
     }
+    // Split payment saves NO dongi record (see the warning above), so the
+    // toggle/names must clear here too — otherwise they stay armed on the
+    // still-mounted view and the next full-payment booking would silently
+    // record a split with the previous booking's teammates.
+    if (dongiEnabled && splitPayment) {
+      setDongiNames(['', '', '']);
+      setDongiEnabled(false);
+    }
 
     } finally {
       setIsSubmitting(false);
