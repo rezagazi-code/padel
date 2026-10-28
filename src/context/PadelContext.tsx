@@ -1035,6 +1035,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : co
         )
       );
+      // Coach sessions carry only clubName (no clubId), so without this
+      // they would stay listed in profile history under a deleted venue.
+      setCoachBookings((prev) =>
+        prev.filter((b) => b.clubName !== doomedClub.name)
+      );
     }
     setTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
     setFriendlyTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
@@ -1134,6 +1139,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
     setCoaches((prev) => prev.filter((c) => c.id !== coachId));
+    // A deleted coach's sessions would otherwise stay in profile history.
+    setCoachBookings((prev) => prev.filter((b) => b.coachId !== coachId));
     setSyncNotification('مربی با موفقیت حذف شد.');
   };
 
