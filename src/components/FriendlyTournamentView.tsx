@@ -99,7 +99,13 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const handleAddTeam = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selected || !tName.trim()) return;
+    if (!selected) return;
+    // Blank team name used to return silently (the input placeholder says
+    // the name is required) — show the same inline error as other refusals.
+    if (!tName.trim()) {
+      setTNameError('نام تیم را وارد کنید.');
+      return;
+    }
     // Stale detail view: the form only renders while open, but `selected`
     // can lag behind a draw done elsewhere — never clear the form on a
     // tournament that is no longer open.

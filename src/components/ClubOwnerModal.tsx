@@ -101,11 +101,18 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
     // Number from the highest existing auto-name, not courts.length + 1:
     // after deleting a middle court (1,2,3 → delete 2 → add) the old
     // formula reused «کورت شماره ۳» and booking rows became ambiguous.
+    // Also floor at courts.length: the two default rows are named
+    // «کورت پانورامیک ۱» / «کورت شیشه‌ای ۲» and match no auto-name
+    // pattern, so a fresh form otherwise offered a confusing «کورت شماره ۱»
+    // as the third court.
     const nextNum =
-      courts.reduce((m, c) => {
-        const match = c.name.match(/کورت شماره\s*(\d+)/);
-        return match ? Math.max(m, parseInt(match[1], 10)) : m;
-      }, 0) + 1;
+      Math.max(
+        courts.reduce((m, c) => {
+          const match = c.name.match(/کورت شماره\s*(\d+)/);
+          return match ? Math.max(m, parseInt(match[1], 10)) : m;
+        }, 0),
+        courts.length
+      ) + 1;
     setCourts([
       ...courts,
       {

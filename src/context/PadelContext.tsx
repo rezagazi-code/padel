@@ -1527,6 +1527,24 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('این تورنمنت دیگر برای ثبت تیم باز نیست.');
       return false;
     }
+    // Partner validation, mirroring registerTournamentTeam (440b252):
+    // the same person in both slots, or a player already in another team
+    // of this tournament, would be counted twice by name-based bracket
+    // logic. Blank slots fall back to the shared 'بازیکن ۱'/'بازیکن ۲'
+    // placeholders, which are not real people, so they are exempt.
+    const normP1 = normName(team.player1Name);
+    const normP2 = normName(team.player2Name);
+    const isPlaceholder = (n: string) => n === normName('بازیکن ۱') || n === normName('بازیکن ۲');
+    if (!isPlaceholder(normP1) && !isPlaceholder(normP2) && normP1 === normP2) {
+      setSyncNotification('بازیکن اول و دوم تیم نمی‌توانند یک نفر باشند.');
+      return false;
+    }
+    for (const p of [normP1, normP2]) {
+      if (!isPlaceholder(p) && tourn.teams.some((tm) => normName(tm.player1Name) === p || normName(tm.player2Name) === p)) {
+        setSyncNotification('این بازیکن قبلاً در تیم دیگری در این تورنمنت ثبت شده است.');
+        return false;
+      }
+    }
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open') return t;
@@ -2246,8 +2264,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس تیم ثبت کنید.');
       return false;
     }
+    // Normalized like the duplicate-name and partner checks below: raw
+    // equality let a captain re-register when the stored name differed
+    // from the profile name by case/whitespace.
+    const normProfile = playerProfile.name.trim().toLowerCase();
     const isRegistered = t.registeredTeams.some(
-      (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
+      (tm) => tm.player1Name.trim().toLowerCase() === normProfile || tm.player2Name.trim().toLowerCase() === normProfile
     );
     if (isRegistered) {
       setSyncNotification('شما قبلاً در این تورنومنت تیم ثبت کرده‌اید.');
@@ -2301,7 +2323,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (x.registeredTeamsCount >= x.maxTeams) return x;
         if (
           x.registeredTeams.some(
-            (tm) => tm.player1Name === playerProfile.name || tm.player2Name === playerProfile.name
+            (tm) => tm.player1Name.trim().toLowerCase() === normProfile || tm.player2Name.trim().toLowerCase() === normProfile
           )
         )
           return x;
