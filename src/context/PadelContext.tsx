@@ -976,6 +976,37 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.warn('Could not persist deleted club id:', err);
       }
     }
+    // Keep the delete dialog's promise ("all courts and bookings of this
+    // club are deleted forever"): drop the club's local bookings, their
+    // dongi ledger records, and its need-player posts, and unlist the club
+    // from coaches. The Supabase cascade only covers server rows — dongi
+    // lives in localStorage and need-player posts / coaches live in local
+    // state, so this cleanup must run on BOTH paths. NeedPlayerPost has no
+    // clubId, so manual posts match by club name (same key the UI shows).
+    const doomedClub = clubs.find((c) => c.id === clubId);
+    const doomedBookingIds = new Set(
+      bookings.filter((b) => b.clubId === clubId).map((b) => b.id)
+    );
+    setBookings((prev) => prev.filter((b) => b.clubId !== clubId));
+    doomedBookingIds.forEach((id) => {
+      if (typeof deleteDongiRecord === 'function') deleteDongiRecord(id);
+    });
+    setNeedPlayerPosts((prev) =>
+      prev.filter(
+        (p) =>
+          !(p.bookingId && doomedBookingIds.has(p.bookingId)) &&
+          p.clubName !== doomedClub?.name
+      )
+    );
+    if (doomedClub) {
+      setCoaches((prev) =>
+        prev.map((co) =>
+          co.clubs.includes(doomedClub.name)
+            ? { ...co, clubs: co.clubs.filter((n) => n !== doomedClub.name) }
+            : co
+        )
+      );
+    }
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
     setSyncNotification('باشگاه با موفقیت حذف شد.');
   };

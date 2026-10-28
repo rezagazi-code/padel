@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
-import { displayProvinceRank } from '../lib/rankingDisplay';
+import { displayProvinceRank, findRankingRow } from '../lib/rankingDisplay';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
 import { AuthModal } from './AuthModal';
@@ -55,6 +55,15 @@ export const PlayerProfileView: React.FC = () => {
     setSyncNotification
   } = usePadel();
   const displayRank = displayProvinceRank(rankings, playerProfile.name, playerProfile.province, playerProfile.rankingPosition);
+  // Same live-row rule as the rank badge above: the award paths update the
+  // rankings table, never the static profile fields, so the points and
+  // win-rate tiles must read the row when one exists (falling back to the
+  // profile fields before the first ranked tournament). The matches tile
+  // stays on the profile field: the rankings table tracks tournaments, a
+  // different unit, and silently relabelling it as matches would be wrong.
+  const rankingRow = findRankingRow(rankings, playerProfile.name, playerProfile.province);
+  const displayPoints = rankingRow?.points ?? playerProfile.rankingPoints;
+  const displayWinRate = rankingRow?.winRate ?? (playerProfile.winRate ?? (playerProfile.matchesPlayed > 0 ? Math.round((playerProfile.matchesWon / playerProfile.matchesPlayed) * 100) : 0));
 
   const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'none'>('none');
   const [showUserMgmt, setShowUserMgmt] = useState(false);
@@ -466,13 +475,13 @@ export const PlayerProfileView: React.FC = () => {
             <div>
               <span className="text-[10px] text-slate-500 block">امتیاز رنکینگ</span>
               <span className="text-lg font-black" style={{ color: themeColorLight }}>
-                {playerProfile.rankingPoints.toLocaleString('fa-IR')}
+                {displayPoints.toLocaleString('fa-IR')}
               </span>
             </div>
             <div className="border-r border-white/10 pr-3">
               <span className="text-[10px] text-slate-500 block">درصد پیروزی</span>
               <span className="text-lg font-black text-emerald-600">
-                {playerProfile.winRate ?? (playerProfile.matchesPlayed > 0 ? Math.round((playerProfile.matchesWon / playerProfile.matchesPlayed) * 100) : 0)}٪
+                {displayWinRate}٪
               </span>
             </div>
             <div className="border-r border-white/10 pr-3">
