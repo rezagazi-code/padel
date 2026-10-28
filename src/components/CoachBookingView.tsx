@@ -55,7 +55,15 @@ export const CoachBookingView: React.FC = () => {
   const parseHoursInput = (raw: string): string[] =>
     raw
       .split(/[،,؛;\n]+/)
-      .map((s) => s.trim())
+      .map((s) =>
+        // Normalize Persian/Arabic digits like parseRate below: without
+        // this, '۰۸:۰۰' would fail the format check even though it is a
+        // perfectly good hour on a fa-IR keyboard.
+        s.trim().replace(/[۰-۹٠-٩]/g, (d) => {
+          const fa = '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+          return fa !== -1 ? fa.toString() : '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString();
+        })
+      )
       .filter(Boolean);
 
   // Rate input is plain text: admins type Persian digits ('۵۰۰۰۰۰') or
@@ -83,6 +91,13 @@ export const CoachBookingView: React.FC = () => {
     const hours = parseHoursInput(formHours);
     if (days.length === 0 || hours.length === 0) {
       setFormError('حداقل یک روز و یک ساعت قابل رزرو برای مربی مشخص کنید.');
+      return;
+    }
+    // Hours were format-free: 'abc' parsed as a bookable slot and showed
+    // up in the booking sheet. Same HH:MM rule as ClubOwnerModal.
+    const hourOk = (h: string) => /^([01]?\d|2[0-3]):[0-5]\d$/.test(h) || h === '24:00';
+    if (!hours.every(hourOk)) {
+      setFormError('ساعت‌های مربی باید به قالب ساعت باشد (مثلاً 08:00).');
       return;
     }
     // A cleared rate stores 0 and then books sessions with a 0-toman

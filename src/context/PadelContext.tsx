@@ -2261,6 +2261,28 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
       return false;
     }
+    // Partner validation: the partner was never checked — a captain could
+    // register themselves as partner (player1 === player2) or a player
+    // already in another team of this tournament, and bracket/ranking
+    // matching (by name) would then count one person twice. The
+    // 'هم‌تیمی انتخابی' placeholder means "no partner chosen", not a real
+    // person, so it is exempt from both checks.
+    const normPartner = normName(partnerName);
+    const isPlaceholderPartner = normPartner === normName('هم‌تیمی انتخابی');
+    if (!isPlaceholderPartner) {
+      if (normPartner === normName(playerProfile.name)) {
+        setSyncNotification('هم‌تیمی نمی‌تواند خودتان باشید.');
+        return false;
+      }
+      if (
+        t.registeredTeams.some(
+          (tm) => normName(tm.player1Name) === normPartner || normName(tm.player2Name) === normPartner
+        )
+      ) {
+        setSyncNotification('این بازیکن قبلاً در تیم دیگری در این تورنمنت ثبت شده است.');
+        return false;
+      }
+    }
 
     const newTeam = {
       // Same-ms collision guard (same class as booking/coach-booking fixes, 2026-10-23).
@@ -2289,6 +2311,20 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           )
         )
           return x;
+        // Defensive mirror of the partner checks above (same-tick race):
+        // never let a self-partner or an already-registered partner slip
+        // in through the updater. Placeholder partner exempt, as above.
+        if (normName(newTeam.player2Name) !== normName('هم‌تیمی انتخابی')) {
+          if (
+            normName(newTeam.player2Name) === normName(playerProfile.name) ||
+            x.registeredTeams.some(
+              (tm) =>
+                normName(tm.player1Name) === normName(newTeam.player2Name) ||
+                normName(tm.player2Name) === normName(newTeam.player2Name)
+            )
+          )
+            return x;
+        }
         return {
           ...x,
           registeredTeamsCount: x.registeredTeamsCount + 1,

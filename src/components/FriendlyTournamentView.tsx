@@ -89,7 +89,12 @@ export const FriendlyTournamentView: React.FC = () => {
     });
     setShowCreate(false);
     setSelected(t);
+    // Reset the whole form, not just title/date/fee: courts/hours/split/
+    // club otherwise persist and a second tournament silently reuses the
+    // previous tournament's values (same stale-form class as the
+    // ClubOwnerModal reset fix).
     setFTitle(''); setFDate(''); setFFee('');
+    setFCourts('2'); setFHours('4'); setFSplit('70-30'); setFClubId('');
   };
 
   const handleAddTeam = (e: React.FormEvent) => {
@@ -117,7 +122,17 @@ export const FriendlyTournamentView: React.FC = () => {
       rank: tRank,
     });
     if (!ok) {
-      setTNameError('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
+      // addFriendlyTeam fails for two reasons with the same `false`: a
+      // duplicate name, or a tournament that is no longer open (stale
+      // `selected` still says 'open'). The duplicate message lied in the
+      // second case — read the live tournament's status to pick the
+      // honest message (the toast from addFriendlyTeam already says it).
+      const live = friendlyTournaments.find((t) => t.id === selected.id);
+      setTNameError(
+        !live || live.status !== 'open'
+          ? 'این تورنمنت دیگر برای ثبت تیم باز نیست.'
+          : 'تیمی با این نام قبلاً در این تورنمنت ثبت شده است.'
+      );
       return;
     }
     // Refresh selected from state. No fake team is appended: the detail
@@ -429,7 +444,7 @@ export const FriendlyTournamentView: React.FC = () => {
                   <button type="button" onClick={() => setFSplit('60-40')} className={`py-2 rounded-xl text-sm font-bold border ${fSplit === '60-40' ? 'bubble-btn-fire border-transparent text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}>۶۰ - ۴۰</button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor(Math.max(1, parseInt(faDigitsToEn(fCourts)) || 2) * Math.max(0, parseFloat(faDigitsToEn(fHours)) || 4) * 60 / 90)} بازی برگزار کنید.</p>
+              <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor(Math.max(1, parseInt(faDigitsToEn(fCourts)) || 1) * Math.max(1, parseFloat(faDigitsToEn(fHours)) || 2) * 60 / 90)} بازی برگزار کنید.</p>
               <button type="submit" className="w-full py-3 rounded-2xl bubble-btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
