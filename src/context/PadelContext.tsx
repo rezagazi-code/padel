@@ -408,6 +408,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // resetFriendlyBracket so an undone draw can be re-run; a fresh session
   // relies on the closure status check below instead.
   const friendlyDrawGuardRef = useRef<Set<string>>(new Set());
+  // Same-tick double-click guard for the official draw, mirroring
+  // friendlyDrawGuardRef: both closures still see status 'registration'
+  // and an empty bracket, so without this the bracket is built and
+  // persisted twice with different match ids. No clear site is needed —
+  // the official draw has no undo path; after state settles the
+  // non-empty-bracket check blocks any re-draw.
+  const officialDrawGuardRef = useRef<Set<string>>(new Set());
   // Guard against double-awarding tournament ranking points: a tournament's
   // participant credit must be given exactly once. StrictMode double-invokes
   // state updaters and both the free-text finalize path and the bracket path
@@ -976,13 +983,33 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.warn('Could not persist deleted club id:', err);
       }
     }
+    // Tournaments filed under this club must go too: the server FK is
+    // ON DELETE SET NULL, so without an explicit delete they survive with
+    // clubId '' and keep accepting registrations under a deleted venue.
+    // Local-only ids (tourn- prefix) have no server row to delete.
+    const doomedTournaments = tournaments.filter((t) => t.clubId === clubId);
+    if (getSupabase()) {
+      for (const t of doomedTournaments) {
+        if (t.id && !t.id.startsWith('tourn-')) {
+          try {
+            await deleteTournamentById(t.id);
+          } catch (err) {
+            console.error('deleteClub remote tournament delete failed', err);
+            setSyncNotification('خطا در حذف تورنمنت‌های باشگاه روی سرور. دوباره تلاش کنید.');
+            throw err;
+          }
+        }
+      }
+    }
     // Keep the delete dialog's promise ("all courts and bookings of this
     // club are deleted forever"): drop the club's local bookings, their
     // dongi ledger records, and its need-player posts, and unlist the club
-    // from coaches. The Supabase cascade only covers server rows — dongi
-    // lives in localStorage and need-player posts / coaches live in local
-    // state, so this cleanup must run on BOTH paths. NeedPlayerPost has no
-    // clubId, so manual posts match by club name (same key the UI shows).
+    // from coaches — plus its tournaments (both kinds), which the previous
+    // cleanup left orphaned and still open for registration. The Supabase
+    // cascade only covers server rows — dongi lives in localStorage and
+    // need-player posts / coaches live in local state, so this cleanup
+    // must run on BOTH paths. NeedPlayerPost has no clubId, so manual
+    // posts match by club name (same key the UI shows).
     const doomedClub = clubs.find((c) => c.id === clubId);
     const doomedBookingIds = new Set(
       bookings.filter((b) => b.clubId === clubId).map((b) => b.id)
@@ -1007,6 +1034,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         )
       );
     }
+    setTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
+    setFriendlyTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
     setSyncNotification('باشگاه با موفقیت حذف شد.');
   };
@@ -1579,6 +1608,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open') return t;
+        // Same-tick double-submit: both closures pass the duplicate check
+        // above, so re-check inside the updater — React runs updaters in
+        // order, so the second one sees the first one's appended team.
+        if (t.teams.some((tm) => normName(tm.teamName) === normName(team.teamName))) return t;
         const newTeam: FriendlyTeam = { ...team, id: `ftm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
         return { ...t, teams: [...t.teams, newTeam] };
       })
@@ -1686,6 +1719,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('برای این تورنمنت قبلاً قرعه‌کشی انجام شده است.');
       return;
     }
+    // Same-tick double-click: both closures still see 'registration' and
+    // an empty bracket, so refuse the second synchronously.
+    if (officialDrawGuardRef.current.has(tournId)) {
+      setSyncNotification('برای این تورنمنت قبلاً قرعه‌کشی انجام شده است.');
+      return;
+    }
+    officialDrawGuardRef.current.add(tournId);
     const teams = tourn.registeredTeams;
     if (teams.length < 2) {
       setSyncNotification('برای قرعه‌کشی حداقل ۲ تیم ثبت‌نام‌شده لازم است.');

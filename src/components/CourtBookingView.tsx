@@ -320,7 +320,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const dongiOthers = dongiNames
     .map((n) => n.trim())
     .filter(Boolean)
-    .filter((n) => n !== playerProfile.name)
+    .filter((n) => n !== playerProfile.name.trim())
     .filter((n, i, arr) => arr.indexOf(n) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
@@ -1035,7 +1035,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         <span className="text-[11px] text-slate-500">افزودن سریع از بازیکن‌های آزاد:</span>
                         {freeAgents.slice(0, 6).map((agent) => {
                           const used =
-                            agent.name === playerProfile.name || dongiOthers.includes(agent.name);
+                            agent.name.trim() === playerProfile.name.trim() || dongiOthers.includes(agent.name.trim());
                           const noSlot = !dongiNames.some((n) => !n.trim());
                           return (
                             <button
