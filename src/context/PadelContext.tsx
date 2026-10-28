@@ -2262,7 +2262,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'confirmed',
     };
     setCoachBookings((prev) => [newBooking, ...prev]);
-    setSyncNotification(`جلسه تمرینی با مربی ${newBooking.coachName} تایید و رزرو شد!`);
+    setSyncNotification(`جلسه تمرینی با مربی ${newBooking.coachName} در همین گوشی ثبت شد؛ برای تایید نهایی با مربی تماس بگیرید.`);
     // Hold the key past this synchronous body (2026-10-24): same flaw as
     // the court-booking guard — a finally-delete only blocks re-entrant
     // calls, not a double-tap whose second call resumes after an await.

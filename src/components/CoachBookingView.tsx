@@ -519,7 +519,7 @@ export const CoachBookingView: React.FC = () => {
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-base font-black text-slate-100">جلسه مربیگری با موفقیت رزرو شد</h3>
-              <p className="text-slate-500 text-[11px]">رزرو شما ثبت شد. برای هماهنگی نهایی، مربی با شما تماس می‌گیرد.</p>
+              <p className="text-slate-500 text-[11px]">رزرو در همین گوشی ثبت شد و هنوز به مربی اطلاع داده نشده؛ برای هماهنگی نهایی خودتان با مربی تماس بگیرید.</p>
             </div>
 
             <div className="rounded-2xl bg-white/[0.05] p-4 border border-white/10 space-y-2">
