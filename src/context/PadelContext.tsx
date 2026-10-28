@@ -1038,6 +1038,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
     setFriendlyTournaments((prev) => prev.filter((t) => t.clubId !== clubId));
+    // Open matches and group sessions carry clubId too and are
+    // localStorage-persisted, so without this they would stay listed and
+    // joinable under a deleted venue after the club is gone.
+    setOpenMatches((prev) => prev.filter((m) => m.clubId !== clubId));
+    setGroupSessions((prev) => prev.filter((g) => g.clubId !== clubId));
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
     setSyncNotification('باشگاه با موفقیت حذف شد.');
   };
