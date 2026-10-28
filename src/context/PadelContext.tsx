@@ -954,6 +954,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deleteClub = async (clubId: string): Promise<void> => {
+    // Order matters: delete the club's tournaments FIRST. The server FK is
+    // ON DELETE SET NULL, so deleting the club first and then failing
+    // mid-tournament-loop would orphan tournaments that keep accepting
+    // registrations under a deleted venue on other devices. Tournaments
+    // first means a failure leaves the club intact and the whole delete
+    // retry-safe. Local-only ids (tourn- prefix) have no server row.
+    const doomedTournaments = tournaments.filter((t) => t.clubId === clubId);
+    if (getSupabase()) {
+      for (const t of doomedTournaments) {
+        if (t.id && !t.id.startsWith('tourn-')) {
+          try {
+            await deleteTournamentById(t.id);
+          } catch (err) {
+            console.error('deleteClub remote tournament delete failed', err);
+            setSyncNotification('خطا در حذف تورنمنت‌های باشگاه روی سرور. دوباره تلاش کنید.');
+            throw err;
+          }
+        }
+      }
+    }
     // Real backend path for clubs that live on Supabase (UUID ids). The DB
     // cascades the delete to courts and bookings. RLS: super_admin only.
     if (getSupabase() && clubId && !clubId.startsWith('club-')) {
@@ -981,24 +1001,6 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } catch (err) {
         console.warn('Could not persist deleted club id:', err);
-      }
-    }
-    // Tournaments filed under this club must go too: the server FK is
-    // ON DELETE SET NULL, so without an explicit delete they survive with
-    // clubId '' and keep accepting registrations under a deleted venue.
-    // Local-only ids (tourn- prefix) have no server row to delete.
-    const doomedTournaments = tournaments.filter((t) => t.clubId === clubId);
-    if (getSupabase()) {
-      for (const t of doomedTournaments) {
-        if (t.id && !t.id.startsWith('tourn-')) {
-          try {
-            await deleteTournamentById(t.id);
-          } catch (err) {
-            console.error('deleteClub remote tournament delete failed', err);
-            setSyncNotification('خطا در حذف تورنمنت‌های باشگاه روی سرور. دوباره تلاش کنید.');
-            throw err;
-          }
-        }
       }
     }
     // Keep the delete dialog's promise ("all courts and bookings of this
@@ -1612,6 +1614,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // above, so re-check inside the updater — React runs updaters in
         // order, so the second one sees the first one's appended team.
         if (t.teams.some((tm) => normName(tm.teamName) === normName(team.teamName))) return t;
+        // Same-tick mirror of the partner check above: two submissions of
+        // different team names sharing a player could otherwise both land.
+        if (
+          (!isPlaceholder(normP1) && t.teams.some((tm) => normName(tm.player1Name) === normP1 || normName(tm.player2Name) === normP1)) ||
+          (!isPlaceholder(normP2) && t.teams.some((tm) => normName(tm.player1Name) === normP2 || normName(tm.player2Name) === normP2))
+        ) return t;
         const newTeam: FriendlyTeam = { ...team, id: `ftm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
         return { ...t, teams: [...t.teams, newTeam] };
       })
@@ -1725,7 +1733,6 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('برای این تورنمنت قبلاً قرعه‌کشی انجام شده است.');
       return;
     }
-    officialDrawGuardRef.current.add(tournId);
     const teams = tourn.registeredTeams;
     if (teams.length < 2) {
       setSyncNotification('برای قرعه‌کشی حداقل ۲ تیم ثبت‌نام‌شده لازم است.');
@@ -1735,6 +1742,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSyncNotification('قرعه‌کشی رسمی فعلاً برای حداکثر ۱۶ تیم پشتیبانی می‌شود.');
       return;
     }
+    // Guard set only after the checks pass: arming it before the early
+    // returns above left a failed draw (e.g. 0–1 teams) permanently
+    // blocking the next draw with a misleading "already drawn" toast,
+    // and the official draw has no undo path to recover from that.
+    officialDrawGuardRef.current.add(tournId);
 
     // Sort by strength: average numeric level, stronger first (ties broken
     // by name for a deterministic draw).
