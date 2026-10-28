@@ -64,7 +64,11 @@ export const FriendlyTournamentView: React.FC = () => {
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fTitle.trim()) return;
-    const club = clubs.find((c) => c.id === fClubId) || clubs[0];
+    // No silent reassignment: the select visibly defaults to the first club
+    // (see value below), so the stored club is always the one shown. Never
+    // fall back to clubs[0] behind a blank select.
+    const effectiveClubId = fClubId || clubs[0]?.id || '';
+    const club = clubs.find((c) => c.id === effectiveClubId);
     const t = createFriendlyTournament({
       title: fTitle.trim(),
       clubId: club?.id || '',
@@ -78,7 +82,7 @@ export const FriendlyTournamentView: React.FC = () => {
       // and the court/hour hint render «با ‎-۲ زمین».
       entryFeePerTeam: Math.max(0, parseInt(faDigitsToEn(fFee).replace(/[,٬،\s]/g, '')) || 0),
       courtsCount: Math.max(1, parseInt(faDigitsToEn(fCourts)) || 1),
-      hoursReserved: Math.max(0, parseFloat(faDigitsToEn(fHours)) || 2),
+      hoursReserved: Math.max(1, parseFloat(faDigitsToEn(fHours)) || 2),
       matchDurationMin: 90,
       prizeSplit: fSplit,
       createdBy: playerProfile.name || 'ناشناس',
@@ -409,7 +413,7 @@ export const FriendlyTournamentView: React.FC = () => {
             </div>
             <form onSubmit={handleCreate} className="space-y-3">
               <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} placeholder="عنوان *" className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
-              <select value={fClubId} onChange={(e) => setFClubId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
+              <select value={fClubId || clubs[0]?.id || ''} onChange={(e) => setFClubId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
                 {clubs.map((c) => <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>)}
               </select>
               <input value={fDate} onChange={(e) => setFDate(e.target.value)} placeholder="تاریخ (مثلاً جمعه ۱۴۰۳/۰۷/۲۰)" className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
