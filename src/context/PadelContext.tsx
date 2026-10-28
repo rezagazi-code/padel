@@ -408,6 +408,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // resetFriendlyBracket so an undone draw can be re-run; a fresh session
   // relies on the closure status check below instead.
   const friendlyDrawGuardRef = useRef<Set<string>>(new Set());
+  // Same-tick double-submit guard for team registration (friendly +
+  // official): the updater-level duplicate re-checks silently no-op on
+  // the second same-tick call, but the success toast + `true` return
+  // below would still fire — a confirmation for a team never added.
+  // A synchronously-set ref is the authority (updaters run later, so a
+  // flag set inside one is never visible at return time). Cleared on a
+  // macrotask so only the same-tick window is covered; later retries
+  // are refused honestly by the state duplicate checks instead.
+  const teamRegGuardRef = useRef<Set<string>>(new Set());
   // Same-tick double-click guard for the official draw, mirroring
   // friendlyDrawGuardRef: both closures still see status 'registration'
   // and an empty bracket, so without this the bracket is built and
@@ -1013,6 +1022,18 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // must run on BOTH paths. NeedPlayerPost has no clubId, so manual
     // posts match by club name (same key the UI shows).
     const doomedClub = clubs.find((c) => c.id === clubId);
+    // Same-named clubs can coexist (addClub has no duplicate-name check —
+    // e.g. one chain in two cities), and the cleanups below match by NAME
+    // because manual need-player posts and coach sessions carry no clubId.
+    // If a namesake survives, those cleanups cannot tell the deleted
+    // club's records from the survivor's live ones — deleting the
+    // survivor's sessions/posts/links would be data loss, while leaving
+    // the deleted club's indistinguishable orphans is harmless. So when a
+    // namesake survives, skip the name-keyed cleanups entirely; the
+    // clubId-keyed cleanups above/below are exact either way.
+    const namesakeSurvives = doomedClub
+      ? clubs.some((c) => c.id !== clubId && c.name === doomedClub.name)
+      : false;
     const doomedBookingIds = new Set(
       bookings.filter((b) => b.clubId === clubId).map((b) => b.id)
     );
@@ -1024,10 +1045,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       prev.filter(
         (p) =>
           !(p.bookingId && doomedBookingIds.has(p.bookingId)) &&
-          p.clubName !== doomedClub?.name
+          (namesakeSurvives || p.clubName !== doomedClub?.name)
       )
     );
-    if (doomedClub) {
+    if (doomedClub && !namesakeSurvives) {
       setCoaches((prev) =>
         prev.map((co) =>
           co.clubs.includes(doomedClub.name)
@@ -1619,6 +1640,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return false;
       }
     }
+    // Same-tick double-submit: both closures pass the checks above, the
+    // updater below silently drops the second team, yet the success
+    // toast + `true` would still fire. Refuse honestly via the ref guard.
+    const friendlyRegKey = `${tournId}::${normName(team.teamName)}`;
+    if (teamRegGuardRef.current.has(friendlyRegKey)) {
+      setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
+      return false;
+    }
+    teamRegGuardRef.current.add(friendlyRegKey);
+    setTimeout(() => teamRegGuardRef.current.delete(friendlyRegKey), 0);
     setFriendlyTournaments((prev) =>
       prev.map((t) => {
         if (t.id !== tournId || t.status !== 'open') return t;
@@ -2401,6 +2432,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
+    // Same-tick double-submit: both closures pass the checks above, the
+    // updater below silently drops the second team, yet the success
+    // toast + `true` would still fire. Refuse honestly via the ref guard.
+    const officialRegKey = `${tournId}::${normProfile}::${normName(teamName)}`;
+    if (teamRegGuardRef.current.has(officialRegKey)) {
+      setSyncNotification('شما قبلاً در این تورنمنت تیم ثبت کرده‌اید.');
+      return false;
+    }
+    teamRegGuardRef.current.add(officialRegKey);
+    setTimeout(() => teamRegGuardRef.current.delete(officialRegKey), 0);
     const newTeam = {
       // Same-ms collision guard (same class as booking/coach-booking fixes, 2026-10-23).
       id: `tm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
