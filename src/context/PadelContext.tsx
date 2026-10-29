@@ -2994,6 +2994,18 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const tourn = tournaments.find((t) => t.id === tournId);
+    // Same start-date guard as finalizeTournamentResults: ranking points
+    // must not be awarded for a bracket completed before the tournament
+    // starts (matches never played). The bracket itself still records;
+    // only the points award is held back (re-recording the final after
+    // the start date awards them, since no award record exists yet).
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const beforeStart = !!tourn?.startDate && todayStr < tourn.startDate;
     // Compute the transform ONCE from current state and reuse it for local
     // state, the server persist, and the points award below. applyBracketMatch
     // reads only `t` and builds fresh objects for everything it changes
@@ -3053,7 +3065,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // exactly once; the old champion's points are not revoked — deliberate). Placed AFTER
     // setTournaments on purpose — React StrictMode double-invokes state
     // updaters, and the award must never run inside one.
-    if (next && next.status === 'completed' && next.winnerTeam) {
+    if (next && next.status === 'completed' && next.winnerTeam && !beforeStart) {
       const awarded = getAwardedRecord(tournId);
       const normRu = (s: string) => s.trim();
       if (!awarded) {
@@ -3071,6 +3083,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
         recordCorrectionAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
       }
+    }
+    // Bracket completed before the start date: the result above is recorded,
+    // but no ranking points were awarded (same rule as finalize). Say so
+    // instead of leaving the plain success toast, so the admin is not
+    // surprised by missing points — re-recording the final after the start
+    // date awards them.
+    if (recorded && next && next.status === 'completed' && next.winnerTeam && beforeStart) {
+      setSyncNotification('نتیجه مسابقه ثبت شد، ولی چون تورنمنت هنوز شروع نشده امتیاز رتبه‌بندی فعلاً تعلق نگرفت.');
     }
   };
 

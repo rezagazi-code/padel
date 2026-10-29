@@ -132,6 +132,11 @@ export const TournamentsView: React.FC = () => {
     if (currentUserRole === 'super_admin') return true;
     if (currentUserRole === 'province_admin' && tourn.province === adminProvince) return true;
     if (currentUserRole === 'club_admin' && tourn.clubId === adminClubId) return true;
+    // Organizer fallback (same as canDeleteTournament + server RLS
+    // tournaments_update_organizer): an organizer whose admin-club binding
+    // was lost/changed could delete their own tournament but saw no draw,
+    // finalize, or bracket-score buttons for it.
+    if (tourn.organizerId && tourn.organizerId === currentUserId) return true;
     return false;
   };
 
