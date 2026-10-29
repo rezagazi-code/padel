@@ -151,7 +151,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
       <div className="p-8 text-center rounded-2xl bg-white/[0.04] border border-dashed border-white/10 space-y-2">
         <Trophy className="w-8 h-8 text-slate-400 mx-auto" />
         <p className="text-xs text-slate-500 font-bold">جدول مسابقات برای این تورنومنت هنوز قرعه‌کشی و رسمی نشده است.</p>
-        <p className="text-[11px] text-slate-500">پس از اتمام مهلت ثبت‌نام تیم‌ها، جدول حذفی خط‌کشی‌شده بارگذاری می‌گردد.</p>
+        <p className="text-[11px] text-slate-500">پس از ثبت‌نام حداقل ۲ تیم، مدیر تورنومنت با دکمه «قرعه‌کشی» جدول حذفی را می‌سازد؛ جدول به‌صورت خودکار ساخته نمی‌شود.</p>
       </div>
     );
   }
@@ -364,7 +364,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                   </span>
                   <span className="text-slate-400 flex items-center gap-1 text-[11px]">
                     <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                    {finalMatch.scheduledTime || 'جمعه شب'}
+                    {finalMatch.scheduledTime || 'تعیین نشده'}
                   </span>
                 </div>
 
