@@ -30,6 +30,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Supabase returns auth errors in English; the login modal is fully Persian,
+// so map the common messages instead of showing raw English to users.
+function toPersianAuthError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'ایمیل یا رمز عبور اشتباه است.';
+  if (m.includes('user already registered') || m.includes('user already exists')) return 'این ایمیل قبلاً ثبت شده است؛ لطفاً وارد شوید.';
+  if (m.includes('password should be at least 6 characters')) return 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+  if (m.includes('email rate limit exceeded') || m.includes('too many requests')) return 'تعداد تلاش‌ها زیاد است؛ لطفاً چند دقیقه دیگر دوباره تلاش کنید.';
+  if (m.includes('unable to validate email address') || m.includes('invalid email')) return 'ایمیل واردشده معتبر نیست.';
+  if (m.includes('email link is invalid or has expired')) return 'لینک تأیید منقضی شده است؛ دوباره تلاش کنید.';
+  if (m.includes('user not found')) return 'حسابی با این ایمیل پیدا نشد.';
+  return 'خطایی رخ داد؛ لطفاً دوباره تلاش کنید.';
+}
+
 async function loadProfile(userId: string): Promise<AuthProfile | null> {
   const sb = getSupabase();
   if (!sb) return null;
@@ -112,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: { data: { name: name.trim() } },
     });
-    if (error) return { error: error.message, needsConfirmation: false };
+    if (error) return { error: toPersianAuthError(error.message), needsConfirmation: false };
     // If email confirmation is enabled, there is no session yet.
     return { error: null, needsConfirmation: !data.session };
   }, []);
@@ -121,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = getSupabase();
     if (!sb) return { error: 'اتصال به سرور برقرار نیست.' };
     const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) return { error: error.message };
+    if (error) return { error: toPersianAuthError(error.message) };
     return { error: null };
   }, []);
 
@@ -145,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error: signInError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
     if (signInError) return { error: 'رمز فعلی اشتباه است.' };
     const { error: updateError } = await sb.auth.updateUser({ password: newPassword });
-    if (updateError) return { error: updateError.message };
+    if (updateError) return { error: toPersianAuthError(updateError.message) };
     return { error: null };
   }, [session]);
 

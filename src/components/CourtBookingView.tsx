@@ -947,7 +947,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <div>
                       <h4 className="text-sm font-bold text-slate-100">آیا برای این سانس به بازیکن کمکی احتیاج دارید؟</h4>
                       <p className="text-xs text-slate-500">
-                        در صورت فعال‌سازی، آگهی «نیاز به بازیکن» خودکار در تابلوی بازیکن‌های آزاد ثبت می‌شود.
+                        در صورت فعال‌سازی، آگهی «نیاز به بازیکن» در تابلوی بازیکن‌های آزاد همین دستگاه ثبت می‌شود.
                       </p>
                     </div>
                   </div>

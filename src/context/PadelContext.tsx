@@ -2099,7 +2099,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'active',
     };
     setNeedPlayerPosts((prev) => [newPost, ...prev]);
-    setSyncNotification('آگهی نیاز به بازیکن با موفقیت منتشر شد.');
+    setSyncNotification('آگهی روی همین دستگاه ذخیره شد؛ فعلاً برای بازیکنان دیگر قابل مشاهده نیست.');
   };
 
   const joinNeedPlayerPost = (postId: string): boolean => {
@@ -2152,7 +2152,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
       });
     });
-    setSyncNotification('درخواست پیوستن شما به عنوان بازیکن آزاد ثبت شد!');
+    setSyncNotification('درخواست پیوستن شما روی همین دستگاه ثبت شد.');
     return true;
   };
 
