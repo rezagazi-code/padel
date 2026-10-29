@@ -6,7 +6,6 @@ import {
   MapPin,
   Clock,
   Star,
-  ShieldCheck,
   CheckCircle2,
   Calendar,
   Sparkles,
@@ -693,10 +692,6 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-black text-slate-100">{currentClub.name}</h2>
-                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3" />
-                      تایید رسمی
-                    </span>
                     <span className="chip rounded-full text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-[#6ea8ff]" />
                       {currentClub.province}
