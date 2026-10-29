@@ -40,6 +40,7 @@ interface CourtBookingViewProps {
 export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOwnerModal }) => {
   const {
     clubs,
+    tournaments,
     bookings,
     createBooking,
     deleteClub,
@@ -1247,7 +1248,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       <ConfirmDialog
         open={!!clubToDelete}
         title="حذف باشگاه"
-        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.` : ''}
+        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.${tournaments.some((t) => t.clubId === clubToDelete.id && t.status === 'completed') ? '\nتوجه: امتیازهای رنکینگ اعطاشده از تورنمنت‌های تکمیل‌شده‌ی این باشگاه پس از حذف باقی می‌مانند.' : ''}` : ''}
         confirmLabel="حذف باشگاه"
         onConfirm={async () => {
           if (!clubToDelete) return;
