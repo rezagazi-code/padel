@@ -2633,7 +2633,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return recomputeRankingDerived([...updated, ...extras]);
     });
 
-    setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
+    setSyncNotification(`نتایج تورنومنت ثبت شد و جدول رنکینگ داخلی آپدیت گردید!`);
   };
 
   // Champion-only award for a CORRECTED final that crowns a different
@@ -2733,7 +2733,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return recomputeRankingDerived([...updated, ...extras]);
     });
 
-    setSyncNotification(`نتایج تورنومنت اصلاح و جدول رنکینگ استانی و کشوری آپدیت گردید!`);
+    setSyncNotification(`نتایج تورنومنت اصلاح و جدول رنکینگ داخلی آپدیت گردید!`);
   };
 
   const finalizeTournamentResults = (
