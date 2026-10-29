@@ -427,7 +427,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       splitPricePerPerson: splitPrice,
       paymentStatus: splitPayment ? 'split_active' : 'paid',
       bookedByPlayerId: playerProfile.id,
-      bookedByPlayerName: playerProfile.name,
+      bookedByPlayerName: playerProfile.name.trim() || 'شما',
       playersNeeded: needsExtraPlayers ? playersNeededCount : 0,
     });
 
@@ -1247,7 +1247,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       <ConfirmDialog
         open={!!clubToDelete}
         title="حذف باشگاه"
-        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها و رزروهای این باشگاه برای همیشه پاک می‌شوند.` : ''}
+        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.` : ''}
         confirmLabel="حذف باشگاه"
         onConfirm={async () => {
           if (!clubToDelete) return;

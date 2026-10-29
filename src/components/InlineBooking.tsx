@@ -56,18 +56,23 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   }, [courtId, club.courts]);
 
   // Dates: next 7 days, generated live in the Jalali (Persian) calendar
+  // All four formatters use Asia/Tehran: booking dates are compared and
+  // stored in Tehran time elsewhere, so the day list must not follow the
+  // device timezone (a no-op on a Tehran-set device).
   const daysList = useMemo(() => {
-    const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' });
-    const fmtDayMonth = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' });
+    const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', timeZone: 'Asia/Tehran' });
+    const fmtDayMonth = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long', timeZone: 'Asia/Tehran' });
     const fmtJalali = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
+      timeZone: 'Asia/Tehran',
     });
     const fmtIso = new Intl.DateTimeFormat('en-CA', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
+      timeZone: 'Asia/Tehran',
     });
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
@@ -367,7 +372,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         splitPricePerPerson: splitPrice,
         paymentStatus: splitPayment ? 'split_active' : 'paid',
         bookedByPlayerId: playerProfile.id,
-        bookedByPlayerName: playerProfile.name,
+        bookedByPlayerName: playerProfile.name.trim() || 'شما',
         playersNeeded: needsExtraPlayers ? playersNeededCount : 0,
       });
 
