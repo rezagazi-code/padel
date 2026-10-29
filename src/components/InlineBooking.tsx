@@ -792,7 +792,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                 <span className="font-bold text-slate-100">{lastBookingInfo.durationMinutes} دقیقه</span>
               </div>
               <div className="pt-2 border-t border-white/10 flex justify-between text-sm">
-                <span className="text-slate-500 font-bold">مبلغ پرداختی:</span>
+                <span className="text-slate-500 font-bold">مبلغ قابل پرداخت در باشگاه:</span>
                 <span className="text-[#ff6b81] font-black">
                   {(lastBookingInfo.paymentStatus === 'split_active'
                     ? lastBookingInfo.splitPricePerPerson
@@ -807,7 +807,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-start gap-2">
                 <Info className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
                 <span>
-                  آگهی نیاز به {lastBookingInfo.playersNeeded} بازیکن در بخش بازیکن‌های آزاد ثبت شد.
+                  آگهی نیاز به {lastBookingInfo.playersNeeded} بازیکن روی همین دستگاه در بخش بازیکن‌های آزاد ثبت شد؛ فعلاً برای بازیکنان دیگر قابل مشاهده نیست.
                 </span>
               </div>
             )}

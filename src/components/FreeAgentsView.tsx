@@ -91,8 +91,8 @@ export const FreeAgentsView: React.FC = () => {
         // club field — trim first so blank-looking posts can't be stored.
         clubName: reqClubName.trim() || clubs[0]?.name || 'باشگاه پدل انقلاب تهران',
         province: playerProfile.province,
-        date: reqDate,
-        time: reqTime,
+        date: reqDate.trim() || 'امروز - ۲۱:۰۰',
+        time: reqTime.trim() || '۲۱:۰۰ - ۲۲:۳۰',
         spotsNeeded: reqSpots,
         preferredSide: reqSide,
         minLevel: hostMinLevel,
