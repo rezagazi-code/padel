@@ -1079,6 +1079,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!getSupabase() || !userId || !clubId || clubId.startsWith('club-')) {
       if (clubId?.startsWith('club-')) {
         setSyncNotification('این باشگاه هنوز روی سرور ثبت نشده؛ امتیازدهی فعلاً ممکن نیست.');
+      } else if (!userId) {
+        setSyncNotification('برای ثبت امتیاز، ابتدا وارد حساب خود شوید.');
       }
       return;
     }

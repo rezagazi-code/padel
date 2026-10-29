@@ -72,6 +72,9 @@ export const PlayerProfileView: React.FC = () => {
   // role — the app role comes from AuthContext's profile-backed `role`.
   const isSuperAdmin = role === 'super_admin';
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Avatar URL that failed to load: fall back to the initial-letter frame
+  // instead of a broken-image icon. Keyed by URL so a new avatar retries.
+  const [brokenAvatar, setBrokenAvatar] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   // In-flight guard: cancelBooking awaits a remote delete + re-read, so a
   // double-tap would otherwise fire two cancels for the same booking.
@@ -328,12 +331,13 @@ export const PlayerProfileView: React.FC = () => {
           {/* Avatar with customized player color frame - bigger for half-body photos */}
           <div className="relative">
             <label className="cursor-pointer block">
-              {playerProfile.avatar ? (
+              {playerProfile.avatar && brokenAvatar !== playerProfile.avatar ? (
                 <img
                   src={playerProfile.avatar}
                   alt={playerProfile.name}
                   className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl object-cover ring-4 shadow-2xl hover:opacity-90 transition"
                   style={{ borderColor: themeColor }}
+                  onError={() => setBrokenAvatar(playerProfile.avatar)}
                 />
               ) : (
                 <div

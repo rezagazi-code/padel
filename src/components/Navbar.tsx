@@ -52,6 +52,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { user, profile, ready } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
+  // Avatar URL that failed to load (stale/dead remote image): fall back to
+  // the initial-letter badge instead of a broken-image icon. Keyed by URL so
+  // a new avatar automatically retries.
+  const [brokenAvatar, setBrokenAvatar] = useState<string | null>(null);
 
   const navItems: {
     id: 'booking' | 'matchmaking' | 'free-agents' | 'tournaments' | 'coaches' | 'profile' | 'shop';
@@ -210,13 +214,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/[0.05] border border-white/10 hover:border-white/10 transition cursor-pointer"
             >
               <div className="relative">
-                {playerProfile.avatar ? (
+                {playerProfile.avatar && brokenAvatar !== playerProfile.avatar ? (
                   <img
                     src={playerProfile.avatar}
                     alt=""
                     aria-hidden="true"
                     className="w-8 h-8 rounded-lg object-cover ring-2"
                     style={{ borderColor: playerProfile.themeColor }}
+                    onError={() => setBrokenAvatar(playerProfile.avatar)}
                   />
                 ) : (
                   <div
