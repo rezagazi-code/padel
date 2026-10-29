@@ -230,7 +230,7 @@ export const CoachBookingView: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold">
               <GraduationCap className="w-3.5 h-3.5" />
-              آکادمی و مربیان دارای مدرک رسمی فدراسیون بین‌المللی FIP
+              آکادمی و مربیان پدل
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
               رزرو مربی اختصاصی و کلینیک‌های پدل
@@ -316,10 +316,12 @@ export const CoachBookingView: React.FC = () => {
                     </a>
                   )}
                   
+                  {coach.fipCertification && (
                   <div className="inline-flex items-center gap-1 text-[11px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md mt-1">
                     <Award className="w-3 h-3" />
                     <span>{coach.fipCertification}</span>
                   </div>
+                  )}
                 </div>
               </div>
 
