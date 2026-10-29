@@ -897,7 +897,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       reviewCount: 0,
     };
     setClubs((prev) => [newClub, ...prev]);
-    setSyncNotification(`باشگاه «${newClub.name}» با موفقیت افزوده شد!`);
+    setSyncNotification(`باشگاه «${newClub.name}» روی همین دستگاه افزوده شد؛ فعلاً برای دیگران قابل مشاهده نیست.`);
     bindNewClubAsAdminClub(newClub.id);
     return newClub;
   };
@@ -1145,7 +1145,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       reviewsCount: 0,
     };
     setCoaches((prev) => [newCoach, ...prev]);
-    setSyncNotification(`مربی «${newCoach.name}» با موفقیت افزوده شد!`);
+    setSyncNotification(`مربی «${newCoach.name}» روی همین دستگاه افزوده شد؛ فعلاً برای دیگران قابل مشاهده نیست.`);
     return newCoach;
   };
 
@@ -1250,7 +1250,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // If host needs players, automatically create a NeedPlayerPost!
     if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
 
-    setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
+    setSyncNotification(`رزرو زمین «${newBooking.courtName}» روی همین دستگاه ثبت شد؛ باشگاه آن را نمی‌بیند، برای قطعی‌شدن با باشگاه تماس بگیرید.`);
     // Hold the key past this synchronous body (2026-10-24): the old
     // finally-delete only blocked re-entrant calls in the same tick, but a
     // real double-tap's second call resumes after the confirm handler's
@@ -2332,7 +2332,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'registration',
     };
     setTournaments((prev) => [newTourn, ...prev]);
-    setSyncNotification(`تورنومنت «${newTourn.title}» توسط باشگاه ثبت شد!`);
+    setSyncNotification(`تورنومنت «${newTourn.title}» روی همین دستگاه ثبت شد؛ فعلاً برای دیگران قابل مشاهده نیست.`);
     return newTourn;
   };
 
@@ -2498,7 +2498,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
       })
     );
-    setSyncNotification(`تیم «${teamName}» با موفقیت در تورنومنت ثبت شد.`);
+    // Local-only tournaments (ids like `tourn-…`) have no server row, so the
+    // team below never reaches other devices — say so up front instead of
+    // the plain success toast (same honest-wording class as a73c45d).
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tournId)) {
+      setSyncNotification(`تیم «${teamName}» روی همین دستگاه در تورنومنت ثبت شد؛ فعلاً برای دیگران قابل مشاهده نیست.`);
+    } else {
+      setSyncNotification(`تیم «${teamName}» با موفقیت در تورنومنت ثبت شد.`);
+    }
     // Persist to Supabase (fire-and-forget): without this the registration
     // only lives in local state/localStorage and is wiped on the next
     // catalog reload from the server. The local state above is the

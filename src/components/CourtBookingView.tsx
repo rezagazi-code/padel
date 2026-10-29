@@ -1203,7 +1203,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-start gap-2">
                 <Info className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
                 <span>
-                  آگهی نیاز به {lastBookingInfo.playersNeeded} بازیکن در بخش بازیکن‌های آزاد ثبت شد تا سایر بازیکنان ملحق شوند.
+                  آگهی نیاز به {lastBookingInfo.playersNeeded} بازیکن روی همین دستگاه در بخش بازیکن‌های آزاد ثبت شد؛ فعلاً برای بازیکنان دیگر قابل مشاهده نیست.
                 </span>
               </div>
             )}

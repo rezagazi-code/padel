@@ -959,7 +959,7 @@ export const TournamentsView: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-black text-slate-100">ثبت نتایج نهایی و آپدیت رنکینگ استانی</h3>
+                <h3 className="text-base font-black text-slate-100">ثبت نتایج نهایی و آپدیت رنکینگ داخلی</h3>
               </div>
               <button
                 onClick={() => setShowFinalizeModal(null)}
