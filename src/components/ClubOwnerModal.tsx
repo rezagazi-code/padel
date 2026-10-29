@@ -59,7 +59,7 @@ const defaultCourts = (): CourtDraft[] => [
 ];
 
 export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose }) => {
-  const { addClub } = usePadel();
+  const { addClub, currentUserRole } = usePadel();
 
   const [clubName, setClubName] = useState('');
   const [province, setProvince] = useState('تهران');
@@ -253,6 +253,15 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Upfront honesty: server-side club inserts are super_admin-only
+            (clubs_insert_admin), so a signed-in club owner would otherwise
+            fill this whole form only to hit an RLS denial at submit. */}
+        {currentUserRole !== 'super_admin' && (
+          <div className="p-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-200 text-[11px] leading-5">
+            ثبت باشگاه جدید روی سرور فقط توسط مدیر اصلی انجام می‌شود. اگر باشگاه‌دار هستید، مشخصات باشگاه را برای مدیر اصلی بفرستید تا آن را ثبت کند؛ فرمی که اینجا پر می‌کنید برای شما روی سرور ثبت نمی‌شود.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* General Club Info */}

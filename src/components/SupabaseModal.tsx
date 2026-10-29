@@ -67,7 +67,7 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ isOpen, onClose })
             <span className="text-[10px] text-slate-500">
               {isSupabaseConnected
                 ? 'رزروها و رنکینگ مستقیماً در پروژه Supabase شما همگام‌سازی می‌شوند.'
-                : 'داده‌ها به صورت پایدار در مرورگر ذخیره شده و پس از اتصال به سرور Supabase منتقل می‌شوند.'}
+                : 'داده‌ها فقط در مرورگر همین دستگاه ذخیره می‌شوند؛ رکوردهای ثبت‌شده پیش از اتصال، به سرور منتقل نمی‌شوند.'}
             </span>
           </div>
         </div>
