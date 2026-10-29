@@ -30,7 +30,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <h3 className="text-base font-black text-slate-100">نصب وب‌اپلیکیشن پدل‌پرو (PWA)</h3>
-              <p className="text-[11px] text-slate-500">نصب بدون استور با لود فوق‌العاده سریع و نوتیفیکیشن</p>
+              <p className="text-[11px] text-slate-500">نصب بدون استور با لود فوق‌العاده سریع</p>
             </div>
           </div>
 
