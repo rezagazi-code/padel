@@ -11,6 +11,7 @@ import {
   type Settlement,
 } from '../lib/dongi';
 import { toJalaliDisplay } from '../utils/dates';
+import { ConfirmDialog } from './ConfirmDialog';
 import {
   Wallet,
   CheckCircle2,
@@ -44,6 +45,7 @@ export const DongiPanel: React.FC = () => {
   const [records, setRecords] = useState<DongiRecord[]>(() => loadDongiRecords());
   const [balances, setBalances] = useState<BalanceEntry[]>(() => getBalances());
   const [settlements, setSettlements] = useState<Settlement[]>(() => suggestSettlements());
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const refresh = () => {
     setRecords(loadDongiRecords());
@@ -170,7 +172,7 @@ export const DongiPanel: React.FC = () => {
                         {fmt(r.total)} <span className="font-semibold text-slate-500">تومان</span>
                       </span>
                       <button
-                        onClick={() => deleteDongiRecord(r.bookingId)}
+                        onClick={() => setDeleteTargetId(r.bookingId)}
                         className="text-slate-500 hover:text-[#ff6b81] transition cursor-pointer"
                         title="حذف این دنگی"
                       >
@@ -226,6 +228,19 @@ export const DongiPanel: React.FC = () => {
           </div>
         </>
       )}
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        title="حذف دنگی"
+        message="این رکورد دنگی حذف شود؟ مانده‌ها و پیشنهادهای تسویه تغییر می‌کنند و این عمل قابل بازگشت نیست."
+        confirmLabel="حذف دنگی"
+        cancelLabel="انصراف"
+        onConfirm={() => {
+          const id = deleteTargetId;
+          setDeleteTargetId(null);
+          if (id) deleteDongiRecord(id);
+        }}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 };

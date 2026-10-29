@@ -63,17 +63,22 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   
   // Dates: next 7 days, generated live in the Jalali (Persian) calendar
   const daysList = useMemo(() => {
-    const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' });
-    const fmtDayMonth = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' });
+    // All four formatters use Asia/Tehran: booking dates are compared and
+    // stored in Tehran time elsewhere, so the day list must not follow the
+    // device timezone (a no-op on a Tehran-set device).
+    const fmtWeekday = new Intl.DateTimeFormat('fa-IR', { weekday: 'long', timeZone: 'Asia/Tehran' });
+    const fmtDayMonth = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long', timeZone: 'Asia/Tehran' });
     const fmtJalali = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
+      timeZone: 'Asia/Tehran',
     });
     const fmtIso = new Intl.DateTimeFormat('en-CA', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
+      timeZone: 'Asia/Tehran',
     });
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
