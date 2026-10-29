@@ -251,7 +251,7 @@ export const PlayerProfileView: React.FC = () => {
         <p className="text-sm text-slate-400 leading-relaxed mb-6">
           برای دیدن و ویرایش پروفایلت وارد شو
           <br />
-          <span className="text-xs text-slate-500">رزروها، تاریخچه و مشخصاتت روی سرور ذخیره می‌شن</span>
+          <span className="text-xs text-slate-500">با ورود، پروفایل و تاریخچه‌ات حفظ می‌شه (رزرو باشگاه‌های داخلی فقط روی همین دستگاه است)</span>
         </p>
         <button
           onClick={() => setAuthModalOpen(true)}

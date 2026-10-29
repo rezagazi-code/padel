@@ -349,9 +349,17 @@ export const FriendlyTournamentView: React.FC = () => {
             (tourn.teams.length >= 2 ? generateBracket(tourn.teams.map(t => ({ id: t.id, name: t.teamName, rank: t.rank }))) : []);
           
           if (displayMatches.length === 0) return null;
+          // Pre-draw bracket is only a preview: generateBracket pairs
+          // sequentially, while the real draw uses snake seeding, so the
+          // semifinal paths can differ. Label it so nobody mistakes the
+          // preview for the final draw.
+          const isPreview = tvMatches.length === 0;
           return (
             <div className="space-y-4">
-              <TVBracket matches={displayMatches} title={`جدول ${tourn.title}`} />
+              <TVBracket matches={displayMatches} title={isPreview ? `پیش‌نمایش جدول ${tourn.title}` : `جدول ${tourn.title}`} />
+              {isPreview && (
+                <p className="text-center text-xs text-slate-500">این جدول پیش‌نمایش است؛ قرعه نهایی ممکن است متفاوت باشد.</p>
+              )}
               {/* Score entry for admins - kept below the TV bracket */}
               {tourn.bracket.length > 0 && (
                 <div className="court-card p-6">
