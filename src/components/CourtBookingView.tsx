@@ -751,7 +751,10 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               </div>
 
-              {/* Amenities Tags — visible on all sizes */}
+              {/* Amenities Tags — visible on all sizes; hidden when the club
+                  declares none (new clubs created via the owner form collect
+                  no amenities, so an empty header would be a dead section). */}
+              {currentClub.amenities.length > 0 && (
               <div>
               <div>
                 <div className="court-title text-xs font-bold text-slate-400 mb-2">
@@ -770,6 +773,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 </div>
               </div>
               </div>
+              )}
 
               {/* A 0-court club has no booking form: show the same notice the
                   inline panel uses, so the dead confirm path is unreachable. */}

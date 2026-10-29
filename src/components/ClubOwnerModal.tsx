@@ -202,13 +202,12 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
           surface: 'Mondo Supercourt 4NX' as const,
           isAvailable: true,
         })),
-        amenities: [
-          'کافه تریا اختصاصی',
-          'رختکن و دوش آب گرم',
-          'سیستم فیلمبرداری اتوماتیک',
-          'پارکینگ اختصاصی',
-          'فروشگاه تجهیزات پدل',
-        ],
+        // No amenities: this form collects none, so shipping a hardcoded
+        // list (cafe, auto filming, parking…) stamped every new club with
+        // facilities it may not have, shown as fact in the club detail.
+        // Empty renders no amenities section (see CourtBookingView) until
+        // an amenities picker exists in this form.
+        amenities: [],
       });
 
       onClose();
