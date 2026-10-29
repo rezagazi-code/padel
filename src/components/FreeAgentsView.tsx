@@ -632,7 +632,7 @@ export const FreeAgentsView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-slate-400 font-bold">انتخاب مسابقه یا سانس برای ارسال دعوت‌نامه:</label>
+              <label className="block text-slate-400 font-bold">انتخاب مسابقه یا سانس برای دعوت:</label>
               <select
                 value={selectedMatchToInvite}
                 onChange={(e) => setSelectedMatchToInvite(e.target.value)}
