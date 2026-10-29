@@ -254,8 +254,8 @@ export const TournamentsView: React.FC = () => {
         levelRange: '۳.۰۰+',
         bannerImage: club.coverImage,
         rules: [
-          'مسابقات تحت استانداردهای فدراسیون بین‌المللی پدل FIP برگزار می‌شود.',
-          'نتایج مستقیماً در رنکینگ رسمی استانی اعمال می‌گردد.',
+          'مسابقات بر اساس قوانین رایج پدل برگزار می‌شود.',
+          'نتایج در رنکینگ داخلی اپلیکیشن اعمال می‌گردد.',
         ],
       });
 
@@ -330,7 +330,7 @@ export const TournamentsView: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff2d55]/10 border border-[#ff2d55]/30 text-[#ff6b81] text-xs font-bold">
               <Trophy className="w-3.5 h-3.5" />
-              مرکز مسابقات رسمی، جام‌های استانی و رنکینگ کشوری
+              مرکز مسابقات باشگاهی، جام‌های استانی و رنکینگ داخلی
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
               جام‌ها، تورنومنت‌های باشگاهی و رتبه‌بندی بازیکنان پدل
@@ -399,7 +399,7 @@ export const TournamentsView: React.FC = () => {
               }`}
             >
               <Award className="w-4 h-4 text-[#ff6b81]" />
-              <span>جدول رنکینگ رسمی استانی و کشوری</span>
+              <span>جدول رنکینگ داخلی</span>
             </button>
           </div>
 
@@ -549,10 +549,31 @@ export const TournamentsView: React.FC = () => {
                 <div className="p-5 pt-0 border-t border-white/10 space-y-3">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     {isCompleted ? (
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                        این مسابقات با ثبت رسمی رنکینگ خاتمه یافته است.
-                      </span>
+                      <>
+                        <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                          این مسابقات با ثبت نتایج و به‌روزرسانی رنکینگ داخلی خاتمه یافته است.
+                        </span>
+                        {/* Correction path for free-text finalizes: bracket tournaments
+                            correct via re-recording the final, but a completed
+                            bracket-less tournament had no UI to fix a mistyped
+                            winner/runner-up even though finalizeTournamentResults
+                            already dedupes correction awards. */}
+                        {canManageTournament(tourn) && (tourn.bracket?.length ?? 0) === 0 && (
+                          <button
+                            onClick={() => {
+                              setShowFinalizeModal(tourn);
+                              setFinalizeError('');
+                              setWinnerTeamInput(tourn.winnerTeam || tourn.registeredTeams[0]?.teamName || 'تیم قهرمان');
+                              setRunnerUpTeamInput(tourn.runnerUpTeam || tourn.registeredTeams[1]?.teamName || 'تیم نایب‌قهرمان');
+                            }}
+                            className="px-3.5 py-3 bg-white/[0.04] text-slate-300 border border-white/10 hover:bg-white/10 font-black text-xs rounded-xl transition cursor-pointer"
+                            title="اصلاح قهرمان و نایب‌قهرمان؛ امتیاز رنکینگ فقط برای تغییر اعمال می‌شود و دوباره اعطا نمی‌شود."
+                          >
+                            اصلاح نتایج
+                          </button>
+                        )}
+                      </>
                     ) : (
                       <>
                         {isRegistrationOpen ? (
@@ -685,7 +706,7 @@ export const TournamentsView: React.FC = () => {
             <div>
               <h3 className="text-lg font-black text-slate-100 flex items-center gap-2">
                 <Medal className="w-5 h-5 text-amber-400" />
-                جدول رنکینگ رسمی بازیکنان پدل (مردان و آزاد)
+                جدول رنکینگ داخلی بازیکنان پدل (مردان و آزاد)
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 محاسبه خودکار امتیازات پس از هر تورنومنت در باشگاه‌های {selectedProvince}
@@ -949,7 +970,7 @@ export const TournamentsView: React.FC = () => {
             </div>
 
             <p className="text-slate-500 text-[11px]">
-              با ثبت نتایج، مسابقات {showFinalizeModal.title} به پایان رسیده و امتیازات به رنکینگ رسمی افزوده خواهد شد.
+              با ثبت نتایج، مسابقات {showFinalizeModal.title} به پایان رسیده و امتیازات به رنکینگ داخلی اپلیکیشن افزوده خواهد شد.
             </p>
 
             <form onSubmit={handleFinalize} className="space-y-3">
@@ -1009,7 +1030,7 @@ export const TournamentsView: React.FC = () => {
                 <div>
                   <h3 className="text-base font-black text-slate-100">
                     {currentUserRole === 'province_admin'
-                      ? 'ایجاد تورنومنت استانی رسمی (سطح استان)'
+                      ? 'ایجاد تورنومنت استانی (سطح استان)'
                       : 'ایجاد تورنومنت باشگاهی (ویژه باشگاه)'}
                   </h3>
                   <span className="text-[10px] text-slate-500">
@@ -1185,7 +1206,7 @@ export const TournamentsView: React.FC = () => {
                   disabled={tournSubmitting}
                   className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] disabled:opacity-50 text-white font-black rounded-xl cursor-pointer"
                 >
-                  {tournSubmitting ? 'در حال ثبت روی سرور…' : 'ثبت رسمی تورنومنت در تقویم'}
+                  {tournSubmitting ? 'در حال ثبت روی سرور…' : 'ثبت تورنمنت در تقویم'}
                 </button>
                 <button
                   type="button"
