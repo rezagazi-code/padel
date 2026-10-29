@@ -1090,6 +1090,11 @@ export const TournamentsView: React.FC = () => {
                       </option>
                     ))}
                   </select>
+                  {currentUserRole === 'club_admin' && !clubs.some((c) => c.id === adminClubId) && (
+                    <p className="mt-1 text-[11px] text-amber-300 leading-5">
+                      هنوز باشگاهی به حساب شما متصل نیست؛ از مدیر اصلی بخواهید باشگاه شما را به حسابتان متصل کند.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1203,7 +1208,7 @@ export const TournamentsView: React.FC = () => {
               <div className="pt-3 border-t border-white/10 flex gap-2">
                 <button
                   type="submit"
-                  disabled={tournSubmitting}
+                  disabled={tournSubmitting || (currentUserRole === 'club_admin' && !clubs.some((c) => c.id === adminClubId))}
                   className="flex-1 py-3 bg-[#ff2d55] hover:bg-[#8fd126] disabled:opacity-50 text-white font-black rounded-xl cursor-pointer"
                 >
                   {tournSubmitting ? 'در حال ثبت روی سرور…' : 'ثبت تورنمنت در تقویم'}

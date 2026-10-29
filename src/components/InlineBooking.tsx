@@ -768,6 +768,14 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               </div>
               <h3 className="text-xl font-black text-slate-100">زمین با موفقیت رزرو شد!</h3>
               <p className="text-xs text-slate-500">رسید الکترونیکی رزرو شما صادر شد.</p>
+              {typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-start gap-2 text-right">
+                  <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                  <span>
+                    این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند — برای قطعی‌شدن با باشگاه تماس بگیرید.
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4 space-y-2.5 text-xs">

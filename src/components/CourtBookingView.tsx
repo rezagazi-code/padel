@@ -1163,6 +1163,14 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               </div>
               <h3 className="text-xl font-black text-slate-100">زمین با موفقیت رزرو گردید!</h3>
               <p className="text-xs text-slate-500">رسید الکترونیکی رزرو کورت پدل شما صادر شد.</p>
+              {typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-start gap-2 text-right">
+                  <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                  <span>
+                    این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند — برای قطعی‌شدن با باشگاه تماس بگیرید.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Receipt Summary Box */}
