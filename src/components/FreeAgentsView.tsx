@@ -199,7 +199,10 @@ export const FreeAgentsView: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => toggleFreeAgentStatus(!playerProfile.isFreeAgent, freeAgentNoteInput)}
+              // Same signed-out gate as the need-player buttons above: a
+              // guest's blank profile would otherwise land in the
+              // free-agents list with an empty name and a success toast.
+              onClick={() => { if (!user) { setAuthModalOpen(true); } else { toggleFreeAgentStatus(!playerProfile.isFreeAgent, freeAgentNoteInput); } }}
               className={`px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer border ${
                 playerProfile.isFreeAgent
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
