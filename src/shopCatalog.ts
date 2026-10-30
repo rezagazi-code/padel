@@ -1,7 +1,7 @@
 import { ShopProduct } from './types';
 
 /** Last time the AI price research refreshed this catalog (Jalali display). */
-export const SHOP_LAST_UPDATED = '۷ آبان ۱۴۰۵';
+export const SHOP_LAST_UPDATED = '۸ آبان ۱۴۰۵';
 
 /**
  * Curated padel gear with real Iranian market prices.
@@ -97,7 +97,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nox',
     category: 'racket',
     offers: [
-      { store: 'هیوا پدل (ترب، تهران)', priceToman: 91278900, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
+      { store: 'هیوا پدل (ترب، تهران)', priceToman: 91858000, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
     ],
   },
   {
@@ -394,7 +394,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     category: 'racket',
     description: 'انتخاب اقتصادی برای شروع؛ سبک و خوش‌دست.',
     offers: [
-      { store: 'تنیس ۲۴ (ترب)', priceToman: 13299000, url: 'https://torob.com/p/3e2e03c3-7c23-4603-b35c-f1677fdd87ba/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%A8%D8%B2%D8%B1%DA%AF%D8%B3%D8%A7%D9%84-%DA%A9%D9%88%DB%8C%DA%A9%D9%85%D8%A7-%D9%85%D8%AF%D9%84-pr-open-%D8%B1%D9%86%DA%AF-%D8%A7%D8%A8%DB%8C/', condition: 'نو', note: 'ارزون‌ترین راکت نو' },
+      { store: 'تنیس ۲۴ (ترب)', priceToman: 14049000, url: 'https://torob.com/p/3e2e03c3-7c23-4603-b35c-f1677fdd87ba/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D8%A8%D8%B2%D8%B1%DA%AF%D8%B3%D8%A7%D9%84-%DA%A9%D9%88%DB%8C%DA%A9%D9%85%D8%A7-%D9%85%D8%AF%D9%84-pr-open-%D8%B1%D9%86%DA%AF-%D8%A7%D8%A8%DB%8C/', condition: 'نو', note: 'ارزون‌ترین راکت نو' },
     ],
   },
   {
