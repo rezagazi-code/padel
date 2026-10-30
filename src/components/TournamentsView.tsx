@@ -299,7 +299,9 @@ export const TournamentsView: React.FC = () => {
     // Validate the free-text inputs: both names must be registered teams
     // in this tournament and must differ — otherwise rankings get points
     // for ghost teams and the tournament is wrongly marked completed.
-    const norm = (s: string) => s.trim();
+    // Same normalization as registration dedupe (trim + case + collapsed
+    // whitespace): a stored «تیم  الف» must match a typed «تیم الف».
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const winner = norm(winnerTeamInput);
     const runnerUp = norm(runnerUpTeamInput);
     const names = new Set(

@@ -2727,7 +2727,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     runnerUpTeamName: string
   ) => {
     setRankings((prev) => {
-      const norm = (s: string) => s.trim();
+      // Same normalization as registration dedupe: team names match
+      // regardless of internal spacing/case, or a collapsed-match finalize
+      // would pass validation and then miss the award lookup here.
+      const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
       const winnerTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(winnerTeamName));
       const runnerUpTeam = tourn?.registeredTeams.find((tm) => norm(tm.teamName) === norm(runnerUpTeamName));
       // The registration form defaults an empty partner to the placeholder
@@ -2816,7 +2819,8 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     runnerUpTeamName: string,
     previousWinnerTeamName?: string
   ) => {
-    const norm = (s: string) => s.trim();
+    // Same normalization as registration dedupe (see awardTournamentRankingPoints).
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     // Teams already placement-credited for THIS tournament: never re-credited.
     // (2026-10-22) Two holes the old "previous winner only" skip missed:
     //  1. a corrected final with an UNCHANGED runner-up re-awarded the
@@ -2917,7 +2921,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Defense in depth (the UI validates too): winner/runner-up must be
     // registered teams and must differ — otherwise rankings get points
     // for ghost teams and the tournament is wrongly marked completed.
-    const norm = (s: string) => s.trim();
+    // Same normalization as registration dedupe (trim + case + collapsed
+    // whitespace): a stored «تیم  الف» must match a typed «تیم الف».
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const names = new Set((tourn?.registeredTeams ?? []).map((tm) => norm(tm.teamName)));
     if (
       !tourn ||

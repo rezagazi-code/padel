@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { NeedPlayerPost, PlayerProfile, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
@@ -63,6 +65,8 @@ export const FreeAgentsView: React.FC = () => {
   const [selectedSideFilter, setSelectedSideFilter] = useState<'all' | PlayingSide>('all');
   
   // Modals
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [showCreateRequestModal, setShowCreateRequestModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState<PlayerProfile | null>(null);
   const [selectedMatchToInvite, setSelectedMatchToInvite] = useState('');
@@ -158,7 +162,11 @@ export const FreeAgentsView: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={() => setShowCreateRequestModal(true)}
+              // Signed-out web visitors have the blank guest profile, so a
+              // post would carry an empty host name and block every other
+              // guest from joining (guest id equals the host id). Open
+              // login instead, same as tournament registration.
+              onClick={() => { if (!user) { setAuthModalOpen(true); } else { setShowCreateRequestModal(true); } }}
               className="flex items-center gap-2 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-[0_4px_20px_rgba(255,45,85,0.3)] transition active:scale-95 cursor-pointer"
             >
               <PlusCircle className="w-5 h-5" />
@@ -685,6 +693,7 @@ export const FreeAgentsView: React.FC = () => {
         </div>
       )}
 
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };
