@@ -88,6 +88,49 @@ interface BracketAwardRecord {
 // — storage can be unavailable (private mode, disabled cookies, quota).
 const BRACKET_POINTS_AWARDED_KEY = 'padelpro_bracket_points_awarded_v1';
 
+// Held-back awards: tournament ids whose bracket was completed BEFORE the
+// start date, so no ranking points were awarded by design. The award seeds
+// (mount seed below + the cross-device effect) treat every completed
+// tournament as already-awarded — without this marker they would plant a
+// fake award record for a held tournament once its start date passes, and
+// the promised recovery (re-recording the final after the start date)
+// would silently award zero points forever. A stored full-award record
+// still wins over this marker (points really were awarded at some point);
+// the marker only exempts tournaments from the state-derived seed.
+const BRACKET_POINTS_HELD_KEY = 'padelpro_bracket_points_held_v1';
+
+function readHeldBracketAwards(): Set<string> {
+  try {
+    const raw = localStorage.getItem(BRACKET_POINTS_HELD_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((x): x is string => typeof x === 'string' && x.length > 0));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeHeldBracketAward(tournId: string): void {
+  try {
+    const held = readHeldBracketAwards();
+    held.add(tournId);
+    localStorage.setItem(BRACKET_POINTS_HELD_KEY, JSON.stringify([...held]));
+  } catch {
+    // Storage unavailable — the in-memory mirror below still covers this session.
+  }
+}
+
+function clearHeldBracketAward(tournId: string): void {
+  try {
+    const held = readHeldBracketAwards();
+    if (!held.delete(tournId)) return;
+    localStorage.setItem(BRACKET_POINTS_HELD_KEY, JSON.stringify([...held]));
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
+}
+
 // Seeds the award guard from BOTH (a) already-completed tournaments in state
 // and (b) the localStorage record. The record wins on conflict: it was
 // written at the exact moment the award happened, while the state seed is a
@@ -95,9 +138,14 @@ const BRACKET_POINTS_AWARDED_KEY = 'padelpro_bracket_points_awarded_v1';
 // trade-off: pre-fix bracket-completed tournaments keep their zero points —
 // no new corruption is possible, no backfill either).
 function loadBracketPointsAwardedSeed(tournaments: Tournament[]): Map<string, BracketAwardRecord> {
+  // Held-back (before-start) completions must NOT be seeded as awarded:
+  // no points were ever given for them, and seeding would close the
+  // re-record-after-start recovery path. A stored award record applied
+  // below still wins over the marker.
+  const held = readHeldBracketAwards();
   const seed = new Map<string, BracketAwardRecord>(
     tournaments
-      .filter((t) => t.status === 'completed' && t.winnerTeam)
+      .filter((t) => t.status === 'completed' && t.winnerTeam && !held.has(t.id))
       .map((t) => [t.id, {
         winner: t.winnerTeam as string,
         participantsCredited: true,
@@ -205,6 +253,10 @@ interface PadelContextType {
   registerTournamentTeam: (tournId: string, teamName: string, partnerName: string, partnerLevel: number) => boolean;
   finalizeTournamentResults: (tournId: string, winnerTeamId: string, runnerUpTeamId: string) => void;
   updateTournamentBracketMatch: (tournId: string, matchId: string, winnerId: string, score: number[]) => void;
+  // True when a completed tournament's ranking points are held back because
+  // its bracket was completed before the start date (awarded only when the
+  // final is re-recorded after the start date).
+  isBracketAwardHeld: (tournId: string) => boolean;
   // Role & Admin Permissions
   currentUserId: string;
   currentUserRole: UserRole;
@@ -439,6 +491,25 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const bracketPointsAwardedRef = useRef<Map<string, BracketAwardRecord>>(
     loadBracketPointsAwardedSeed(tournaments)
   );
+  // Render mirror of the held-award marker above, so tournament cards can
+  // stop claiming «ranking updated» for completions whose points are still
+  // held back. Storage is the source of truth across reloads; this state
+  // only drives re-renders within the session.
+  const [heldBracketAwards, setHeldBracketAwards] = useState<Set<string>>(() => readHeldBracketAwards());
+  const markBracketAwardHeld = (tournId: string): void => {
+    writeHeldBracketAward(tournId);
+    setHeldBracketAwards((prev) => (prev.has(tournId) ? prev : new Set(prev).add(tournId)));
+  };
+  const clearBracketAwardHeld = (tournId: string): void => {
+    clearHeldBracketAward(tournId);
+    setHeldBracketAwards((prev) => {
+      if (!prev.has(tournId)) return prev;
+      const next = new Set(prev);
+      next.delete(tournId);
+      return next;
+    });
+  };
+  const isBracketAwardHeld = (tournId: string): boolean => heldBracketAwards.has(tournId);
   // Read pair for the award guard. The full record is used internally when
   // deciding whether the full award or the champion-only award applies;
   // getAwardedWinner keeps the original string-only signature for callers
@@ -535,9 +606,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       month: '2-digit',
       day: '2-digit',
     }).format(new Date());
+    const held = readHeldBracketAwards();
     for (const t of tournaments) {
       if (t.status !== 'completed' || !t.winnerTeam) continue;
       if (bracketPointsAwardedRef.current.has(t.id)) continue;
+      if (held.has(t.id)) continue;
       if (t.startDate && todayStr < t.startDate) continue;
       bracketPointsAwardedRef.current.set(t.id, {
         winner: t.winnerTeam,
@@ -2901,6 +2974,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!awarded) {
       awardTournamentRankingPoints(tourn, winnerTeamName, runnerUpTeamName);
       recordFullAward(tournId, winnerTeamName, runnerUpTeamName);
+      // A held-back bracket completion finalized here after the start date
+      // finally awards — clear the marker so the seeds never treat it as
+      // anything but awarded from now on.
+      clearBracketAwardHeld(tournId);
     } else if (awarded.winner !== winnerTeamName) {
       awardChampionPointsOnly(tourn, winnerTeamName, runnerUpTeamName, awarded.winner);
       recordCorrectionAward(tournId, winnerTeamName, runnerUpTeamName);
@@ -3131,6 +3208,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!awarded) {
         awardTournamentRankingPoints(next, next.winnerTeam, next.runnerUpTeam ?? '');
         recordFullAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
+        clearBracketAwardHeld(tournId);
       } else if (awarded.winner !== next.winnerTeam) {
         awardChampionPointsOnly(next, next.winnerTeam, next.runnerUpTeam ?? '', awarded.winner);
         recordCorrectionAward(tournId, next.winnerTeam, next.runnerUpTeam ?? '');
@@ -3150,6 +3228,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // surprised by missing points — re-recording the final after the start
     // date awards them.
     if (recorded && next && next.status === 'completed' && next.winnerTeam && beforeStart) {
+      // Persist the held-back state: without this marker the award seeds
+      // would mark this tournament awarded once its start date passes,
+      // and re-recording the final after the start date would award zero.
+      markBracketAwardHeld(tournId);
       setSyncNotification('نتیجه مسابقه ثبت شد، ولی چون تورنمنت هنوز شروع نشده امتیاز رتبه‌بندی فعلاً تعلق نگرفت.');
     }
   };
@@ -3198,6 +3280,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // tournaments reusing the same ids could never award points again
     // (state/storage divergence).
     bracketPointsAwardedRef.current.clear();
+    setHeldBracketAwards(new Set());
     setSyncNotification('اطلاعات به وضعیت پیش‌فرض بازگردانی شد.');
   };
 
@@ -3256,6 +3339,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         registerTournamentTeam,
         finalizeTournamentResults,
         updateTournamentBracketMatch,
+        isBracketAwardHeld,
         currentUserId: auth?.user?.id ?? '',
         currentUserRole: auth?.profile ? auth.profile.role : currentUserRole,
         setCurrentUserRole,

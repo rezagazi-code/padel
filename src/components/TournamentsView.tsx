@@ -62,6 +62,7 @@ export const TournamentsView: React.FC = () => {
     registerTournamentTeam,
     finalizeTournamentResults,
     updateTournamentBracketMatch,
+    isBracketAwardHeld,
     drawOfficialBracket,
     rankings,
     playerProfile,
@@ -444,6 +445,9 @@ export const TournamentsView: React.FC = () => {
               (tm) => normCardName(tm.player1Name) === normCardName(playerProfile.name) || normCardName(tm.player2Name) === normCardName(playerProfile.name)
             );
             const isCompleted = tourn.status === 'completed';
+            // A bracket completed before the start date awards no points
+            // yet — the card must not claim the ranking was updated.
+            const isAwardHeld = isCompleted && isBracketAwardHeld(tourn.id);
             // Mirror registerTournamentTeam: a passed deadline closes
             // registration on the card too, not just on submit.
             // Tehran date, matching the submit guard.
@@ -542,8 +546,8 @@ export const TournamentsView: React.FC = () => {
                             <span className="text-xs font-black text-slate-100">{tourn.winnerTeam}</span>
                           </div>
                         </div>
-                        <span className="text-[10px] font-black bg-amber-500 text-white px-2 py-0.5 rounded">
-                          +۲۵۰ امتیاز رنکینگ
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded ${isAwardHeld ? 'bg-slate-500 text-white' : 'bg-amber-500 text-white'}`}>
+                          {isAwardHeld ? 'امتیاز در انتظار شروع' : '+۲۵۰ امتیاز رنکینگ'}
                         </span>
                       </div>
                     )}
@@ -557,7 +561,9 @@ export const TournamentsView: React.FC = () => {
                       <>
                         <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
                           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                          این مسابقات با ثبت نتایج و به‌روزرسانی رنکینگ داخلی خاتمه یافته است.
+                          {isAwardHeld
+                            ? 'این مسابقات خاتمه یافته است، ولی چون پیش از شروع نهایی شده امتیاز رتبه‌بندی هنوز تعلق نگرفته است.'
+                            : 'این مسابقات با ثبت نتایج و به‌روزرسانی رنکینگ داخلی خاتمه یافته است.'}
                         </span>
                         {/* Correction path for free-text finalizes: bracket tournaments
                             correct via re-recording the final, but a completed
