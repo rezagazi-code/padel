@@ -513,6 +513,40 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       runnerUpsCredited: runners,
     });
   };
+  // Cross-device award guard: the ref above is seeded only once at mount,
+  // so a tournament completed on ANOTHER device that arrives later via
+  // catalog load has no award record here. Without this, re-finalizing
+  // that tournament on this device takes the no-record branch and awards
+  // the full 250/150/50 points a second time, permanently diverging this
+  // device's rankings from the finalizing device's. Seed such tournaments
+  // (in-memory only; the mount seed re-derives them from persisted state
+  // on reload) as already-awarded: this device never awarded them, but
+  // treating a server-completed tournament as awarded is what stops the
+  // double-award, while a genuine correction (changed winner/runner-up)
+  // still credits only the newly crowned team via the correction branches.
+  // Deliberately skipped while the start date is still in the future
+  // (Tehran date): a before-start completion awards nothing by design,
+  // and re-recording the final after the start date must still award —
+  // seeding it would close that path.
+  useEffect(() => {
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    for (const t of tournaments) {
+      if (t.status !== 'completed' || !t.winnerTeam) continue;
+      if (bracketPointsAwardedRef.current.has(t.id)) continue;
+      if (t.startDate && todayStr < t.startDate) continue;
+      bracketPointsAwardedRef.current.set(t.id, {
+        winner: t.winnerTeam,
+        participantsCredited: true,
+        championsCredited: [t.winnerTeam],
+        runnerUpsCredited: t.runnerUpTeam ? [t.runnerUpTeam] : [],
+      });
+    }
+  }, [tournaments]);
   useEffect(() => {
     const p = auth?.profile;
     if (!p) {
