@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { FriendlyTournament } from '../types';
 import { Trophy, Users, Clock, MapPin, Plus, X, Shuffle, Coins, Calculator, TriangleAlert, Lightbulb } from 'lucide-react';
 import { TVBracket, BracketMatch } from './TVBracket';
@@ -41,6 +43,10 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const [showCreate, setShowCreate] = useState(false);
   const [selected, setSelected] = useState<FriendlyTournament | null>(null);
+  // Same signed-out gate as open matches (edab738): a guest's blank
+  // profile would otherwise create a tournament owned by «ناشناس».
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Create form
   const [fTitle, setFTitle] = useState('');
@@ -412,7 +418,7 @@ export const FriendlyTournamentView: React.FC = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-black text-slate-100">مسابقات دوستانه</h2>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={() => { if (!user) { setAuthModalOpen(true); } else { setShowCreate(true); } }}
           className="px-4 py-2 rounded-2xl bubble-btn-fire text-white text-sm font-bold flex items-center gap-1"
         >
           <Plus className="w-4 h-4" />جدید
@@ -474,6 +480,7 @@ export const FriendlyTournamentView: React.FC = () => {
           </div>
         </div>
       )}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };

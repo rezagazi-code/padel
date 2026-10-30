@@ -746,6 +746,12 @@ const GroupSessionsTab: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<GroupSession | null>(null);
+  // Same signed-out gate as open matches (edab738): the guest profile has
+  // a blank name, so an ungated create/join would seat a nameless host or
+  // player. GroupSessionsTab is a separate component, so it needs its own
+  // auth state rather than the parent's.
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   // Ref-based double-submit guard for group-session creation: createGroupSession
   // is synchronous, so a ref blocks a same-tick double submit that would
   // create two sessions. (createMatchSubmittingRef lives in the sibling
@@ -819,7 +825,7 @@ const GroupSessionsTab: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => { if (!user) { setAuthModalOpen(true); } else { setShowModal(true); } }}
           className="flex items-center gap-2 bg-[#ff2d55] text-white font-bold text-sm px-5 py-2.5 rounded-xl transition active:scale-95 cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />
@@ -972,9 +978,10 @@ const GroupSessionsTab: React.FC = () => {
                               </>
                             ) : (
                               <button
-                                onClick={() =>
-                                  joinGroupSessionSlot(session.id, court.courtNumber, slot.slotNumber)
-                                }
+                                onClick={() => {
+                                  if (!user) { setAuthModalOpen(true); return; }
+                                  joinGroupSessionSlot(session.id, court.courtNumber, slot.slotNumber);
+                                }}
                                 className="w-full h-full flex flex-col items-center justify-center gap-1 group cursor-pointer py-2"
                                 title={slot.side === 'left' ? 'سمت چپ (Reves)' : 'سمت راست (Drive)'}
                               >
@@ -1231,6 +1238,7 @@ const GroupSessionsTab: React.FC = () => {
         }}
         onCancel={() => setSessionToDelete(null)}
       />
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };
