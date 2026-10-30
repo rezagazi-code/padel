@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { Club } from '../types';
 import {
   Sun,
@@ -42,6 +44,8 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     playerProfile,
     freeAgents,
   } = usePadel();
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeCourtId, setActiveCourtId] = useState<string>(
     club.courts.some((c) => c.id === courtId) ? courtId : club.courts[0]?.id || ''
@@ -322,6 +326,13 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     if (isSubmitting) return;
     if (!court) return;
     if (!selectedTimeSlot) return;
+    // Defense in depth for the signed-out gate below: never record a court
+    // booking under the generic «شما» label — it would occupy the slot for
+    // nobody identifiable, same class as the coach-booking fix.
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setBookingError('ابتدا وارد حساب خود شوید تا نام شما در رزرو ثبت شود.');
+      return;
+    }
     setBookingError(null);
     // A NULL hourly_rate maps to 0 in db.ts: never confirm a 0-toman booking
     // as "paid" — a missing rate is a data defect, not a free court.
@@ -796,7 +807,11 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           )}
 
           <button
-            onClick={handleConfirmBooking}
+            // Signed-out web visitors have the blank guest profile, so a
+            // court booking would carry the generic «شما» name and occupy
+            // the slot (duplicate-slot guard) for nobody. Open login
+            // instead, same as coach booking / open matches.
+            onClick={() => { if (!user) { setAuthModalOpen(true); } else { handleConfirmBooking(); } }}
             disabled={isSubmitting || !selectedTimeSlot || slotsLoading}
             className="bubble-btn rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
           >
@@ -894,6 +909,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           </div>
         </div>
       )}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       </div>
     </div>
   );
