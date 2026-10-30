@@ -397,7 +397,7 @@ export const FreeAgentsView: React.FC = () => {
                     <span className="text-xs text-slate-500 font-bold">تکمیل شده</span>
                   ) : (
                     <button
-                      onClick={() => joinNeedPlayerPost(post.id)}
+                      onClick={() => { if (!user) { setAuthModalOpen(true); } else { joinNeedPlayerPost(post.id); } }}
                       className="px-4 py-2 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                     >
                       <UserCheck className="w-4 h-4" />

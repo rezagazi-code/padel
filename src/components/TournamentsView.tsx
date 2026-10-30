@@ -324,7 +324,12 @@ export const TournamentsView: React.FC = () => {
     if (finalizeSubmittingRef.current) return;
     finalizeSubmittingRef.current = true;
     try {
-      finalizeTournamentResults(showFinalizeModal.id, winner, runnerUp);
+      // Store the canonical registered names, not the normalized ones:
+      // norm() lowercases, so passing winner/runnerUp verbatim would
+      // persist «team alpha» for a registered «Team Alpha».
+      const winnerTeam = showFinalizeModal.registeredTeams.find((tm) => norm(tm.teamName) === winner)?.teamName ?? winner;
+      const runnerUpTeam = showFinalizeModal.registeredTeams.find((tm) => norm(tm.teamName) === runnerUp)?.teamName ?? runnerUp;
+      finalizeTournamentResults(showFinalizeModal.id, winnerTeam, runnerUpTeam);
       setShowFinalizeModal(null);
     } finally {
       finalizeSubmittingRef.current = false;

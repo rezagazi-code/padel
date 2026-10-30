@@ -289,7 +289,6 @@ export const ClubOwnerModal: React.FC<ClubOwnerModalProps> = ({ isOpen, onClose 
                 <input
                   type="text"
                   dir="ltr"
-                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none text-right"

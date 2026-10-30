@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -66,6 +68,8 @@ export const MatchmakingView: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | MatchType>('all');
   const [mainTab, setMainTab] = useState<'open' | 'friendly' | 'group'>('open');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<OpenMatch | null>(null);
   // Ref-based double-submit guard for open-match creation.
   const createMatchSubmittingRef = useRef(false);
@@ -135,6 +139,7 @@ export const MatchmakingView: React.FC = () => {
   });
 
   const handleJoinSlot = (matchId: string, slotNumber: number) => {
+    if (!user) { setAuthModalOpen(true); return; }
     joinMatchSlot(matchId, slotNumber);
   };
 
@@ -198,7 +203,10 @@ export const MatchmakingView: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            // Signed-out web visitors have the blank guest profile, so
+            // opening the create modal would seat a nameless host.
+            // Open login instead, same as tournament registration.
+            onClick={() => { if (!user) { setAuthModalOpen(true); } else { setShowCreateModal(true); } }}
             className="flex items-center gap-2 bg-[#ff2d55] hover:bg-[#8fd126] text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-[0_4px_20px_rgba(255,45,85,0.3)] transition active:scale-95 cursor-pointer shrink-0"
           >
             <PlusCircle className="w-5 h-5" />
@@ -716,7 +724,7 @@ export const MatchmakingView: React.FC = () => {
         }}
         onCancel={() => setMatchToDelete(null)}
       />
-
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };
