@@ -1269,7 +1269,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       <ConfirmDialog
         open={!!clubToDelete}
         title="حذف باشگاه"
-        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی، جلسات گروهی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.${tournaments.some((t) => t.clubId === clubToDelete.id && t.status === 'completed') ? '\nتوجه: امتیازهای رنکینگ اعطاشده از تورنمنت‌های تکمیل‌شده‌ی این باشگاه پس از حذف باقی می‌مانند.' : ''}` : ''}
+        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی، جلسات گروهی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.${tournaments.some((t) => t.clubId === clubToDelete.id && t.status === 'completed') ? '\nتوجه: امتیازهای رنکینگ اعطاشده از تورنمنت‌های تکمیل‌شده‌ی این باشگاه پس از حذف باقی می‌مانند.' : ''}${clubs.some((c) => c.id !== clubToDelete.id && c.name === clubToDelete.name) ? '\nتوجه: چون باشگاه دیگری با همین نام باقی می‌ماند، جلسات مربی و آگهی‌های نیاز به بازیکن که با نام باشگاه ثبت شده‌اند پاک نمی‌شوند تا اطلاعات باشگاه هم‌نام از بین نرود.' : ''}` : ''}
         confirmLabel="حذف باشگاه"
         onConfirm={async () => {
           if (!clubToDelete) return;

@@ -214,7 +214,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
         )}
 
         <p className="text-xs text-slate-500 leading-relaxed">
-          مدیر باشگاه می‌تواند باشگاه خودش را مدیریت کند (افزودن زمین، تورنمنت). مدیر ارشد به همه‌چیز دسترسی دارد.
+          مدیر باشگاه می‌تواند باشگاه خودش را مدیریت کند (تورنمنت). مدیر ارشد به همه‌چیز دسترسی دارد.
         </p>
       </div>
     </div>
