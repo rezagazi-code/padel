@@ -413,6 +413,17 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // while the context value (which already reads profile.role) looked right.
   // The app role lives on auth.profile.role.
   useEffect(() => {
+    // Signed-out guests must not inherit the previous user's admin role:
+    // role/club/province persist in localStorage and the context value
+    // falls back to them when there is no profile, so a guest on a shared
+    // device otherwise saw admin UI (create/finalize) after a logout.
+    // Resetting here also covers the first mount with no session; when a
+    // profile loads, the real values below overwrite these defaults.
+    if (!auth?.profile) {
+      setCurrentUserRole('player');
+      setAdminClubId('club-1');
+      setAdminProvince('تهران');
+    }
     const realRole = auth?.profile?.role;
     if (realRole && ['player', 'club_admin', 'super_admin', 'province_admin'].includes(realRole)) {
       setCurrentUserRole(realRole as UserRole);

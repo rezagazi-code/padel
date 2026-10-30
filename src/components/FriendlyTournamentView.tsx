@@ -113,6 +113,10 @@ export const FriendlyTournamentView: React.FC = () => {
   const handleAddTeam = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selected) return;
+    // Same signed-out gate as create: the detail view is reachable by
+    // guests, and an ungated add-team let a guest mutate a tournament
+    // left on the device by a previous user.
+    if (!user) { setAuthModalOpen(true); return; }
     // Blank team name used to return silently (the input placeholder says
     // the name is required) — show the same inline error as other refusals.
     if (!tName.trim()) {
@@ -167,6 +171,9 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const handleScore = (matchId: string) => {
     if (!selected) return;
+    // Same signed-out gate as create: score entry in the detail view
+    // was reachable by guests (see handleAddTeam).
+    if (!user) { setAuthModalOpen(true); return; }
     const inp = scoreInputs[matchId];
     // Silent `return` here left the admin guessing why «ثبت» did nothing
     // on an untouched row — both fields are required, so say so.
@@ -255,6 +262,7 @@ export const FriendlyTournamentView: React.FC = () => {
             !tourn.bracket.some((m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)) && (
             <button
               onClick={() => {
+                if (!user) { setAuthModalOpen(true); return; }
                 if (window.confirm('قرعه‌کشی حذف و تورنمنت به وضعیت ثبت‌نام برگردد؟')) {
                   resetFriendlyBracket(tourn.id);
                 }
@@ -338,7 +346,7 @@ export const FriendlyTournamentView: React.FC = () => {
             </form>
             {tourn.teams.length >= 2 && (
               <button
-                onClick={() => { drawFriendlyBracket(tourn.id); }}
+                onClick={() => { if (!user) { setAuthModalOpen(true); } else { drawFriendlyBracket(tourn.id); } }}
                 className="w-full mt-4 py-3 rounded-2xl bubble-btn-fire text-white font-black flex items-center justify-center gap-2"
               >
                 <Shuffle className="w-5 h-5" />قرعه‌کشی بر اساس رنک
@@ -410,6 +418,9 @@ export const FriendlyTournamentView: React.FC = () => {
         })()}
 
         <FriendlyTournamentPredictions tournament={tourn} defaultName={playerProfile.name} />
+        {/* Detail view returns early, so the list view's modal never
+            renders here — the new guest gates above need their own. */}
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       </div>
     );
   }
