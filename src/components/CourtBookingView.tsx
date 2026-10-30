@@ -826,7 +826,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                           {court.type === 'panoramic' ? 'شیشه‌ای تمام پانورامیک' : court.type === 'indoor' ? 'سالنی سرپوشیده' : 'روباز با نور LED'}
                         </p>
                         <div className="mt-2 text-xs font-bold text-[#ff6b81]">
-                          {court.hourlyRate >= 1000000
+                          {court.hourlyRate <= 0
+                            ? 'قیمت ثبت نشده'
+                            : court.hourlyRate >= 1000000
                             ? `${(court.hourlyRate / 1000000).toLocaleString('fa-IR', { maximumFractionDigits: 1 })} میلیون تومان / ساعت`
                             : `${court.hourlyRate.toLocaleString('fa-IR')} تومان / ساعت`}
                         </div>
@@ -996,7 +998,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       </button>
                     ))}
                     <span className="text-[11px] text-cyan-400">
-                      هزینه هر بازیکن: {splitPrice.toLocaleString('fa-IR')} تومان محاسبه می‌شود.
+                      {splitPrice <= 0
+                        ? 'قیمت این زمین ثبت نشده است.'
+                        : `هزینه هر بازیکن: ${splitPrice.toLocaleString('fa-IR')} تومان محاسبه می‌شود.`}
                     </span>
                   </div>
                 )}
@@ -1121,14 +1125,20 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                   </div>
 
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-slate-100">
-                      {(splitPayment ? splitPrice : totalPrice).toLocaleString('fa-IR')}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500">تومان</span>
-                    {splitPayment && (
-                      <span className="text-xs text-slate-500">
-                        (کل مبلغ سانس: {totalPrice.toLocaleString('fa-IR')} تومان)
-                      </span>
+                    {totalPrice <= 0 ? (
+                      <span className="text-sm font-bold text-slate-400">قیمت ثبت نشده</span>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-black text-slate-100">
+                          {(splitPayment ? splitPrice : totalPrice).toLocaleString('fa-IR')}
+                        </span>
+                        <span className="text-xs font-semibold text-slate-500">تومان</span>
+                        {splitPayment && (
+                          <span className="text-xs text-slate-500">
+                            (کل مبلغ سانس: {totalPrice.toLocaleString('fa-IR')} تومان)
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

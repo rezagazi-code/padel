@@ -740,10 +740,16 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               </button>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-slate-100">
-                {(splitPayment ? splitPrice : totalPrice).toLocaleString('fa-IR')}
-              </span>
-              <span className="text-[11px] font-semibold text-slate-500">تومان</span>
+              {totalPrice <= 0 ? (
+                <span className="text-sm font-bold text-slate-400">قیمت ثبت نشده</span>
+              ) : (
+                <>
+                  <span className="text-xl font-black text-slate-100">
+                    {(splitPayment ? splitPrice : totalPrice).toLocaleString('fa-IR')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">تومان</span>
+                </>
+              )}
             </div>
           </div>
 
