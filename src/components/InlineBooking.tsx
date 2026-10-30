@@ -275,11 +275,15 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   const totalPrice = Math.round((baseRate * duration) / 60);
   const splitPrice = Math.round(totalPrice / 4);
 
+  // Case-insensitive compare: «Ali» vs «ali» is the same person — without
+  // this, a re-cased duplicate creates a second balance entry and can
+  // suggest the person pays themselves (Persian names have no case, so
+  // this only affects Latin-script names). Display casing is preserved.
   const dongiOthers = dongiNames
     .map((n) => n.trim())
     .filter(Boolean)
-    .filter((n) => n !== playerProfile.name.trim())
-    .filter((n, i, arr) => arr.indexOf(n) === i);
+    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().toLowerCase())
+    .filter((n, i, arr) => arr.findIndex((m) => m.toLowerCase() === n.toLowerCase()) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
   const handleConfirmBooking = async () => {
@@ -681,7 +685,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
                   <span className="text-[10px] text-slate-500">افزودن سریع:</span>
                   {freeAgents.slice(0, 6).map((agent) => {
                     const used =
-                      agent.name.trim() === playerProfile.name.trim() || dongiOthers.includes(agent.name.trim());
+                      agent.name.trim().toLowerCase() === playerProfile.name.trim().toLowerCase() || dongiOthers.some((n) => n.toLowerCase() === agent.name.trim().toLowerCase());
                     const noSlot = !dongiNames.some((n) => !n.trim());
                     return (
                       <button
@@ -706,7 +710,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               <p className="text-[11px] text-slate-400">
                 سهم هر نفر:{' '}
                 <span className="font-black text-[#ff6b81]">
-                  {dongiPerPerson.toLocaleString('fa-IR')} تومان
+                  {totalPrice <= 0 ? 'قیمت ثبت نشده' : `${dongiPerPerson.toLocaleString('fa-IR')} تومان`}
                 </span>{' '}
                 ({1 + dongiOthers.length} نفر)
               </p>

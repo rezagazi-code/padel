@@ -329,11 +329,15 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   const splitPrice = Math.round(totalPrice / 4);
 
   // «دنگی» per-person share: booker + tagged teammates split the full total.
+  // Case-insensitive compare: «Ali» vs «ali» is the same person — without
+  // this, a re-cased duplicate creates a second balance entry and can
+  // suggest the person pays themselves (Persian names have no case, so
+  // this only affects Latin-script names). Display casing is preserved.
   const dongiOthers = dongiNames
     .map((n) => n.trim())
     .filter(Boolean)
-    .filter((n) => n !== playerProfile.name.trim())
-    .filter((n, i, arr) => arr.indexOf(n) === i);
+    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().toLowerCase())
+    .filter((n, i, arr) => arr.findIndex((m) => m.toLowerCase() === n.toLowerCase()) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 
   const handleConfirmBooking = async () => {
@@ -1059,7 +1063,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                         <span className="text-[11px] text-slate-500">افزودن سریع از بازیکن‌های آزاد:</span>
                         {freeAgents.slice(0, 6).map((agent) => {
                           const used =
-                            agent.name.trim() === playerProfile.name.trim() || dongiOthers.includes(agent.name.trim());
+                            agent.name.trim().toLowerCase() === playerProfile.name.trim().toLowerCase() || dongiOthers.some((n) => n.toLowerCase() === agent.name.trim().toLowerCase());
                           const noSlot = !dongiNames.some((n) => !n.trim());
                           return (
                             <button
@@ -1085,7 +1089,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                     <p className="text-[11px] text-slate-400">
                       سهم هر نفر:{' '}
                       <span className="font-black text-[#ff6b81]">
-                        {dongiPerPerson.toLocaleString('fa-IR')} تومان
+                        {totalPrice <= 0 ? 'قیمت ثبت نشده' : `${dongiPerPerson.toLocaleString('fa-IR')} تومان`}
                       </span>{' '}
                       ({1 + dongiOthers.length} نفر)
                     </p>
@@ -1265,7 +1269,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       <ConfirmDialog
         open={!!clubToDelete}
         title="حذف باشگاه"
-        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.${tournaments.some((t) => t.clubId === clubToDelete.id && t.status === 'completed') ? '\nتوجه: امتیازهای رنکینگ اعطاشده از تورنمنت‌های تکمیل‌شده‌ی این باشگاه پس از حذف باقی می‌مانند.' : ''}` : ''}
+        message={clubToDelete ? `باشگاه «${clubToDelete.name}» حذف شود؟\nتمام زمین‌ها، رزروها، تورنمنت‌ها، رکوردهای دنگی، آگهی‌های نیاز به بازیکن، جلسات مربی، جلسات گروهی و مسابقات باز این باشگاه برای همیشه پاک می‌شوند.${tournaments.some((t) => t.clubId === clubToDelete.id && t.status === 'completed') ? '\nتوجه: امتیازهای رنکینگ اعطاشده از تورنمنت‌های تکمیل‌شده‌ی این باشگاه پس از حذف باقی می‌مانند.' : ''}` : ''}
         confirmLabel="حذف باشگاه"
         onConfirm={async () => {
           if (!clubToDelete) return;
