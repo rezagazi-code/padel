@@ -2536,9 +2536,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Normalized like the duplicate-name and partner checks below: raw
     // equality let a captain re-register when the stored name differed
     // from the profile name by case/whitespace.
-    const normProfile = playerProfile.name.trim().toLowerCase();
+    // Collapse internal whitespace too: the award paths already treat
+    // 'علی  رضایی' and 'علی رضایی' as one player, so the guards must as
+    // well — otherwise one player lands in two teams via a double space.
+    const normProfile = playerProfile.name.trim().toLowerCase().replace(/\s+/g, ' ');
     const isRegistered = t.registeredTeams.some(
-      (tm) => tm.player1Name.trim().toLowerCase() === normProfile || tm.player2Name.trim().toLowerCase() === normProfile
+      (tm) => tm.player1Name.trim().toLowerCase().replace(/\s+/g, ' ') === normProfile || tm.player2Name.trim().toLowerCase().replace(/\s+/g, ' ') === normProfile
     );
     if (isRegistered) {
       setSyncNotification('شما قبلاً در این تورنومنت تیم ثبت کرده‌اید.');
@@ -2547,7 +2550,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Duplicate team names: the finalize flow matches teams by name, so
     // identical names mis-credit rankings and the catalog-merge dedupe
     // silently drops one registration. Compare trimmed + case-insensitive.
-    const normName = (s: string) => s.trim().toLowerCase();
+    const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     if (t.registeredTeams.some((tm) => normName(tm.teamName) === normName(teamName))) {
       setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
       return false;
@@ -2602,7 +2605,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (x.registeredTeamsCount >= x.maxTeams) return x;
         if (
           x.registeredTeams.some(
-            (tm) => tm.player1Name.trim().toLowerCase() === normProfile || tm.player2Name.trim().toLowerCase() === normProfile
+            (tm) => tm.player1Name.trim().toLowerCase().replace(/\s+/g, ' ') === normProfile || tm.player2Name.trim().toLowerCase().replace(/\s+/g, ' ') === normProfile
           )
         )
           return x;

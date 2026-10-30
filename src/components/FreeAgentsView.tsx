@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { NeedPlayerPost, PlayerProfile, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
@@ -22,6 +22,25 @@ import {
   Award,
   X
 } from 'lucide-react';
+
+// Avatar with the same initial-letter fallback as Profile/Navbar: a fresh
+// profile has avatar '' by default and a dead remote URL must not render
+// a broken-image icon in posts, directory cards, or the invite modal.
+function AvatarOrInitial({ src, name, className, style }: { src?: string; name?: string; className?: string; style?: React.CSSProperties }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => { setBroken(false); }, [src]);
+  if (!src || broken) {
+    return (
+      <div
+        className={`${className ?? ''} flex items-center justify-center font-bold text-white text-xl`}
+        style={{ ...style, backgroundColor: style?.borderColor ?? '#475569' }}
+      >
+        {(name ?? '').trim().charAt(0) || '؟'}
+      </div>
+    );
+  }
+  return <img src={src} alt={name ?? ''} className={className} style={style} onError={() => setBroken(true)} />;
+}
 
 export const FreeAgentsView: React.FC = () => {
   const {
@@ -270,9 +289,9 @@ export const FreeAgentsView: React.FC = () => {
                   {/* Host info & Status */}
                   <div className="flex items-center justify-between pb-3 border-b border-white/10">
                     <div className="flex items-center gap-2.5">
-                      <img
+                      <AvatarOrInitial
                         src={post.hostAvatar}
-                        alt={post.hostName}
+                        name={post.hostName}
                         className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-200/60"
                       />
                       <div>
@@ -401,9 +420,9 @@ export const FreeAgentsView: React.FC = () => {
                   {/* Avatar & Level */}
                   <div className="flex items-start justify-between">
                     <div className="relative">
-                      <img
+                      <AvatarOrInitial
                         src={agent.avatar}
-                        alt="" aria-hidden="true"
+                        name={agent.name}
                         className="w-16 h-16 rounded-2xl object-cover ring-2"
                         style={{ borderColor: agent.themeColor }}
                       />
@@ -619,9 +638,9 @@ export const FreeAgentsView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-3xl glass-strong p-6 shadow-2xl space-y-4 text-xs">
             <div className="text-center space-y-2">
-              <img
+              <AvatarOrInitial
                 src={showInviteModal.avatar}
-                alt="" aria-hidden="true"
+                name={showInviteModal.name}
                 className="w-16 h-16 rounded-2xl mx-auto object-cover ring-2"
                 style={{ borderColor: showInviteModal.themeColor }}
               />

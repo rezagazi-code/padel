@@ -62,7 +62,19 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
     clubs[0]?.courts[0]?.id || ''
   );
   
-  // Dates: next 7 days, generated live in the Jalali (Persian) calendar
+  // Dates: next 7 days, generated live in the Jalali (Persian) calendar.
+  // Bumped whenever the tab regains focus so a PWA left open overnight
+  // rebuilds its chips instead of labelling yesterday «امروز».
+  const [daysTick, setDaysTick] = useState(0);
+  useEffect(() => {
+    const refresh = () => setDaysTick((t) => t + 1);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, []);
   const daysList = useMemo(() => {
     // All four formatters use Asia/Tehran: booking dates are compared and
     // stored in Tehran time elsewhere, so the day list must not follow the
@@ -100,10 +112,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
         raw: fmtIso.format(d),
       };
     });
-  }, []);
+  }, [daysTick]);
 
   const [selectedDate, setSelectedDate] = useState(daysList[0]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  // If a chip rebuild drops the selected day (tab left open past
+  // midnight), fall back to today instead of keeping a stale date.
+  useEffect(() => {
+    if (selectedDate && !daysList.some((d) => d.raw === selectedDate.raw)) {
+      setSelectedDate(daysList[0]);
+      setSelectedTimeSlot('');
+    }
+  }, [daysList]);
   const [duration, setDuration] = useState<number>(90); // 60, 90, 120
   const [splitPayment, setSplitPayment] = useState<boolean>(true);
   // «دنگی» split-cost tagging (stored in padelpro:dongi:v1, additive to bookings)
@@ -503,6 +523,12 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
       setDongiNames(['', '', '']);
       setDongiEnabled(false);
     }
+    // Same armed-state trap for the need-players toggle: the form stays
+    // mounted after the receipt closes, so without a reset the next
+    // booking — even one played with the user's own group — would
+    // silently publish another need-player post.
+    setNeedsExtraPlayers(false);
+    setPlayersNeededCount(1);
 
     } finally {
       setIsSubmitting(false);

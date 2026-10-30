@@ -440,7 +440,7 @@ export const TournamentsView: React.FC = () => {
             const isFull = tourn.registeredTeamsCount >= tourn.maxTeams;
             // Same match as registerTournamentTeam: without this the button stays
             // enabled for an already-registered user and submit dies on a toast.
-            const normCardName = (s: string) => s.trim().toLowerCase();
+            const normCardName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
             const isAlreadyRegistered = (tourn.registeredTeams || []).some(
               (tm) => normCardName(tm.player1Name) === normCardName(playerProfile.name) || normCardName(tm.player2Name) === normCardName(playerProfile.name)
             );

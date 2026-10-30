@@ -104,14 +104,26 @@ export function deleteDongiRecord(bookingId: string): DongiRecord[] {
   return persist(loadDongiRecords().filter((r) => r.bookingId !== bookingId));
 }
 
+/**
+ * Identity key for a person across bookings: case-insensitive and
+ * whitespace-collapsed. Booking forms already dedupe case-insensitively
+ * within one booking, but across bookings 'Ali' vs 'ali' (phone
+ * autocapitalization) used to split one person into two balance cards.
+ * Display casing is preserved separately (first-seen name wins).
+ */
+export function normalizeDongiName(name: string): string {
+  return (name ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 /** Toggle one person's `paid` flag inside a record's shares. */
 export function toggleDongiSharePaid(bookingId: string, name: string): DongiRecord[] {
+  const key = normalizeDongiName(name);
   return persist(
     loadDongiRecords().map((r) => {
       if (r.bookingId !== bookingId) return r;
       return {
         ...r,
-        shares: r.shares.map((s) => (s.name === name ? { ...s, paid: !s.paid } : s)),
+        shares: r.shares.map((s) => (normalizeDongiName(s.name) === key ? { ...s, paid: !s.paid } : s)),
       };
     })
   );
@@ -119,13 +131,16 @@ export function toggleDongiSharePaid(bookingId: string, name: string): DongiReco
 
 /** Net running balance for every person across all دنگی records. */
 export function getBalances(): BalanceEntry[] {
-  const map = new Map<string, { fronted: number; settled: number; owed: number; received: number }>();
+  // Keyed by normalized name so 'Ali' and 'ali' across bookings merge
+  // into one card; the display name is the first-seen casing.
+  const map = new Map<string, { display: string; fronted: number; settled: number; owed: number; received: number }>();
 
   const entry = (name: string) => {
-    let e = map.get(name);
+    const key = normalizeDongiName(name);
+    let e = map.get(key);
     if (!e) {
-      e = { fronted: 0, settled: 0, owed: 0, received: 0 };
-      map.set(name, e);
+      e = { display: (name ?? '').trim() || name, fronted: 0, settled: 0, owed: 0, received: 0 };
+      map.set(key, e);
     }
     return e;
   };
@@ -142,15 +157,15 @@ export function getBalances(): BalanceEntry[] {
       // money: without tracking it, the payer's net balance stays stuck at
       // (total - own share) even after everyone has paid, while the
       // settlement suggestions are already empty — a self-contradicting card.
-      if (s.paid && s.name !== r.paidBy) {
+      if (s.paid && normalizeDongiName(s.name) !== normalizeDongiName(r.paidBy)) {
         e.settled += s.amount;
         if (r.paidBy) entry(r.paidBy).received += s.amount;
       }
     }
   }
 
-  return [...map.entries()].map(([name, e]) => ({
-    name,
+  return [...map.values()].map((e) => ({
+    name: e.display,
     fronted: e.fronted,
     settled: e.settled,
     owed: e.owed,

@@ -21,9 +21,13 @@ export function findRankingRow(
   profileName: string,
   profileProvince: string
 ): RankingPlayer | undefined {
-  const name = (profileName ?? '').trim();
+  // Match the way award paths store names: case-insensitive and
+  // whitespace-collapsed, or a row stored as 'ali  reza' is missed for
+  // profile 'Ali Reza' and the badge falls back to the stale field.
+  const norm = (s: string) => (s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const name = norm(profileName);
   if (!name) return undefined;
-  const byName = rankings.filter((r) => (r.name ?? '').trim() === name);
+  const byName = rankings.filter((r) => norm(r.name) === name);
   if (byName.length === 0) return undefined;
   return byName.find((r) => (r.province ?? '').trim() === (profileProvince ?? '').trim()) ?? byName[0];
 }

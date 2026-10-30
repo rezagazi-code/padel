@@ -4,6 +4,7 @@ import {
   getBalances,
   suggestSettlements,
   toggleDongiSharePaid,
+  normalizeDongiName,
   deleteDongiRecord,
   subscribeDongi,
   type DongiRecord,
@@ -186,7 +187,7 @@ export const DongiPanel: React.FC = () => {
                       // The payer's own share is saved with paid:true at booking
                       // time, but settling with yourself is meaningless — disable
                       // its toggle so it can't be flipped into the ledger.
-                      const isPayerOwnShare = s.name === r.paidBy;
+                      const isPayerOwnShare = normalizeDongiName(s.name) === normalizeDongiName(r.paidBy);
                       return (
                       <button
                         key={s.name}
