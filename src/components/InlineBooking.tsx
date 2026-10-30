@@ -74,9 +74,15 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
       day: '2-digit',
       timeZone: 'Asia/Tehran',
     });
+    // Anchor on the Tehran calendar date, then step in whole UTC days:
+    // setDate() steps in device-local time, so on a DST-transition week
+    // for a device outside Iran two entries could format to the same
+    // Tehran date (and one day go missing from the list).
+    const tehranToday = fmtIso.format(new Date());
+    const [ty, tm, td] = tehranToday.split('-').map(Number);
+    const tehranMidnightUtc = Date.UTC(ty, tm - 1, td);
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
+      const d = new Date(tehranMidnightUtc + i * 86400000);
       const parts = fmtDayMonth.formatToParts(d);
       return {
         dayName: i === 0 ? 'امروز' : i === 1 ? 'فردا' : fmtWeekday.format(d),

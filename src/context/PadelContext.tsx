@@ -2332,6 +2332,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       registeredTeamsCount: 0,
       registeredTeams: [],
       status: 'registration',
+      // Same as the server path (insertTournament sets organizer_id):
+      // without this, a signed-in creator of a bundled-club tournament
+      // has no organizerId, so the canManageTournament organizer fallback
+      // (and the delete fallback) never fires for their own tournament.
+      organizerId: authUserId ?? undefined,
     };
     setTournaments((prev) => [newTourn, ...prev]);
     setSyncNotification(`تورنومنت «${newTourn.title}» روی همین دستگاه ثبت شد؛ فعلاً برای دیگران قابل مشاهده نیست.`);
