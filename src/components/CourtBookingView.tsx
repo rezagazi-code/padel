@@ -354,9 +354,9 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
   // suggest the person pays themselves (Persian names have no case, so
   // this only affects Latin-script names). Display casing is preserved.
   const dongiOthers = dongiNames
-    .map((n) => n.trim())
+    .map((n) => n.trim().replace(/\s+/g, ' '))
     .filter(Boolean)
-    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().toLowerCase())
+    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().replace(/\s+/g, ' ').toLowerCase())
     .filter((n, i, arr) => arr.findIndex((m) => m.toLowerCase() === n.toLowerCase()) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 

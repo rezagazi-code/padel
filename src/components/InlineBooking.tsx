@@ -56,6 +56,19 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   }, [courtId, club.courts]);
 
   // Dates: next 7 days, generated live in the Jalali (Persian) calendar
+  // Bumped whenever the tab regains focus so a PWA left open overnight
+  // rebuilds its chips instead of labelling yesterday «امروز» (same fix
+  // as CourtBookingView — InlineBooking previously rebuilt never).
+  const [daysTick, setDaysTick] = useState(0);
+  useEffect(() => {
+    const refresh = () => setDaysTick((t) => t + 1);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, []);
   // All four formatters use Asia/Tehran: booking dates are compared and
   // stored in Tehran time elsewhere, so the day list must not follow the
   // device timezone (a no-op on a Tehran-set device).
@@ -92,10 +105,18 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
         raw: fmtIso.format(d),
       };
     });
-  }, []);
+  }, [daysTick]);
 
   const [selectedDate, setSelectedDate] = useState(daysList[0]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  // If a chip rebuild drops the selected day (tab left open past
+  // midnight), fall back to today instead of keeping a stale date.
+  useEffect(() => {
+    if (selectedDate && !daysList.some((d) => d.raw === selectedDate.raw)) {
+      setSelectedDate(daysList[0]);
+      setSelectedTimeSlot('');
+    }
+  }, [daysList]);
   const [duration, setDuration] = useState<number>(90);
   const [splitPayment, setSplitPayment] = useState<boolean>(true);
   const [dongiEnabled, setDongiEnabled] = useState<boolean>(false);
@@ -280,9 +301,9 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
   // suggest the person pays themselves (Persian names have no case, so
   // this only affects Latin-script names). Display casing is preserved.
   const dongiOthers = dongiNames
-    .map((n) => n.trim())
+    .map((n) => n.trim().replace(/\s+/g, ' '))
     .filter(Boolean)
-    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().toLowerCase())
+    .filter((n) => n.toLowerCase() !== playerProfile.name.trim().replace(/\s+/g, ' ').toLowerCase())
     .filter((n, i, arr) => arr.findIndex((m) => m.toLowerCase() === n.toLowerCase()) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
 

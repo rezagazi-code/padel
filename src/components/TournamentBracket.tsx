@@ -27,8 +27,14 @@ const BracketMatchCard: React.FC<{
   canManage: boolean;
   onOpenEdit: (m: BracketMatch) => void;
 }> = ({ match, canManage, onOpenEdit }) => {
-  const team1Win = match.team1?.isWinner;
-  const team2Win = match.team2?.isWinner;
+  // Official-draw bye: a completed match with one side undefined (the draw
+  // creates it with winnerId set but no isWinner flag on the advancing
+  // team). Render the missing side as «استراحت» and crown the team that
+  // advanced, instead of showing «تعیین نشده» like a genuinely undecided
+  // match. Pending TBD matches are untouched (status is not completed).
+  const isBye = match.status === 'completed' && (!match.team1 || !match.team2);
+  const team1Win = match.team1?.isWinner || (isBye && !!match.team1);
+  const team2Win = match.team2?.isWinner || (isBye && !!match.team2);
   // TBD matches (teams not yet decided) offer no score entry — the edit
   // affordance is disabled until both teams are known.
   const teamsKnown = !!match.team1 && !!match.team2;
@@ -70,7 +76,7 @@ const BracketMatchCard: React.FC<{
             </span>
           )}
           <span className="text-xs truncate max-w-[160px]">
-            {match.team1?.name || 'تعیین نشده'}
+            {match.team1?.name || (isBye ? 'استراحت' : 'تعیین نشده')}
           </span>
           {team1Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
         </div>
@@ -103,7 +109,7 @@ const BracketMatchCard: React.FC<{
             </span>
           )}
           <span className="text-xs truncate max-w-[160px]">
-            {match.team2?.name || 'تعیین نشده'}
+            {match.team2?.name || (isBye ? 'استراحت' : 'تعیین نشده')}
           </span>
           {team2Win && <Crown className="w-3.5 h-3.5 text-amber-400 inline" />}
         </div>
