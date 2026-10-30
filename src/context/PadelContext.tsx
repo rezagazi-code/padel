@@ -44,6 +44,7 @@ import {
   deleteClubById,
   deleteCoachById,
   deleteTournamentById,
+  updateCoachClubNames,
   fetchCoaches,
   updateMyProfile,
   type ProfilePatch,
@@ -1056,6 +1057,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : co
         )
       );
+      // Server coaches are re-fetched on every catalog load, so the local
+      // cleanup above would be reverted on reload (and never applied on
+      // other devices) unless it is written back to the coaches row.
+      // Non-fatal: the club is already deleted — a failed write only
+      // leaves a stale club name on a coach profile, surfaced by toast.
+      // Local-only coaches (coach- prefix) have no server row to update.
+      if (getSupabase()) {
+        for (const co of coaches) {
+          if (!co.clubs.includes(doomedClub.name) || co.id.startsWith('coach-')) continue;
+          try {
+            await updateCoachClubNames(
+              co.id,
+              co.clubs.filter((n) => n !== doomedClub.name)
+            );
+          } catch (err) {
+            console.error('deleteClub coach club_names cleanup failed', err);
+            setSyncNotification('نام باشگاه حذف‌شده روی سرور از پروفایل برخی مربیان پاک نشد.');
+          }
+        }
+      }
       // Coach sessions carry only clubName (no clubId), so without this
       // they would stay listed in profile history under a deleted venue.
       setCoachBookings((prev) =>

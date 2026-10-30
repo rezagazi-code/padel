@@ -553,6 +553,15 @@ export async function deleteCoachById(coachId: string): Promise<void> {
   if (error) throw error;
 }
 
+// Narrow update used by deleteClub: strip a deleted club's name from a
+// coach's club_names. RLS coaches_write_admin_or_self covers super_admin.
+export async function updateCoachClubNames(coachId: string, clubs: string[]): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) throw new Error('supabase not configured');
+  const { error } = await sb.from('coaches').update({ club_names: clubs }).eq('id', coachId);
+  if (error) throw error;
+}
+
 export async function fetchCoaches(): Promise<Coach[]> {
   const sb = getSupabase();
   if (!sb) return [];
