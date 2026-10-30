@@ -4,6 +4,7 @@ import { NeedPlayerPost, PlayerProfile, PlayingSide } from '../types';
 import { PROVINCES_LIST } from '../mockData';
 import GradeBadge from './GradeBadge';
 import { levelToGrade, gradeBandFa } from '../utils/skillGrades';
+import { avatarInitial } from '../lib/avatarInitial';
 import {
   UserCheck,
   Users,
@@ -35,7 +36,7 @@ function AvatarOrInitial({ src, name, className, style }: { src?: string; name?:
         className={`${className ?? ''} flex items-center justify-center font-bold text-white text-xl`}
         style={{ ...style, backgroundColor: style?.borderColor ?? '#475569' }}
       >
-        {(name ?? '').trim().charAt(0) || '؟'}
+        {avatarInitial(name)}
       </div>
     );
   }

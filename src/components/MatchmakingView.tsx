@@ -6,6 +6,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { LongPressable } from '../hooks/useLongPress';
 import GradeBadge from './GradeBadge';
 import { levelToGrade, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
+import { avatarInitial } from '../lib/avatarInitial';
 import {
   Users,
   Plus,
@@ -35,7 +36,7 @@ function ChipAvatar({ src, name }: { src?: string; name?: string }) {
   if (!src || broken) {
     return (
       <div className="w-6 h-6 rounded-full object-cover flex items-center justify-center font-bold text-white text-[10px] bg-slate-600">
-        {(name ?? '').trim().charAt(0) || '؟'}
+        {avatarInitial(name)}
       </div>
     );
   }
@@ -940,7 +941,7 @@ const GroupSessionsTab: React.FC = () => {
                                   />
                                 ) : (
                                   <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
-                                    {(slot.playerName || '?').slice(0, 1)}
+                                    {avatarInitial(slot.playerName)}
                                   </div>
                                 )}
                                 <p className="text-[10px] font-bold text-slate-200 truncate w-full">

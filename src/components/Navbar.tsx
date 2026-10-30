@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { displayProvinceRank } from '../lib/rankingDisplay';
+import { avatarInitial } from '../lib/avatarInitial';
 import { useAuth } from '../context/AuthContext';
 import GradeBadge from './GradeBadge';
 import { levelToGrade } from '../utils/skillGrades';
@@ -229,7 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-8 h-8 rounded-lg ring-2 flex items-center justify-center text-sm font-bold text-white"
                     style={{ borderColor: playerProfile.themeColor, backgroundColor: playerProfile.themeColor }}
                   >
-                    {playerProfile.name?.trim().charAt(0) || '؟'}
+                    {avatarInitial(playerProfile.name)}
                   </div>
                 )}
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-black" />

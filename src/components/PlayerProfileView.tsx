@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { displayProvinceRank, findRankingRow } from '../lib/rankingDisplay';
+import { avatarInitial } from '../lib/avatarInitial';
 import { useAuth } from '../context/AuthContext';
 import { UserManagementModal } from './UserManagementModal';
 import { AuthModal } from './AuthModal';
@@ -344,7 +345,7 @@ export const PlayerProfileView: React.FC = () => {
                   className="w-40 h-52 sm:w-48 sm:h-60 rounded-3xl ring-4 shadow-2xl hover:opacity-90 transition flex items-center justify-center text-7xl font-bold text-white"
                   style={{ borderColor: themeColor, backgroundColor: themeColor }}
                 >
-                  {playerProfile.name?.trim().charAt(0) || '؟'}
+                  {avatarInitial(playerProfile.name)}
                 </div>
               )}
               <input
