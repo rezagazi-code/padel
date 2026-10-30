@@ -42,6 +42,6 @@ const FA_TO_LATIN_INITIAL: Record<string, string> = {
 export function avatarInitial(name?: string | null): string {
   const first = (name ?? '').trim().charAt(0);
   if (!first) return '?';
-  if (/[a-zA-Z]/.test(first)) return first.toUpperCase();
+  if (/[a-zA-Z0-9]/.test(first)) return first.toUpperCase();
   return FA_TO_LATIN_INITIAL[first] ?? '?';
 }

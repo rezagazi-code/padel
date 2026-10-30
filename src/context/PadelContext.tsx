@@ -2051,6 +2051,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ) {
       void updateTournament(tournId, { bracket }).catch((err) => {
         console.warn('drawOfficialBracket remote persist failed, keeping local bracket', err);
+        // Release the same-tick guard: if a later catalog reload wipes the
+        // local bracket (server still has none), the admin must be able to
+        // re-draw instead of hitting the misleading "already drawn" toast.
+        // The non-empty-bracket check above still blocks a re-draw while
+        // the local bracket exists, so the same-tick protection is intact.
+        officialDrawGuardRef.current.delete(tournId);
         setSyncNotification('⚠️ قرعه‌کشی انجام شد اما ذخیره‌سازی روی سرور ناموفق بود — لطفاً با پشتیبانی در میان بگذارید.');
       });
     }
