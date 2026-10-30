@@ -3,6 +3,7 @@ import { usePadel } from '../context/PadelContext';
 import { useAuth } from '../context/AuthContext';
 import { Coach } from '../types';
 import GradeBadge from './GradeBadge';
+import { AuthModal } from './AuthModal';
 import { BottomSheet } from './BottomSheet';
 import { levelToGrade } from '../utils/skillGrades';
 import {
@@ -23,7 +24,8 @@ import {
 
 export const CoachBookingView: React.FC = () => {
   const { coaches, coachBookings, bookCoach, playerProfile, addCoach, deleteCoach } = usePadel();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   // NOTE: user.role is the Supabase JWT role ('authenticated'), not the app
   // role — the app role comes from AuthContext's profile-backed `role`.
   const isAdmin = role === 'super_admin' || role === 'club_admin';
@@ -164,6 +166,12 @@ export const CoachBookingView: React.FC = () => {
   const handleConfirmBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCoach) return;
+    // Defense in depth for the signed-out gate above: never record a coach
+    // booking under a blank player name — it would occupy the slot for nobody.
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setBookingError('ابتدا وارد حساب خود شوید تا نام شما در رزرو ثبت شود.');
+      return;
+    }
     // Belt-and-braces: never record a booking for a coach with no schedule
     // (older coaches created before the add-form validation may have empty
     // availableDays/availableHours).
@@ -373,7 +381,11 @@ export const CoachBookingView: React.FC = () => {
               </div>
 
               <button
-                onClick={() => handleOpenBookingModal(coach)}
+                // Signed-out web visitors have the blank guest profile, so a
+                // coach booking would carry an empty player name and occupy
+                // the coach/day/hour slot (duplicate-slot guard) for nobody.
+                // Open login instead, same as open matches / need-player posts.
+                onClick={() => { if (!user) { setAuthModalOpen(true); } else { handleOpenBookingModal(coach); } }}
                 className="px-6 py-3 bubble-btn text-white font-black text-xs rounded-2xl transition active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" />
@@ -646,6 +658,7 @@ export const CoachBookingView: React.FC = () => {
         </div>
       )}
 
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };

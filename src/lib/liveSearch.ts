@@ -280,7 +280,11 @@ function parseWoodmartHtml(
     const numM = raw ? raw.match(/([\d,]+)/) : null;
     const toman = numM ? Math.round(parseInt(numM[1].replace(/,/g, ''), 10) / priceDivisor) : 0;
     const image = extractImageUrl(chunk, host);
-    if (title && toman > 0 && isPadelRelevant(title, query)) {
+    // Woodmart cards carry no verified-stock signal: skip offers whose card
+    // is marked out of stock, so the «موجود» badge is never shown for them
+    // (same pattern as the Alovarzesh ناموجود filter below).
+    const outOfStock = /ناموجود|out-of-stock|outofstock/i.test(chunk);
+    if (title && toman > 0 && !outOfStock && isPadelRelevant(title, query)) {
       offers.push({ store: storeName, title, priceToman: toman, url, verified: true, image });
     }
   }
