@@ -126,10 +126,11 @@ export const FriendlyTournamentView: React.FC = () => {
       setTNameError('این تورنمنت دیگر برای ثبت تیم باز نیست.');
       return;
     }
-    // Duplicate team names: reject trimmed + case-insensitive, exactly like
-    // registerTournamentTeam does for official tournaments — with a Persian
-    // inline error, never a silent accept.
-    const norm = (s: string) => s.trim().toLowerCase();
+    // Duplicate team names: reject trimmed + case-insensitive + collapsed
+    // internal whitespace, exactly like registerTournamentTeam does for
+    // official tournaments — with a Persian inline error, never a silent
+    // accept.
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     if (selected.teams.some((tm) => norm(tm.teamName) === norm(tName))) {
       setTNameError('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
       return;

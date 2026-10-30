@@ -919,8 +919,7 @@ export const TournamentsView: React.FC = () => {
                   <label className="block text-slate-400 font-bold mb-1">نام پارتنر (بازیکن ۲):</label>
                   <input
                     type="text"
-                    required
-                    placeholder="مثال: علی شایان"
+                    placeholder="مثال: علی شایان — خالی بگذارید برای ثبت انفرادی"
                     value={partnerNameInput}
                     onChange={(e) => setPartnerNameInput(e.target.value)}
                     className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"

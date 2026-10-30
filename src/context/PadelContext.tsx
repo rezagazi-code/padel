@@ -1742,10 +1742,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addFriendlyTeam = (tournId: string, team: Omit<FriendlyTeam, 'id'>): boolean => {
-    // Duplicate team names: same trimmed + case-insensitive rejection as the
-    // official registerTournamentTeam path — identical names confuse the TV
-    // bracket display.
-    const normName = (s: string) => s.trim().toLowerCase();
+    // Duplicate team names: same trimmed + case-insensitive + collapsed
+    // internal-whitespace rejection as the official registerTournamentTeam
+    // path — identical names confuse the TV bracket display.
+    const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const tourn = friendlyTournaments.find((x) => x.id === tournId);
     if (tourn && tourn.teams.some((tm) => normName(tm.teamName) === normName(team.teamName))) {
       setSyncNotification('تیمی با این نام قبلاً در این تورنمنت ثبت شده است.');
