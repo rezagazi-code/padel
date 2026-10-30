@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { usePadel } from '../context/PadelContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { displayProvinceRank } from '../lib/rankingDisplay';
 import { Tournament, TournamentCategory, TournamentFormat, UserRole } from '../types';
 import GradeBadge from './GradeBadge';
@@ -83,6 +85,8 @@ export const TournamentsView: React.FC = () => {
   const [expandedBracketTournId, setExpandedBracketTournId] = useState<string | null>('tourn-1');
   
   // Modals
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState<Tournament | null>(null);
   const [teamNameInput, setTeamNameInput] = useState('');
   const [partnerNameInput, setPartnerNameInput] = useState('');
@@ -589,7 +593,11 @@ export const TournamentsView: React.FC = () => {
                       <>
                         {isRegistrationOpen ? (
                           <button
-                            onClick={() => setShowRegisterModal(tourn)}
+                            // Signed-out web visitors cannot register: the
+                            // submit guard refuses a blank profile name, and
+                            // the profile tab itself is auth-gated, so sending
+                            // them there is a dead end. Open login instead.
+                            onClick={() => { if (!user) { setAuthModalOpen(true); } else { setShowRegisterModal(tourn); } }}
                             disabled={isFull || isAlreadyRegistered}
                             className={`flex-1 py-3 font-black text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
                               isFull || isAlreadyRegistered
@@ -1236,6 +1244,8 @@ export const TournamentsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       <ConfirmDialog
         open={!!tournamentToDelete}
