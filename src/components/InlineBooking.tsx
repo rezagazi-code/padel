@@ -306,6 +306,17 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
     .filter((n) => n.toLowerCase() !== playerProfile.name.trim().replace(/\s+/g, ' ').toLowerCase())
     .filter((n, i, arr) => arr.findIndex((m) => m.toLowerCase() === n.toLowerCase()) === i);
   const dongiPerPerson = Math.round(totalPrice / Math.max(1, 1 + dongiOthers.length));
+  // Ledger-consistent display: the saved record gives the last person the
+  // rounding remainder (see handleConfirmBooking), so when the total does
+  // not divide evenly the panel must not claim every share equals the
+  // rounded figure — it previously differed by 1 تومان from the ledger.
+  const dongiLastShare = Math.max(0, totalPrice - dongiPerPerson * dongiOthers.length);
+  const dongiShareLabel =
+    totalPrice <= 0
+      ? 'قیمت ثبت نشده'
+      : dongiLastShare === dongiPerPerson
+        ? `${dongiPerPerson.toLocaleString('fa-IR')} تومان`
+        : `${dongiPerPerson.toLocaleString('fa-IR')} تومان (نفر آخر ${dongiLastShare.toLocaleString('fa-IR')} تومان)`;
 
   const handleConfirmBooking = async () => {
     if (isSubmitting) return;
@@ -731,7 +742,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               <p className="text-[11px] text-slate-400">
                 سهم هر نفر:{' '}
                 <span className="font-black text-[#ff6b81]">
-                  {totalPrice <= 0 ? 'قیمت ثبت نشده' : `${dongiPerPerson.toLocaleString('fa-IR')} تومان`}
+                  {dongiShareLabel}
                 </span>{' '}
                 ({1 + dongiOthers.length} نفر)
               </p>

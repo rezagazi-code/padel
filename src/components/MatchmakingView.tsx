@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { usePadel } from '../context/PadelContext';
 import { FriendlyTournamentView } from './FriendlyTournamentView';
 import { MatchType, OpenMatch, GroupSession, PlayingSide } from '../types';
@@ -25,6 +25,22 @@ import {
   LayoutGrid,
   Trash2
 } from 'lucide-react';
+
+// Same initial-letter fallback as FreeAgentsView: a fresh profile has
+// avatar '' by default and a dead remote URL must not render a
+// broken-image icon in the compatible-player chips.
+function ChipAvatar({ src, name }: { src?: string; name?: string }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => { setBroken(false); }, [src]);
+  if (!src || broken) {
+    return (
+      <div className="w-6 h-6 rounded-full object-cover flex items-center justify-center font-bold text-white text-[10px] bg-slate-600">
+        {(name ?? '').trim().charAt(0) || '؟'}
+      </div>
+    );
+  }
+  return <img src={src} alt="" aria-hidden="true" className="w-6 h-6 rounded-full object-cover" onError={() => setBroken(true)} />;
+}
 
 export const MatchmakingView: React.FC = () => {
   const {
@@ -492,7 +508,7 @@ export const MatchmakingView: React.FC = () => {
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition text-xs"
                           title={`دعوت ${a.name}`}
                         >
-                          <img src={a.avatar} alt="" aria-hidden="true" className="w-6 h-6 rounded-full object-cover" />
+                          <ChipAvatar src={a.avatar} name={a.name} />
                           <span className="text-slate-200 font-bold">{a.name}</span>
                           <span className="text-emerald-400">+ دعوت</span>
                         </button>

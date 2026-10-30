@@ -1198,6 +1198,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setOpenMatches((prev) => prev.filter((m) => m.clubId !== clubId));
     setGroupSessions((prev) => prev.filter((g) => g.clubId !== clubId));
     setClubs((prev) => prev.filter((c) => c.id !== clubId));
+    // A binding that points at the deleted club is stale: the tournament
+    // form would keep offering a venue that no longer exists. Clear it so
+    // the admin lands in the honest «no club connected» state; creating a
+    // new club rebinds. (A stale server managed_club_id, if set, is still
+    // ignored by the provider fallback since it matches no existing club.)
+    if (adminClubId === clubId) setAdminClubId('');
     setSyncNotification('باشگاه با موفقیت حذف شد.');
   };
 
