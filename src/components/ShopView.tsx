@@ -488,7 +488,7 @@ export const ShopView: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 text-[10px]">
           <span className="bubble-ghost flex items-center gap-1 px-3 py-1.5 font-bold text-[#0E1B2C]">
             <Sparkles className="w-3 h-3 text-[#0EA5E9]" />
-            رصد هوشمند قیمت با هوش مصنوعی
+            رصد قیمت از فروشگاه‌های ایران
           </span>
           <span className="text-[#5B6B7F]">آخرین به‌روزرسانی: {SHOP_LAST_UPDATED}</span>
         </div>

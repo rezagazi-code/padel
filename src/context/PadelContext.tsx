@@ -412,21 +412,42 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // bindNewClubAsAdminClub, deleteNeedPlayerPost) kept the stale demo role
   // while the context value (which already reads profile.role) looked right.
   // The app role lives on auth.profile.role.
+  // Previous-render session presence: distinguishes an explicit sign-out
+  // (a session existed, then vanished) from a cold start (no session yet
+  // while Supabase restores it). A ref, so tracking never re-renders.
+  const hadSessionRef = useRef(false);
   useEffect(() => {
+    const hadSession = hadSessionRef.current;
+    hadSessionRef.current = !!auth?.session;
+    // Explicit sign-out, NOT a cold start: drop the device-wide
+    // club-admin binding so the next account on this shared device
+    // cannot inherit the previous admin's club. A self-registered
+    // club_admin has no server binding, so a stale local binding would
+    // otherwise lock the next admin's host-club select to the previous
+    // admin's club and grant manage rights on their tournaments (the
+    // sync below keeps the binding whenever profile.adminClubId is
+    // null). Cold starts are untouched: hadSession is false on first
+    // mount, so the HEAD cold-start restore keeps working.
+    if (!auth?.profile && !auth?.session && hadSession) {
+      setAdminClubId('');
+    }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
     // back to them when there is no profile, so a guest on a shared
     // device otherwise saw admin UI (create/finalize) after a logout.
     // Resetting here also covers the first mount with no session; when a
     // profile loads, the real values below overwrite these defaults.
-    // NOTE: the admin-club binding is deliberately NOT reset here.
-    // Self-registered club_admins have no server binding (their
-    // managed_club_id is null), so wiping it on a cold start — when the
-    // profile is still null while the session restores — permanently
-    // lost their club (it was then persisted as 'club-1'). Keeping the
-    // id is safe: every adminClubId consumer also requires
-    // role === 'club_admin', and the role reset above already hides
-    // all admin UI from guests.
+    // NOTE: the admin-club binding is deliberately NOT reset on a null
+    // profile here. Self-registered club_admins have no server binding
+    // (their managed_club_id is null), so wiping it on a cold start —
+    // when the profile is still null while the session restores —
+    // permanently lost their club (it was then persisted as 'club-1').
+    // Keeping the id is safe for guests: every adminClubId consumer
+    // also requires role === 'club_admin', and the role reset above
+    // already hides all admin UI from them. The sign-out case is
+    // handled separately above: once a session has existed and then
+    // vanishes, the binding is dropped so the next account on this
+    // device cannot inherit it.
     if (!auth?.profile) {
       setCurrentUserRole('player');
       setAdminProvince('تهران');
