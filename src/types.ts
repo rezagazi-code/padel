@@ -420,7 +420,9 @@ export interface ShopProduct {
  */
 export function isOfferUnavailable(o: ShopOffer): boolean {
   if (!o.note) return false;
-  return /ناموجود/.test(o.note) && !/سایر فروشندگان ناموجود/.test(o.note);
+  // «یافت نشد» is the same dead-offer class as «ناموجود»: the seller page
+  // is gone, so the last recorded price must not render as buyable.
+  return /ناموجود|یافت نشد/.test(o.note) && !/سایر فروشندگان ناموجود/.test(o.note);
 }
 
 /**

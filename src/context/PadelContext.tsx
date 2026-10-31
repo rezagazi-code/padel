@@ -1653,6 +1653,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // never be returned (the old `success` was always false → toast never fired).
     const m = openMatches.find((x) => x.id === matchId);
     if (!m) return false;
+    // Blank-name guard (same class as the create-path gates): a profile-less
+    // sign-in leaves playerProfile.name '' — a nameless join would occupy a
+    // slot and confuse the already-joined checks under the shared 'player-me' id.
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس بپیوندید.');
+      return false;
+    }
     // Check if player already joined another slot
     if (m.slots.some((s) => s.playerId === playerProfile.id)) {
       setSyncNotification('شما قبلاً در این مسابقه شرکت کرده‌اید.');
@@ -1783,6 +1790,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Validate against current state first (same batching reason as joinMatchSlot).
     const g = groupSessions.find((x) => x.id === sessionId);
     if (!g) return false;
+    // Blank-name guard (same class as the create-path gates).
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس بپیوندید.');
+      return false;
+    }
     // Seeded sample sessions (gs-sample-*) are display-only: joining one
     // used to report success while nothing real happened.
     if (g.id.startsWith('gs-sample-') || g.creatorId.startsWith('player-sample-')) {
@@ -2415,6 +2427,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Validate against current state first (same batching reason as joinMatchSlot).
     const p = needPlayerPosts.find((x) => x.id === postId);
     if (!p) return false;
+    // Blank-name guard (same class as the create-path gates): a nameless
+    // joiner would fill a spot and could flip the post to filled.
+    if (!playerProfile.name || !playerProfile.name.trim()) {
+      setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس بپیوندید.');
+      return false;
+    }
     if (p.hostPlayerId === playerProfile.id) {
       setSyncNotification('شما خودتان میزبان این سانس هستید.');
       return false;
@@ -2517,6 +2535,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const toggleFreeAgentStatus = (available: boolean, note?: string) => {
+    // Blank-name guard (same class as the create-path gates): listing a
+    // nameless card in the free-agents directory helps nobody. Turning the
+    // status OFF is always allowed.
+    if (available && (!playerProfile.name || !playerProfile.name.trim())) {
+      setSyncNotification('ابتدا نام خود را در پروفایل وارد کنید، سپس وضعیت بازیکن آزاد را فعال کنید.');
+      return;
+    }
     updatePlayerProfile({
       isFreeAgent: available,
       freeAgentNote: note || playerProfile.freeAgentNote,
