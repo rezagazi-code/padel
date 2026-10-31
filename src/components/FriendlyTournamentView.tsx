@@ -52,6 +52,7 @@ export const FriendlyTournamentView: React.FC = () => {
   const [fTitle, setFTitle] = useState('');
   const [fTitleError, setFTitleError] = useState('');
   const [fClubError, setFClubError] = useState('');
+  const [fNameError, setFNameError] = useState('');
   const [fClubId, setFClubId] = useState('');
   const [fDate, setFDate] = useState('');
   const [fFee, setFFee] = useState('');
@@ -75,6 +76,16 @@ export const FriendlyTournamentView: React.FC = () => {
     // gates guests, but a submit reaching here must never create a
     // tournament owned by «ناشناس».
     if (!user) { setAuthModalOpen(true); return; }
+    // Signed-in but profile-less: the auth sync effect returns early when
+    // auth.profile is null, so playerProfile.name stays '' (mockData
+    // initial) and without this check the tournament below would be filed
+    // under «ناشناس» despite the gate above. Block with an inline error
+    // asking the user to set their name in their profile first.
+    if (!playerProfile.name.trim()) {
+      setFNameError('برای ساخت مسابقه، اول نام خود را در پروفایل ثبت کنید.');
+      return;
+    }
+    setFNameError('');
     // Blank title used to return silently (the input placeholder marks it
     // required) — show an inline error like handleAddTeam does for teams.
     if (!fTitle.trim()) {
@@ -509,6 +520,9 @@ export const FriendlyTournamentView: React.FC = () => {
                 </div>
               </div>
               <p className="text-xs text-slate-500 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />هر بازی حدود ۹۰ دقیقه طول می‌کشد. با {fCourts} زمین و {fHours} ساعت می‌توانید حدود {Math.floor(Math.max(1, parseInt(faDigitsToEn(fCourts)) || 1) * Math.max(1, parseFloat(faDigitsToEn(fHours)) || 2) * 60 / 90)} بازی برگزار کنید.</p>
+              {fNameError && (
+                <p className="text-xs text-red-400">{fNameError}</p>
+              )}
               <button type="submit" className="w-full py-3 rounded-2xl bubble-btn-fire text-white font-black">ساخت مسابقه</button>
             </form>
           </div>
