@@ -7,7 +7,7 @@ export const SHOP_LAST_UPDATED = '۹ آبان ۱۴۰۵';
  * Curated padel gear with real Iranian market prices.
  * Prices are researched by the AI across Torob, Divar, Emalls and Instagram
  * sellers and refreshed periodically. `offers` must stay sorted by price asc
- * (null prices last) so bestOffer() picks the cheapest.
+ * (null prices last) so bestOffer() picks the cheapest available offer.
  */
 export const SHOP_CATALOG: ShopProduct[] = [
   {

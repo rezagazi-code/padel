@@ -153,6 +153,14 @@ export const MatchmakingView: React.FC = () => {
     createMatchSubmittingRef.current = true;
     try {
       setCreateMatchError(null);
+      // Same signed-out + blank-name gates as the friendly-tournament
+      // create: the opener button gates guests, but a submit reaching here
+      // must never file a match under a blank creator name.
+      if (!user) { setAuthModalOpen(true); return; }
+      if (!playerProfile.name.trim()) {
+        setCreateMatchError('برای ساخت مسابقه، اول نام خود را در پروفایل ثبت کنید.');
+        return;
+      }
       // No silent first-club fallback (same class just removed from
       // UserManagementModal): if the selected club id went stale across a
       // catalog reload, stop and ask instead of filing under an arbitrary club.
@@ -802,6 +810,14 @@ const GroupSessionsTab: React.FC = () => {
     createGroupSubmittingRef.current = true;
     try {
       setCreateGroupError(null);
+      // Same signed-out + blank-name gates as the friendly-tournament
+      // create: the opener button gates guests, but a submit reaching here
+      // must never file a session under a blank creator name.
+      if (!user) { setAuthModalOpen(true); return; }
+      if (!playerProfile.name.trim()) {
+        setCreateGroupError('برای ساخت سانس گروهی، اول نام خود را در پروفایل ثبت کنید.');
+        return;
+      }
       // No silent first-club fallback: a stale club id stops here instead
       // of filing the session under an arbitrary club.
       const club = clubs.find((c) => c.id === gClubId);

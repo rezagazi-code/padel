@@ -406,9 +406,28 @@ export interface ShopProduct {
   offers: ShopOffer[];
 }
 
-/** Cheapest known price across offers, or null if none listed. */
+/**
+ * True when the offer's own note marks THIS offer out of stock. The note
+ * «سایر فروشندگان ناموجود» means the other sellers are out, not this
+ * offer, so it does not count — every other «ناموجود» note in the catalog
+ * («ناموجود در …», «فعلاً ناموجود …», «آخرین فروشنده ناموجود …»,
+ * «…؛ ناموجود») marks the offer itself unavailable.
+ */
+export function isOfferUnavailable(o: ShopOffer): boolean {
+  if (!o.note) return false;
+  return /ناموجود/.test(o.note) && !/سایر فروشندگان ناموجود/.test(o.note);
+}
+
+/**
+ * Cheapest known price across offers, or null if none listed. An
+ * out-of-stock offer's price is only a last recorded price, so the cheapest
+ * AVAILABLE offer headlines the card; only when every priced offer is
+ * out of stock does the cheapest overall win (and the card flags it).
+ */
 export function bestOffer(p: ShopProduct): ShopOffer | null {
   const priced = p.offers.filter((o) => o.priceToman != null);
   if (priced.length === 0) return p.offers[0] ?? null;
-  return priced.reduce((a, b) => (a.priceToman! <= b.priceToman! ? a : b));
+  const available = priced.filter((o) => !isOfferUnavailable(o));
+  const pool = available.length > 0 ? available : priced;
+  return pool.reduce((a, b) => (a.priceToman! <= b.priceToman! ? a : b));
 }

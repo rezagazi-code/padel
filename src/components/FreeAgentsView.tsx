@@ -72,7 +72,10 @@ export const FreeAgentsView: React.FC = () => {
   const [selectedMatchToInvite, setSelectedMatchToInvite] = useState('');
 
   // Create Need Player form
-  const [reqClubName, setReqClubName] = useState(clubs[0]?.name || 'باشگاه پدل انقلاب تهران');
+  // No fake-club prefill: with an empty club list the old
+  // `|| 'باشگاه پدل انقلاب تهران'` fallback filed the post under a club
+  // the user never picked, and the submit trim-check below passed on it.
+  const [reqClubName, setReqClubName] = useState(clubs[0]?.name || '');
   const [requestError, setRequestError] = useState<string | null>(null);
   const [reqDate, setReqDate] = useState('امروز - ۲۱:۰۰');
   const [reqTime, setReqTime] = useState('۲۱:۰۰ - ۲۲:۳۰');
@@ -107,6 +110,14 @@ export const FreeAgentsView: React.FC = () => {
     requestSubmittingRef.current = true;
     try {
       setRequestError(null);
+      // Same signed-out + blank-name gates as the friendly-tournament
+      // create: the opener button gates guests, but a submit reaching here
+      // must never file a post under a blank host name.
+      if (!user) { setAuthModalOpen(true); return; }
+      if (!playerProfile.name.trim()) {
+        setRequestError('برای ثبت درخواست، اول نام خود را در پروفایل ثبت کنید.');
+        return;
+      }
       // A blank (or whitespace-only) club field must stop here: the old
       // `|| clubs[0]?.name || 'باشگاه پدل انقلاب تهران'` fallback filed the
       // post under a club the user never picked.

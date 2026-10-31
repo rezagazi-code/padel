@@ -16,6 +16,7 @@ import {
   ShopCategory,
   SHOP_CATEGORY_LABELS,
   bestOffer,
+  isOfferUnavailable,
 } from '../types';
 import { SHOP_CATALOG, SHOP_LAST_UPDATED } from '../shopCatalog';
 import { WaterRipple } from './WaterRipple';
@@ -119,8 +120,11 @@ const ProductCard: React.FC<{ p: ShopProduct; onOpen: () => void; eager?: boolea
       >
         <div className="relative">
           <ProductPhoto p={p} eager={eager} />
-          {p.offers.length > 1 && best?.priceToman != null && (
+          {p.offers.length > 1 && best?.priceToman != null && !isOfferUnavailable(best) && (
             <span className="best-price">بهترین قیمت</span>
+          )}
+          {best?.priceToman != null && isOfferUnavailable(best) && (
+            <span className="best-price" style={{ background: '#5B6B7F' }}>ناموجود</span>
           )}
         </div>
         <div className="p-3.5 pt-2.5 flex flex-col gap-1 flex-1">
@@ -166,6 +170,10 @@ const ProductSheet: React.FC<{
       }),
     [p]
   );
+  // The «بهترین قیمت» badge must mark the same offer the card headlines:
+  // the cheapest AVAILABLE offer, not the cheapest row (which may be an
+  // out-of-stock offer's last recorded price).
+  const best = bestOffer(p);
   // The «قیمت زنده» header renders only when it has content beneath it —
   // a loading spinner, offer rows, or the not-found fallback (e.g. after a
   // failed fetch). On web (non-native) no fetch runs, so the whole section
@@ -293,13 +301,13 @@ const ProductSheet: React.FC<{
             <div
               key={i}
               className={`offer-row flex items-center gap-3 p-3 ${
-                i === 0 && o.priceToman != null ? 'border-[#0EA5E9]/40 bg-[#F0F9FF]' : ''
+                o === best && o.priceToman != null ? 'border-[#0EA5E9]/40 bg-[#F0F9FF]' : ''
               }`}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-extrabold text-[#0E1B2C] flex items-center gap-1.5">
                   {o.store}
-                  {i === 0 && o.priceToman != null && (
+                  {o === best && o.priceToman != null && !isOfferUnavailable(o) && (
                     <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-gradient-to-b from-[#FFD54F] to-[#F5A623] text-[#5C3D00]">
                       بهترین قیمت
                     </span>
