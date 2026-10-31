@@ -460,6 +460,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // mount, so the HEAD cold-start restore keeps working.
     if (!auth?.profile && !auth?.session && hadSession) {
       setAdminClubId('');
+      localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + 'admin_binding_user_id');
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -489,6 +490,29 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const realClubId = (auth?.profile as any)?.adminClubId;
     if (realClubId) {
       setAdminClubId(realClubId);
+    }
+    // Shared-device binding ownership: the local adminClubId only means
+    // something for the admin who bound it. An expired/revoked session
+    // can be replaced by a different club_admin's sign-in WITHOUT an
+    // explicit sign-out, so the hadSession path above never fires and
+    // the new admin would otherwise inherit the previous admin's club
+    // (and its tournament manage rights) — the local binding is kept
+    // whenever the server value is null. Track the last club_admin who
+    // signed in; when a different club_admin with no server binding
+    // signs in, drop the stale local binding so their own club
+    // registration can bind (bindNewClubAsAdminClub no-ops while a
+    // binding exists). Same-admin cold starts are untouched (the id
+    // matches, so the binding is kept), and non-admin sign-ins never
+    // touch the binding — it is inert for them since every consumer
+    // also requires role === 'club_admin'.
+    const signedInUserId = auth?.profile?.id ?? auth?.user?.id ?? null;
+    if (auth?.profile && realRole === 'club_admin' && signedInUserId) {
+      const bindingUserKey = LOCAL_STORAGE_KEY_PREFIX + 'admin_binding_user_id';
+      const lastAdminUserId = localStorage.getItem(bindingUserKey);
+      if (lastAdminUserId && lastAdminUserId !== signedInUserId && !realClubId) {
+        setAdminClubId('');
+      }
+      localStorage.setItem(bindingUserKey, signedInUserId);
     }
     const realProvince = (auth?.profile as any)?.adminProvince;
     if (realProvince) {

@@ -332,7 +332,7 @@ export const FriendlyTournamentView: React.FC = () => {
               {tourn.teams.map((tm) => (
                 <div key={tm.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] text-sm">
                   <span className="font-bold text-slate-200">{tm.teamName}</span>
-                  <span className="text-slate-500 text-xs">{tm.player1Name} و {tm.player2Name} (سطح {tm.rank})</span>
+                  <span className="text-slate-500 text-xs">{[tm.player1Name, tm.player2Name].filter((n) => n !== 'بازیکن ۱' && n !== 'بازیکن ۲').join(' و ')} (سطح {tm.rank})</span>
                 </div>
               ))}
               {tourn.teams.length === 0 && <p className="text-slate-500 text-sm">هنوز تیمی اضافه نشده.</p>}
