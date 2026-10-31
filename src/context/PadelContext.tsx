@@ -992,6 +992,15 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [coaches]);
 
   const updatePlayerProfile = async (updates: Partial<PlayerProfile>): Promise<boolean> => {
+    // Stamp the local profile's owner when a signed-in user saves identity
+    // fields: the foreign-session clear only fires when an owner key exists,
+    // and it was previously written only on server-profile sync — so a
+    // profile-less user who saved a name locally left no owner behind, and
+    // the next profile-less user on the same device inherited that name
+    // past the blank-name gates (residual hole in the 487d678 fix).
+    if (auth?.user?.id && (updates.name !== undefined || updates.avatar !== undefined)) {
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id', auth.user.id);
+    }
     setPlayerProfile((prev) => {
       const updated = { ...prev, ...updates };
       // Also update in free agents if isFreeAgent
