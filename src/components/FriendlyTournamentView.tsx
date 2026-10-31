@@ -123,6 +123,13 @@ export const FriendlyTournamentView: React.FC = () => {
       setTNameError('نام تیم را وارد کنید.');
       return;
     }
+    // A team with neither player named used to register as the fake
+    // «بازیکن ۱ و بازیکن ۲» and enter the draw as if two real players —
+    // require at least one real player name.
+    if (!tP1.trim() && !tP2.trim()) {
+      setTNameError('نام دست‌کم یک بازیکن را وارد کنید.');
+      return;
+    }
     // Stale detail view: the form only renders while open, but `selected`
     // can lag behind a draw done elsewhere — never clear the form on a
     // tournament that is no longer open.
