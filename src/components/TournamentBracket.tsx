@@ -188,30 +188,37 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     if (!m.team1 || !m.team2) return;
     setEditingMatch(m);
     setScoreError(null);
-    setSelectedWinnerId(m.winnerId || m.team1?.id || '');
-    // Always start from defaults: a cancelled edit's typed values must never
-    // leak into the next match's modal.
-    setScoreT1S1(6);
-    setScoreT1S2(6);
+    // Never prefill a result nobody entered: an unplayed match used to open
+    // with 6-4, 6-3 and team 1 preselected as winner, so one careless tap
+    // on save recorded a fabricated win, advanced the bracket and fed
+    // ranking points. Blank inputs + no preselected winner for unplayed
+    // matches; a recorded result still prefills from its stored scores.
+    setSelectedWinnerId(m.winnerId || '');
+    setScoreT1S1(null);
+    setScoreT1S2(null);
     setScoreT1S3(null);
-    setScoreT2S1(4);
-    setScoreT2S2(3);
+    setScoreT2S1(null);
+    setScoreT2S2(null);
     setScoreT2S3(null);
     if (m.team1?.score) {
-      setScoreT1S1(m.team1.score[0] ?? 6);
-      setScoreT1S2(m.team1.score[1] ?? 6);
+      setScoreT1S1(m.team1.score[0] ?? null);
+      setScoreT1S2(m.team1.score[1] ?? null);
       setScoreT1S3(m.team1.score[2] ?? null);
     }
     if (m.team2?.score) {
-      setScoreT2S1(m.team2.score[0] ?? 4);
-      setScoreT2S2(m.team2.score[1] ?? 3);
+      setScoreT2S1(m.team2.score[0] ?? null);
+      setScoreT2S2(m.team2.score[1] ?? null);
       setScoreT2S3(m.team2.score[2] ?? null);
     }
   };
 
   const handleSaveResult = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingMatch || !onUpdateMatch || !selectedWinnerId) return;
+    if (!editingMatch || !onUpdateMatch) return;
+    if (!selectedWinnerId) {
+      setScoreError('تیم برنده را انتخاب کنید.');
+      return;
+    }
 
     // Validate score/winner consistency (best-of-3): no tied sets, the
     // selected winner must have exactly 2 set wins, and the optional third

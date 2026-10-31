@@ -273,6 +273,15 @@ export const FriendlyTournamentView: React.FC = () => {
 
   if (selected) {
     const tourn = friendlyTournaments.find((t) => t.id === selected.id) || selected;
+    // Draw / undo-draw are organizer-only: createdBy is the creator's
+    // profile name, so any other signed-in user must not close
+    // registration early or wipe the draw. Legacy «ناشناس» tournaments
+    // (created before the name gate) have no identifiable creator, so
+    // they stay open. Score entry stays open to participants.
+    const isCreator =
+      tourn.createdBy === 'ناشناس' ||
+      (playerProfile.name.trim() !== '' &&
+        tourn.createdBy.trim() === playerProfile.name.trim());
     return (
       <div className="space-y-6 pb-12">
         <button onClick={() => setSelected(null)} className="text-sm text-slate-400 hover:text-slate-200">
@@ -288,7 +297,7 @@ export const FriendlyTournamentView: React.FC = () => {
           </div>
 
           {/* Undo accidental draw (A5): only before any result is recorded */}
-          {tourn.bracket?.length > 0 && tourn.status === 'draw_done' &&
+          {isCreator && tourn.bracket?.length > 0 && tourn.status === 'draw_done' &&
             !tourn.bracket.some((m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)) && (
             <button
               onClick={() => {
@@ -374,13 +383,16 @@ export const FriendlyTournamentView: React.FC = () => {
                 <p className="col-span-2 text-xs text-red-400">{tNameError}</p>
               )}
             </form>
-            {tourn.teams.length >= 2 && (
+            {isCreator && tourn.teams.length >= 2 && (
               <button
                 onClick={() => { if (!user) { setAuthModalOpen(true); } else { drawFriendlyBracket(tourn.id); } }}
                 className="w-full mt-4 py-3 rounded-2xl bubble-btn-fire text-white font-black flex items-center justify-center gap-2"
               >
                 <Shuffle className="w-5 h-5" />قرعه‌کشی بر اساس رنک
               </button>
+            )}
+            {!isCreator && tourn.teams.length >= 2 && (
+              <p className="mt-4 text-xs text-slate-500 text-center">قرعه‌کشی با سازنده تورنمنت است.</p>
             )}
           </div>
         )}

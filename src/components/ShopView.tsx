@@ -325,14 +325,24 @@ const ProductSheet: React.FC<{
               ) : (
                 <p className="text-[11px] font-bold text-[#5B6B7F] shrink-0">دایرکت</p>
               )}
-              <button
-                onClick={() => openExternal(o.url)}
-                className="bubble-btn shrink-0 h-9 px-4 flex items-center gap-1.5 text-[12px] cursor-pointer"
-                aria-label={`مشاهده در ${o.store}`}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                خرید
-              </button>
+              {isOfferUnavailable(o) ? (
+                <button
+                  disabled
+                  className="shrink-0 h-9 px-4 flex items-center gap-1.5 text-[12px] font-bold rounded-full bg-slate-100 text-slate-400 cursor-not-allowed"
+                  aria-label={`${o.store} ناموجود است`}
+                >
+                  ناموجود
+                </button>
+              ) : (
+                <button
+                  onClick={() => openExternal(o.url)}
+                  className="bubble-btn shrink-0 h-9 px-4 flex items-center gap-1.5 text-[12px] cursor-pointer"
+                  aria-label={`مشاهده در ${o.store}`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  خرید
+                </button>
+              )}
             </div>
           ))}
         </div>
