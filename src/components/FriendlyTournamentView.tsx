@@ -51,6 +51,7 @@ export const FriendlyTournamentView: React.FC = () => {
   // Create form
   const [fTitle, setFTitle] = useState('');
   const [fTitleError, setFTitleError] = useState('');
+  const [fClubError, setFClubError] = useState('');
   const [fClubId, setFClubId] = useState('');
   const [fDate, setFDate] = useState('');
   const [fFee, setFFee] = useState('');
@@ -70,6 +71,10 @@ export const FriendlyTournamentView: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    // Same signed-out gate as handleAddTeam/handleScore: the opener button
+    // gates guests, but a submit reaching here must never create a
+    // tournament owned by «ناشناس».
+    if (!user) { setAuthModalOpen(true); return; }
     // Blank title used to return silently (the input placeholder marks it
     // required) — show an inline error like handleAddTeam does for teams.
     if (!fTitle.trim()) {
@@ -79,13 +84,20 @@ export const FriendlyTournamentView: React.FC = () => {
     setFTitleError('');
     // No silent reassignment: the select visibly defaults to the first club
     // (see value below), so the stored club is always the one shown. Never
-    // fall back to clubs[0] behind a blank select.
+    // fall back to clubs[0] behind a blank select — and with an empty club
+    // list there is no club at all, so fail loudly instead of filing a
+    // club-less tournament with a blank name.
     const effectiveClubId = fClubId || clubs[0]?.id || '';
     const club = clubs.find((c) => c.id === effectiveClubId);
+    if (!club) {
+      setFClubError('باشگاهی برای برگزاری مسابقه در دسترس نیست.');
+      return;
+    }
+    setFClubError('');
     const t = createFriendlyTournament({
       title: fTitle.trim(),
-      clubId: club?.id || '',
-      clubName: club?.name || '',
+      clubId: club.id,
+      clubName: club.name,
       date: fDate || 'تعیین نشده',
       // Fee is free text like the coach rate: separators must be stripped
       // before parseInt, or '500,000' stores as 500 (near-free entry) and
@@ -477,9 +489,12 @@ export const FriendlyTournamentView: React.FC = () => {
               {fTitleError && (
                 <p className="text-xs text-red-400">{fTitleError}</p>
               )}
-              <select value={fClubId || clubs[0]?.id || ''} onChange={(e) => setFClubId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
+              <select value={fClubId || clubs[0]?.id || ''} onChange={(e) => { setFClubId(e.target.value); setFClubError(''); }} className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200">
                 {clubs.map((c) => <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>)}
               </select>
+              {fClubError && (
+                <p className="text-xs text-red-400">{fClubError}</p>
+              )}
               <input value={fDate} onChange={(e) => setFDate(e.target.value)} placeholder="تاریخ (مثلاً جمعه ۱۴۰۳/۰۷/۲۰)" className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />
               <div className="grid grid-cols-2 gap-2">
                 <input value={fCourts} onChange={(e) => setFCourts(e.target.value)} placeholder="تعداد زمین" inputMode="numeric" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-200 placeholder:text-slate-600" />

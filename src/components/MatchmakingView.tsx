@@ -105,6 +105,7 @@ export const MatchmakingView: React.FC = () => {
 
   // New Match Form State
   const [newTitle, setNewTitle] = useState('');
+  const [createMatchError, setCreateMatchError] = useState<string | null>(null);
   const [newClubId, setNewClubId] = useState(clubs[0]?.id || '');
   const [newCourtName, setNewCourtName] = useState('زمین سنترال ۱');
   const [newDate, setNewDate] = useState('فردا - ۱۹:۰۰');
@@ -151,7 +152,15 @@ export const MatchmakingView: React.FC = () => {
     if (createMatchSubmittingRef.current) return;
     createMatchSubmittingRef.current = true;
     try {
-      const club = clubs.find((c) => c.id === newClubId) || clubs[0];
+      setCreateMatchError(null);
+      // No silent first-club fallback (same class just removed from
+      // UserManagementModal): if the selected club id went stale across a
+      // catalog reload, stop and ask instead of filing under an arbitrary club.
+      const club = clubs.find((c) => c.id === newClubId);
+      if (!club) {
+        setCreateMatchError('باشگاه انتخاب‌شده در دسترس نیست؛ لطفاً دوباره انتخاب کنید.');
+        return;
+      }
 
       createOpenMatch({
         // Whitespace-only title/court defeat the `||` fallbacks below (a
@@ -568,7 +577,7 @@ export const MatchmakingView: React.FC = () => {
                   <label className="block text-slate-400 font-bold mb-1">باشگاه میزبان:</label>
                   <select
                     value={newClubId}
-                    onChange={(e) => setNewClubId(e.target.value)}
+                    onChange={(e) => { setNewClubId(e.target.value); setCreateMatchError(null); }}
                     className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
                   >
                     {clubs.map((c) => (
@@ -692,6 +701,10 @@ export const MatchmakingView: React.FC = () => {
                 </div>
               </div>
 
+              {createMatchError && (
+                <p className="text-xs text-red-400 font-bold">{createMatchError}</p>
+              )}
+
               <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button
                   type="submit"
@@ -763,6 +776,7 @@ const GroupSessionsTab: React.FC = () => {
     currentUserRole === 'super_admin' ||
     (currentUserRole === 'club_admin' && s.clubId === adminClubId);
   const [gTitle, setGTitle] = useState('');
+  const [createGroupError, setCreateGroupError] = useState<string | null>(null);
   const [gClubId, setGClubId] = useState(clubs[0]?.id || '');
   const [gCourtCount, setGCourtCount] = useState<2 | 3 | 4>(2);
   const [gCourtNames, setGCourtNames] = useState<string[]>(['زمین ۱', 'زمین ۲']);
@@ -787,7 +801,14 @@ const GroupSessionsTab: React.FC = () => {
     if (createGroupSubmittingRef.current) return;
     createGroupSubmittingRef.current = true;
     try {
-      const club = clubs.find((c) => c.id === gClubId) || clubs[0];
+      setCreateGroupError(null);
+      // No silent first-club fallback: a stale club id stops here instead
+      // of filing the session under an arbitrary club.
+      const club = clubs.find((c) => c.id === gClubId);
+      if (!club) {
+        setCreateGroupError('باشگاه انتخاب‌شده در دسترس نیست؛ لطفاً دوباره انتخاب کنید.');
+        return;
+      }
       createGroupSession(
         {
           title: gTitle.trim() || `سانس گروهی ${club.name}`,
@@ -1075,7 +1096,7 @@ const GroupSessionsTab: React.FC = () => {
                 <label className="block text-slate-400 font-bold mb-1">باشگاه میزبان:</label>
                 <select
                   value={gClubId}
-                  onChange={(e) => setGClubId(e.target.value)}
+                  onChange={(e) => { setGClubId(e.target.value); setCreateGroupError(null); }}
                   className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-100 focus:border-[#ff2d55]/60 focus:outline-none"
                 >
                   {clubs.map((c) => (
@@ -1224,6 +1245,10 @@ const GroupSessionsTab: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {createGroupError && (
+                <p className="text-xs text-red-400 font-bold">{createGroupError}</p>
+              )}
 
               <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button

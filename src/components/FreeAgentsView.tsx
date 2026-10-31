@@ -73,6 +73,7 @@ export const FreeAgentsView: React.FC = () => {
 
   // Create Need Player form
   const [reqClubName, setReqClubName] = useState(clubs[0]?.name || 'باشگاه پدل انقلاب تهران');
+  const [requestError, setRequestError] = useState<string | null>(null);
   const [reqDate, setReqDate] = useState('امروز - ۲۱:۰۰');
   const [reqTime, setReqTime] = useState('۲۱:۰۰ - ۲۲:۳۰');
   const [reqSpots, setReqSpots] = useState<number>(1);
@@ -105,15 +106,21 @@ export const FreeAgentsView: React.FC = () => {
     if (requestSubmittingRef.current) return;
     requestSubmittingRef.current = true;
     try {
+      setRequestError(null);
+      // A blank (or whitespace-only) club field must stop here: the old
+      // `|| clubs[0]?.name || 'باشگاه پدل انقلاب تهران'` fallback filed the
+      // post under a club the user never picked.
+      const clubName = reqClubName.trim();
+      if (!clubName) {
+        setRequestError('نام باشگاه را وارد کنید.');
+        return;
+      }
       // Level range derived from the host's level, same as the auto-created
       // ads from createNeedPostForBooking — manual ads should behave alike.
       const hostMinLevel = Math.max(1, playerProfile.level - 0.7);
       const hostMaxLevel = Math.min(7, playerProfile.level + 0.8);
       createNeedPlayerPost({
-        // Whitespace-only input defeats the `||` fallback on note below
-        // (spaces are truthy) and passes the `required` attribute on the
-        // club field — trim first so blank-looking posts can't be stored.
-        clubName: reqClubName.trim() || clubs[0]?.name || 'باشگاه پدل انقلاب تهران',
+        clubName,
         province: playerProfile.province,
         date: reqDate.trim() || 'امروز - ۲۱:۰۰',
         time: reqTime.trim() || '۲۱:۰۰ - ۲۲:۳۰',
@@ -548,7 +555,7 @@ export const FreeAgentsView: React.FC = () => {
                   type="text"
                   required
                   value={reqClubName}
-                  onChange={(e) => setReqClubName(e.target.value)}
+                  onChange={(e) => { setReqClubName(e.target.value); setRequestError(null); }}
                   className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
@@ -624,6 +631,10 @@ export const FreeAgentsView: React.FC = () => {
                   className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-slate-100"
                 />
               </div>
+
+              {requestError && (
+                <p className="text-xs text-red-400 font-bold">{requestError}</p>
+              )}
 
               <div className="pt-3 border-t border-white/10 flex gap-3">
                 <button

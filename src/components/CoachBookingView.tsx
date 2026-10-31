@@ -156,7 +156,9 @@ export const CoachBookingView: React.FC = () => {
   const handleOpenBookingModal = (coach: Coach) => {
     setSelectedCoach(coach);
     setBookingError(null);
-    setSelectedClub(coach.clubs[0] || 'باشگاه پدل انقلاب');
+    // No fake club fallback: a coach with no clubs keeps an empty selection
+    // and the confirm guard below blocks the booking with a clear message.
+    setSelectedClub(coach.clubs[0] || '');
     // No fake fallbacks: a coach without a schedule keeps empty selections
     // and the confirm guard below blocks the booking with a clear message.
     setSelectedDate(coach.availableDays[0] || '');
@@ -177,6 +179,12 @@ export const CoachBookingView: React.FC = () => {
     // availableDays/availableHours).
     if (selectedCoach.availableDays.length === 0 || selectedCoach.availableHours.length === 0) {
       setBookingError('این مربی برنامه‌ای ثبت نکرده است.');
+      return;
+    }
+    // Same class as the schedule guard: a legacy coach with no clubs must
+    // never book under a club name he never listed.
+    if (!selectedClub.trim()) {
+      setBookingError('این مربی باشگاهی ثبت نکرده است.');
       return;
     }
     // Confirm-time mirror of the court zero-price guard: a legacy or
