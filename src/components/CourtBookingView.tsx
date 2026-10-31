@@ -631,7 +631,7 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 باشگاه‌های منتخب ({filteredClubs.length})
               </span>
             </h2>
-            <p className="text-xs text-slate-500">کورت‌های دارای مجوز</p>
+            <p className="text-xs text-slate-500">کورت‌های پدل</p>
           </div>
 
           <div className="space-y-3">

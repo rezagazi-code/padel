@@ -208,7 +208,7 @@ export const FriendlyTournamentView: React.FC = () => {
     // Silent `return` here left the admin guessing why «ثبت» did nothing
     // on an untouched row — both fields are required, so say so.
     if (!inp) {
-      setSyncNotification('برای ثبت نتیجه، هر دو ست را وارد کنید.');
+      setSyncNotification('برای ثبت نتیجه، نتیجه هر دو تیم را وارد کنید.');
       return;
     }
     // Inputs prefill visually from the recorded score, but scoreInputs only
@@ -262,7 +262,7 @@ export const FriendlyTournamentView: React.FC = () => {
     // Same silent-return trap as above: a half-filled row (one field
     // empty, no recorded score to fall back to) parses to NaN.
     if (isNaN(s1) || isNaN(s2)) {
-      setSyncNotification('برای ثبت نتیجه، هر دو ست را وارد کنید.');
+      setSyncNotification('برای ثبت نتیجه، نتیجه هر دو تیم را وارد کنید.');
       return;
     }
     recordFriendlyScore(selected.id, matchId, s1, s2);

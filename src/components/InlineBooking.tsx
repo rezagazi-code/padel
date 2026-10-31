@@ -644,7 +644,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
               <div className="min-w-0">
                 <h4 className="text-[13px] font-bold text-slate-100">نیاز به بازیکن کمکی؟</h4>
                 <p className="text-[11px] text-slate-500 leading-4">
-                  آگهی «نیاز به بازیکن» در تابلوی بازیکن‌های آزاد ثبت می‌شود.
+                  آگهی «نیاز به بازیکن» در تابلوی بازیکن‌های آزاد همین دستگاه ثبت می‌شود.
                 </p>
               </div>
             </div>

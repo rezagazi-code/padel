@@ -74,12 +74,11 @@ function fuzzyWordMatch(queryWord: string, hayWord: string): boolean {
   return levenshtein(queryWord, hayWord) <= threshold;
 }
 
+// Exact price everywhere: the old میلیون rounding (1 decimal) made two
+// offers differing by <100K تومان display identically while the
+// «بهترین قیمت» badge was computed from exact values — the exact price
+// was unrecoverable anywhere in-app.
 function formatPrice(t: number): string {
-  if (t >= 1_000_000) {
-    const m = t / 1_000_000;
-    const str = Number.isInteger(m) ? m.toString() : m.toFixed(1);
-    return `${Number(str).toLocaleString('fa-IR')} میلیون تومان`;
-  }
   return `${t.toLocaleString('fa-IR')} تومان`;
 }
 

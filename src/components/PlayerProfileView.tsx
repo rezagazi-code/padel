@@ -476,7 +476,7 @@ export const PlayerProfileView: React.FC = () => {
           </div>
 
           {/* Quick Stats Bento */}
-          <div className="grid grid-cols-3 gap-3 bg-white/[0.05] p-4 rounded-2xl border border-white/10 shrink-0 text-center">
+          <div className="grid grid-cols-2 gap-3 bg-white/[0.05] p-4 rounded-2xl border border-white/10 shrink-0 text-center">
             <div>
               <span className="text-[10px] text-slate-500 block">امتیاز رنکینگ</span>
               <span className="text-lg font-black" style={{ color: themeColorLight }}>
@@ -487,12 +487,6 @@ export const PlayerProfileView: React.FC = () => {
               <span className="text-[10px] text-slate-500 block">درصد پیروزی</span>
               <span className="text-lg font-black text-emerald-600">
                 {displayWinRate}٪
-              </span>
-            </div>
-            <div className="border-r border-white/10 pr-3">
-              <span className="text-[10px] text-slate-500 block">بازی‌ها</span>
-              <span className="text-lg font-black text-slate-100">
-                {playerProfile.matchesPlayed}
               </span>
             </div>
           </div>

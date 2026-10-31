@@ -236,7 +236,7 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
                     </div>
                     <div className="flex items-center gap-1 text-[11px] text-[#ff6b81] font-bold">
                       <Navigation className="w-3 h-3" />
-                      {formatDistance(c.distanceKm)}
+                      حدود {formatDistance(c.distanceKm)}
                     </div>
                     <p className="text-[10px] text-slate-500 truncate mt-1">
                       {c.address}
@@ -292,7 +292,7 @@ export function NearestClubs({ onClose, onReserve }: NearestClubsProps) {
               <div className="flex items-center gap-3 text-[11px] text-slate-300 mb-3 px-1">
                 <span className="flex items-center gap-1 font-bold text-[#ff6b81]">
                   <Navigation className="w-3.5 h-3.5" />
-                  {formatDistance(selected.distanceKm)} فاصله
+                  حدود {formatDistance(selected.distanceKm)} فاصله
                 </span>
                 <span className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 text-amber-400" />
@@ -581,7 +581,7 @@ function RouteView({
           <g>
             <rect x={midX - 62} y={uy - 118} width="124" height="30" rx="15" fill="#0a0f1c" stroke="#ff2d55" strokeWidth="1.5" />
             <text x={midX} y={uy - 98} fill="#ff6b81" fontSize="13" fontWeight="900" textAnchor="middle">
-              {formatDistance(club.distanceKm)}
+              حدود {formatDistance(club.distanceKm)}
             </text>
           </g>
         </svg>

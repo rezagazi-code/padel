@@ -136,7 +136,14 @@ export const TournamentsView: React.FC = () => {
   const canManageTournament = (tourn: Tournament) => {
     if (currentUserRole === 'super_admin') return true;
     if (currentUserRole === 'province_admin' && tourn.province === adminProvince) return true;
-    if (currentUserRole === 'club_admin' && tourn.clubId === adminClubId) return true;
+    // Server RLS (0011 tournaments_update_organizer) grants a club_admin
+    // only on organizer_type = 'official' tournaments — a province-admin
+    // tournament (organizerType 'province', stored as 'province' once
+    // 0013 has run) denies every club_admin update, so showing the host
+    // club_admin draw/score/finalize buttons let their work silently
+    // revert on the next reload. The organizer fallback below still
+    // covers a club_admin who actually created the tournament.
+    if (currentUserRole === 'club_admin' && tourn.clubId === adminClubId && tourn.organizerType !== 'province') return true;
     // Organizer fallback (same as canDeleteTournament + server RLS
     // tournaments_update_organizer): an organizer whose admin-club binding
     // was lost/changed could delete their own tournament but saw no draw,
