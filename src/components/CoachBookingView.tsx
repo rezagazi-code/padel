@@ -171,7 +171,7 @@ export const CoachBookingView: React.FC = () => {
     // Defense in depth for the signed-out gate above: never record a coach
     // booking under a blank player name — it would occupy the slot for nobody.
     if (!playerProfile.name || !playerProfile.name.trim()) {
-      setBookingError('ابتدا وارد حساب خود شوید تا نام شما در رزرو ثبت شود.');
+      setBookingError('نام شما در پروفایل ثبت نشده است؛ ابتدا نام خود را در پروفایل وارد کنید.');
       return;
     }
     // Belt-and-braces: never record a booking for a coach with no schedule

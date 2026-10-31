@@ -741,7 +741,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const sessionUserId = auth?.user?.id ?? null;
       const ownerKey = LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id';
       const ownerId = localStorage.getItem(ownerKey);
-      if (sessionUserId && ownerId && sessionUserId !== ownerId) {
+      // Fail-closed on a missing owner too: a name persisted before owner
+      // stamping existed has ownerId === null, and treating "unknown owner"
+      // as "same user" would let a legacy pre-fix name survive for the next
+      // profile-less user on a shared device indefinitely. Clearing it once
+      // costs a pre-fix profile-less user one name re-entry; the save path
+      // stamps the owner, so the name is never cleared twice for the same
+      // user. A stamped same-owner name is untouched (ownerId match).
+      if (sessionUserId && ownerId !== sessionUserId) {
         localStorage.setItem(ownerKey, sessionUserId);
         setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '' }));
       }
