@@ -496,6 +496,13 @@ export const TournamentsView: React.FC = () => {
                       src={tourn.bannerImage}
                       alt={tourn.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (!img.dataset.fallback) {
+                          img.dataset.fallback = '1';
+                          img.src = '/covers/club-2.jpg';
+                        }
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" />
 

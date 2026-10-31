@@ -231,10 +231,17 @@ export const FriendlyTournamentView: React.FC = () => {
       const tournForScore = friendlyTournaments.find((t) => t.id === selected.id) ?? selected;
       const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
       const me = normName(playerProfile.name);
+      // Placeholder slots are not people: unnamed team slots default to
+      // «بازیکن ۱»/«بازیکن ۲», and a profile can be named exactly that
+      // (only blank names are rejected), so an unfiltered roster lets
+      // any stranger pass iPlay on nearly every solo-registered match.
+      // Same placeholder set PadelContext exempts from duplicate checks.
+      const isPlaceholderName = (n: string) => n === normName('بازیکن ۱') || n === normName('بازیکن ۲');
       const matchTeamNames = [match?.team1Id, match?.team2Id]
         .map((id) => tournForScore.teams.find((tm) => tm.id === id))
         .filter((tm): tm is NonNullable<typeof tm> => !!tm)
-        .flatMap((tm) => [normName(tm.player1Name), normName(tm.player2Name)]);
+        .flatMap((tm) => [normName(tm.player1Name), normName(tm.player2Name)])
+        .filter((n) => !isPlaceholderName(n));
       const iPlay = me !== '' && matchTeamNames.includes(me);
       const iCreated = tournForScore.createdById
         ? tournForScore.createdById === user?.id

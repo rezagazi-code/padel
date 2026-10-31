@@ -665,6 +665,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                       src={club.coverImage}
                       alt={club.name}
                       className="w-20 h-20 rounded-xl object-cover shrink-0 ring-1 ring-slate-200/60"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (!img.dataset.fallback) {
+                          img.dataset.fallback = '1';
+                          img.src = '/covers/club-2.jpg';
+                        }
+                      }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
@@ -1251,7 +1258,18 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-start gap-2 text-right">
                   <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
                   <span>
-                    این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند — برای قطعی‌شدن با باشگاه تماس بگیرید.
+                    این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند —{' '}
+                    {(() => {
+                      const phone = clubs.find((c) => c.id === lastBookingInfo.clubId)?.phone?.trim();
+                      return phone ? (
+                        <>
+                          برای قطعی‌شدن با باشگاه تماس بگیرید:{' '}
+                          <a dir="ltr" className="font-bold underline" href={`tel:${faDigitsToEn(phone).replace(/\s/g, '')}`}>{phone}</a>
+                        </>
+                      ) : (
+                        'برای این باشگاه شماره تماسی ثبت نشده است.'
+                      );
+                    })()}
                   </span>
                 </div>
               )}
