@@ -1,7 +1,7 @@
 import { ShopProduct } from './types';
 
 /** Last time the AI price research refreshed this catalog (Jalali display). */
-export const SHOP_LAST_UPDATED = '۸ آبان ۱۴۰۵';
+export const SHOP_LAST_UPDATED = '۹ آبان ۱۴۰۵';
 
 /**
  * Curated padel gear with real Iranian market prices.
@@ -97,7 +97,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nox',
     category: 'racket',
     offers: [
-      { store: 'هیوا پدل (ترب، تهران)', priceToman: 91858000, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
+      { store: 'هیوا پدل (ترب، تهران)', priceToman: 93077600, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
     ],
   },
   {
