@@ -222,8 +222,11 @@ export const FriendlyTournamentView: React.FC = () => {
     // Score entry is for the match's players or the tournament creator
     // (2026-10-31): the old signed-in-only gate let any stranger record
     // or overwrite results of a game they play no part in. Same
-    // normalization as team-name dedupe; legacy «ناشناس» rows keep the
-    // creator fallback since they have no stored creator id.
+    // normalization as team-name dedupe. Unlike draw/undo-draw, the
+    // score gate does NOT keep the legacy «ناشناس» creator fallback:
+    // participants are identifiable from the match rosters, so an
+    // unidentifiable creator must not open scoring to every signed-in
+    // stranger; a named legacy creator still passes via name match.
     {
       const tournForScore = friendlyTournaments.find((t) => t.id === selected.id) ?? selected;
       const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -235,7 +238,7 @@ export const FriendlyTournamentView: React.FC = () => {
       const iPlay = me !== '' && matchTeamNames.includes(me);
       const iCreated = tournForScore.createdById
         ? tournForScore.createdById === user?.id
-        : tournForScore.createdBy === 'ناشناس' || (me !== '' && normName(tournForScore.createdBy) === me);
+        : (me !== '' && normName(tournForScore.createdBy) === me);
       if (!iPlay && !iCreated) {
         setSyncNotification('فقط بازیکنان این بازی یا سازنده تورنمنت می‌توانند نتیجه را ثبت کنند.');
         return;
