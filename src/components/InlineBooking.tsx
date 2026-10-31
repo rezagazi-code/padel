@@ -816,7 +816,7 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
             className="bubble-btn rounded-full w-full flex items-center justify-center gap-2 text-white font-black text-base px-8 py-4 disabled:opacity-60"
           >
             <CreditCard className="w-5 h-5" />
-            <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و رزرو قطعی زمین'}</span>
+            <span>{isSubmitting ? 'در حال ثبت رزرو…' : 'تایید و ثبت رزرو'}</span>
           </button>
         </div>
 

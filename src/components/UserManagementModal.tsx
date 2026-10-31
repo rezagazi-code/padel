@@ -60,10 +60,13 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
       // pick, the user's existing value, and the default fallback.
       const serverClubId = (id?: string | null): string | null =>
         id && !id.startsWith('club-') ? id : null;
+      // No silent default: assigning club_admin without an explicit club
+      // pick (and no existing managed club) used to bind the user to an
+      // arbitrary first server club — the same clubs[0] pattern deliberately
+      // removed from tournament creation. Stop and ask instead.
       managedClubId =
         serverClubId(clubSelect[userId]) ||
         serverClubId(target.managedClubId) ||
-        clubs.find((c) => !c.id.startsWith('club-'))?.id ||
         null;
       if (!managedClubId) {
         alert('اول یک باشگاه انتخاب کنید.');
