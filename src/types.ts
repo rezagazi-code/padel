@@ -363,6 +363,11 @@ export interface FriendlyTournament {
   winnerTeamId?: string;
   runnerUpTeamId?: string;
   createdBy: string;
+  // Creator's auth user id (2026-10-31): the draw/undo-draw gate used to
+  // compare only the free-text profile name, so any user who set their
+  // name to the creator's name seized the tournament. Legacy rows have no
+  // id and keep the name-match fallback.
+  createdById?: string;
   createdAt: string;
 }
 

@@ -340,7 +340,10 @@ const ProductSheet: React.FC<{
                   aria-label={`مشاهده در ${o.store}`}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  خرید
+                  {/* No price = no seller to buy from (e.g. a Torob page
+                  with «فعلاً فروشنده‌ای ندارد»): «خرید» promised a
+                  purchase the page can't complete — «مشاهده» is honest. */}
+                  {o.priceToman == null ? 'مشاهده' : 'خرید'}
                 </button>
               )}
             </div>

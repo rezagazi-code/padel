@@ -204,6 +204,16 @@ export const TournamentsView: React.FC = () => {
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tournSubmitting) return;
+    // A club_admin whose binding was cleared ('' — e.g. a different
+    // club_admin signed in on a shared device with no server binding)
+    // must fail loudly like the truthy-but-nonexistent default: the old
+    // fallback below silently filed the tournament under clubs[0], and
+    // the creator then lost every manage button for their own tournament
+    // (canManageTournament compares clubId to the empty binding).
+    if (currentUserRole === 'club_admin' && !adminClubId) {
+      setTournSubmitError('باشگاه شما به حسابتان متصل نیست؛ تورنمنت ثبت نشد. لطفاً دوباره وارد شوید یا با مدیر تماس بگیرید.');
+      return;
+    }
     // The host-club select locks club_admin to their own club; resolve it
     // the same way here so create and display can never disagree.
     const effectiveClubId = currentUserRole === 'club_admin' && adminClubId ? adminClubId : newClubId;

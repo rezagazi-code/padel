@@ -219,6 +219,28 @@ export const FriendlyTournamentView: React.FC = () => {
     const match =
       friendlyTournaments.find((t) => t.id === selected.id)?.bracket.find((m) => m.id === matchId) ??
       selected.bracket.find((m) => m.id === matchId);
+    // Score entry is for the match's players or the tournament creator
+    // (2026-10-31): the old signed-in-only gate let any stranger record
+    // or overwrite results of a game they play no part in. Same
+    // normalization as team-name dedupe; legacy «ناشناس» rows keep the
+    // creator fallback since they have no stored creator id.
+    {
+      const tournForScore = friendlyTournaments.find((t) => t.id === selected.id) ?? selected;
+      const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+      const me = normName(playerProfile.name);
+      const matchTeamNames = [match?.team1Id, match?.team2Id]
+        .map((id) => tournForScore.teams.find((tm) => tm.id === id))
+        .filter((tm): tm is NonNullable<typeof tm> => !!tm)
+        .flatMap((tm) => [normName(tm.player1Name), normName(tm.player2Name)]);
+      const iPlay = me !== '' && matchTeamNames.includes(me);
+      const iCreated = tournForScore.createdById
+        ? tournForScore.createdById === user?.id
+        : tournForScore.createdBy === 'ناشناس' || (me !== '' && normName(tournForScore.createdBy) === me);
+      if (!iPlay && !iCreated) {
+        setSyncNotification('فقط بازیکنان این بازی یا سازنده تورنمنت می‌توانند نتیجه را ثبت کنند.');
+        return;
+      }
+    }
     const raw1 = inp.s1 ?? (match?.score1 != null ? String(match.score1) : '');
     const raw2 = inp.s2 ?? (match?.score2 != null ? String(match.score2) : '');
     // Persian/Arabic-Indic digits → Latin, so «۶-۴» on a fa-IR keyboard
@@ -273,12 +295,14 @@ export const FriendlyTournamentView: React.FC = () => {
 
   if (selected) {
     const tourn = friendlyTournaments.find((t) => t.id === selected.id) || selected;
-    // Draw / undo-draw are organizer-only: createdBy is the creator's
-    // profile name, so any other signed-in user must not close
-    // registration early or wipe the draw. Legacy «ناشناس» tournaments
-    // (created before the name gate) have no identifiable creator, so
-    // they stay open. Score entry stays open to participants.
+    // Draw / undo-draw are organizer-only. Since 2026-10-31 the creator's
+    // auth id is stored (createdById): a name comparison alone let any
+    // user who copied the creator's profile name seize the tournament.
+    // Legacy rows without an id keep the name-match fallback, and legacy
+    // «ناشناس» tournaments (created before the name gate) have no
+    // identifiable creator, so they stay open.
     const isCreator =
+      tourn.createdById ? tourn.createdById === user?.id :
       tourn.createdBy === 'ناشناس' ||
       (playerProfile.name.trim() !== '' &&
         tourn.createdBy.trim() === playerProfile.name.trim());

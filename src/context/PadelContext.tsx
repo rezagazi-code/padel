@@ -1835,6 +1835,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newT: FriendlyTournament = {
       ...data,
       id: `ft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // same-ms collision guard, 2026-10-23
+      // Identity, not just the display name, owns the tournament (2026-10-31):
+      // without this, the draw gate's name comparison let any user who
+      // copied the creator's profile name seize draw/undo-draw.
+      createdById: auth?.user?.id ?? undefined,
       status: 'open',
       teams: [],
       bracket: [],
@@ -1918,6 +1922,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // would fall back to 'round16' and crown a champion with matches
     // unplayed. Refuse the draw honestly instead of building a wrong bracket.
     const drawTourn = friendlyTournaments.find((x) => x.id === tournId);
+    // Identity gate mirrored from the view (2026-10-31): the view's
+    // organizer-only button is not enforcement — a stale closure or any
+    // other caller must not draw someone else's tournament. Legacy rows
+    // without createdById keep the view's name-match fallback.
+    if (drawTourn?.createdById && drawTourn.createdById !== (auth?.user?.id ?? '')) {
+      setSyncNotification('قرعه‌کشی فقط با سازنده تورنمنت است.');
+      return;
+    }
     if (drawTourn && drawTourn.teams.length > 64) {
       setSyncNotification('قرعه‌کشی دوستانه فعلاً برای حداکثر ۶۴ تیم پشتیبانی می‌شود.');
       return;
@@ -2324,6 +2336,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const resetFriendlyBracket = (tournId: string) => {
     const t = friendlyTournaments.find((x) => x.id === tournId);
     if (!t || t.status !== 'draw_done' || !t.bracket || t.bracket.length === 0) return;
+    // Same identity gate as drawFriendlyBracket (2026-10-31): undo-draw
+    // must not let a stranger wipe someone else's bracket.
+    if (t.createdById && t.createdById !== (auth?.user?.id ?? '')) {
+      setSyncNotification('حذف قرعه‌کشی فقط با سازنده تورنمنت است.');
+      return;
+    }
     const anyResult = t.bracket.some(
       (m) => m.winnerId !== null && (m.score1 !== null || m.score2 !== null)
     );
