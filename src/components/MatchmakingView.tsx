@@ -192,13 +192,13 @@ export const MatchmakingView: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold">
               <Users className="w-3.5 h-3.5" />
-              سیستم مچ‌میکینگ زنده (Playtomic Open Matches)
+              مچ‌میکینگ — مسابقات باز پدل
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
               مسابقات باز پدل؛ حریف و هم‌تیمی هم‌سطح خود را پیدا کنید
             </h1>
             <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-              دیگر نگران کمبود بازیکن یا لغو بازی نباشید. در مسابقات عمومی شرکت کرده یا خودتان یک مسابقه ایجاد کنید، اسلات‌های خالی را پر کنید و در سطح بازی خود بدرخشید.
+              دیگر نگران کمبود بازیکن یا لغو بازی نباشید. در مسابقات عمومی شرکت کرده یا خودتان یک مسابقه ایجاد کنید، اسلات‌های خالی را پر کنید و در سطح بازی خود بدرخشید. توجه: مسابقات و سانس‌های ساخته‌شده فعلاً فقط روی همین دستگاه ثبت می‌شوند و برای بازیکنان دیگر قابل مشاهده نیستند.
             </p>
           </div>
 
@@ -854,6 +854,9 @@ const GroupSessionsTab: React.FC = () => {
           const isLevelOk =
             playerProfile.level >= session.minLevel - LEVEL_JOIN_TOLERANCE &&
             playerProfile.level <= session.maxLevel + LEVEL_JOIN_TOLERANCE;
+          // The seeded demo session has a fake host — it must never look
+          // joinable as a real game. The id prefix covers stored copies too.
+          const isSampleSession = session.id.startsWith('gs-sample-');
           const riseClass = `pp-rise pp-rise-${Math.min((idx % 6) + 1, 6)}`;
 
           return (
@@ -868,6 +871,11 @@ const GroupSessionsTab: React.FC = () => {
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-base font-black text-slate-100 leading-relaxed">
                   {session.title}
+                  {isSampleSession && (
+                    <span className="mr-2 align-middle px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-slate-400 text-[10px] font-bold">
+                      نمونه نمایشی
+                    </span>
+                  )}
                 </h3>
                 <div className="text-left shrink-0">
                   <span className="text-sm font-black text-slate-200">
@@ -976,6 +984,14 @@ const GroupSessionsTab: React.FC = () => {
                                   </button>
                                 )}
                               </>
+                            ) : isSampleSession ? (
+                              <span
+                                className="w-full h-full flex flex-col items-center justify-center gap-1 py-2 opacity-40"
+                                title="سانس نمونه نمایشی — قابل پیوستن نیست"
+                              >
+                                <Plus className="w-4 h-4 text-slate-600" />
+                                <span className="text-[9px] text-slate-600">نمونه</span>
+                              </span>
                             ) : (
                               <button
                                 onClick={() => {
@@ -1013,6 +1029,8 @@ const GroupSessionsTab: React.FC = () => {
                     <ShieldAlert className="w-3.5 h-3.5" />
                     سطح شما: {levelToGrade(playerProfile.level)}
                   </span>
+                ) : isSampleSession ? (
+                  <span className="text-slate-500">سانس نمونه نمایشی — قابل پیوستن نیست.</span>
                 ) : (
                   <span className="text-slate-600">روی جای خالی بزنید تا ملحق شوید.</span>
                 )}

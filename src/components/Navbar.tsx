@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     badge?: string;
   }[] = [
     { id: 'booking', label: 'رزرو زمین', icon: CalendarDays },
-    { id: 'matchmaking', label: 'مچ‌میکینگ', icon: Users, badge: 'زنده' },
+    { id: 'matchmaking', label: 'مچ‌میکینگ', icon: Users },
     { id: 'free-agents', label: 'بازیکنان آزاد', icon: UserCheck, badge: 'جدید' },
     { id: 'tournaments', label: 'تورنومنت و رنکینگ', icon: Trophy },
     { id: 'coaches', label: 'رزرو مربی', icon: GraduationCap },

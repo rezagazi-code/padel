@@ -1226,10 +1226,15 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
 
       </div>
 
-      {/* حساب دنگی — running split-cost ledger under the booking area */}
-      <div id="dongi-panel" className="pp-rise">
-        <DongiPanel />
-      </div>
+      {/* حساب دنگی — running split-cost ledger under the booking area.
+          Guests never see it: dongi records are device-local, so on a shared
+          device a signed-out visitor would otherwise read and mutate the
+          previous user's split-cost balances. */}
+      {user && (
+        <div id="dongi-panel" className="pp-rise">
+          <DongiPanel />
+        </div>
+      )}
 
       {/* Booking Confirmation Receipt Modal */}
       {showConfirmationModal && lastBookingInfo && (

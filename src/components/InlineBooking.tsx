@@ -820,7 +820,9 @@ export const InlineBooking: React.FC<InlineBookingProps> = ({
           </button>
         </div>
 
-        <DongiPanel />
+        {/* Guests never see the dongi ledger: device-local records would
+            otherwise expose the previous user's balances on a shared device. */}
+        {user && <DongiPanel />}
       </div>
 
       {/* Receipt modal */}

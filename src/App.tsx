@@ -67,6 +67,14 @@ const MainContent: React.FC = () => {
   const showAuthGate = isNativeApp && authReady && !user;
 
   const [clubModalOpen, setClubModalOpen] = useState(false);
+  // Signed-out guests must not reach ClubOwnerModal: addClub falls back to a
+  // device-local insert when not signed in, so a guest on a shared device
+  // could pollute the next user's club list. Same guest-gate pattern as the
+  // booking CTAs — open login instead.
+  const openClubOwnerModal = () => {
+    if (user) setClubModalOpen(true);
+    else setAuthModalOpen(true);
+  };
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [pwaModalOpen, setPwaModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
@@ -164,7 +172,7 @@ const MainContent: React.FC = () => {
   const renderCurrentView = () => {
     switch (activeTab) {
       case 'booking':
-        return <CourtBookingView onOpenClubOwnerModal={() => setClubModalOpen(true)} />;
+        return <CourtBookingView onOpenClubOwnerModal={openClubOwnerModal} />;
       case 'matchmaking':
         return <MatchmakingView />;
       case 'free-agents':
@@ -178,7 +186,7 @@ const MainContent: React.FC = () => {
       case 'profile':
         return <PlayerProfileView />;
       default:
-        return <CourtBookingView onOpenClubOwnerModal={() => setClubModalOpen(true)} />;
+        return <CourtBookingView onOpenClubOwnerModal={openClubOwnerModal} />;
     }
   };
 
@@ -201,7 +209,7 @@ const MainContent: React.FC = () => {
       {!isNativeApp && <PwaInstallBanner onOpenManualModal={() => setPwaModalOpen(true)} />}
 
       <Navbar
-        onOpenClubOwnerModal={() => setClubModalOpen(true)}
+        onOpenClubOwnerModal={openClubOwnerModal}
         onOpenCloudModal={isNativeApp || !isAdmin ? undefined : () => setCloudModalOpen(true)}
         onOpenPwaModal={isNativeApp ? undefined : () => setPwaModalOpen(true)}
         onOpenExportModal={isNativeApp || !isAdmin ? undefined : () => setExportModalOpen(true)}
