@@ -320,6 +320,36 @@ function withBundledClubs(list: Club[]): Club[] {
   return missing.length > 0 ? [...list, ...missing] : list;
 }
 
+// Local-only clubs created on this device (addClub fallback, ids like
+// `club-<timestamp>-<rand>`) are neither remote rows nor bundled clubs, so
+// a catalog reload that replaces state with remote+bundled would drop them
+// — and the clubs persistence effect would then delete them from
+// localStorage permanently. Keep them across reloads, mirroring the
+// tournament/coach local-only preservation. Bundled ids are excluded (they
+// come back via withBundledClubs) and deliberately-deleted ids are not
+// resurrected.
+function preserveLocalClubs(prev: Club[], remote: Club[]): Club[] {
+  const bundledIds = new Set(initialClubs.map((c) => c.id));
+  const remoteIds = new Set(remote.map((c) => c.id));
+  let deletedIds: string[] = [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'deleted_club_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedIds = parsed.filter((x) => typeof x === 'string');
+    }
+  } catch {
+    deletedIds = [];
+  }
+  return prev.filter(
+    (c) =>
+      c.id.startsWith('club-') &&
+      !bundledIds.has(c.id) &&
+      !remoteIds.has(c.id) &&
+      !deletedIds.includes(c.id)
+  );
+}
+
 export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('booking');
   const [isMobileDeviceView, setIsMobileDeviceView] = useState<boolean>(false);
@@ -464,8 +494,13 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (realProvince) {
       setAdminProvince(realProvince);
     }
+    // NOTE: auth?.session is a dependency on purpose. A signed-in user
+    // with no profiles row (loadProfile returns null) has a null profile
+    // both before and after sign-out, so without the session dep this
+    // effect never re-ran on their sign-out and the stale adminClubId
+    // survived for the next club_admin account on a shared device.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.profile?.role, (auth?.profile as any)?.adminClubId, (auth?.profile as any)?.adminProvince]);
+  }, [auth?.session, auth?.profile?.role, (auth?.profile as any)?.adminClubId, (auth?.profile as any)?.adminProvince]);
 
   // ---- «پروفایل من» <-> AuthProfile sync ----
   // On sign-in, pull the server identity (name/email/avatar/level) into the
@@ -689,8 +724,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           fetchCoaches(),
         ]);
         if (!cancelled) {
-          if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
-          if (remoteTournaments.length > 0) {
+          if (remoteClubs.length > 0)
+            setClubs((prev) =>
+              withBundledClubs([...remoteClubs, ...preserveLocalClubs(prev, remoteClubs)])
+            );
+          {
             // MERGE, don't replace: a registration that only exists locally
             // (e.g. inserted while offline, or its server insert failed)
             // must survive the catalog reload. Match by team name; the
@@ -1269,7 +1307,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // The DB trigger refreshes clubs.rating/review_count — reload to show it.
     try {
       const remoteClubs = await fetchClubs();
-      if (remoteClubs.length > 0) setClubs(withBundledClubs(remoteClubs));
+      if (remoteClubs.length > 0)
+        setClubs((prev) =>
+          withBundledClubs([...remoteClubs, ...preserveLocalClubs(prev, remoteClubs)])
+        );
     } catch (err) {
       console.warn('Club list refresh after rating failed:', err);
     }
