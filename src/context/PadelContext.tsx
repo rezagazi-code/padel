@@ -461,6 +461,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!auth?.profile && !auth?.session && hadSession) {
       setAdminClubId('');
       localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + 'admin_binding_user_id');
+      // Shared-device identity: the local sports profile name persists in
+      // localStorage across sign-out, so a next user with no profiles row
+      // (the sync below no-ops on a null profile) would inherit the
+      // previous user's name and sail past the blank-name gates. Drop the
+      // identity fields on explicit sign-out; the next sign-in re-syncs
+      // them from its own server profile.
+      localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id');
+      setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '' }));
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -722,10 +730,26 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const p = auth?.profile;
     if (!p) {
       lastSyncedAuthId.current = null;
+      // Profile-less sign-in on a device previously used by someone else:
+      // the persisted local name belongs to the stored owner, not to this
+      // session's user, so clear it (fail-closed: the blank-name gates
+      // block creates until a real profile syncs). Same-user cold starts
+      // are untouched — the owner matches, so a profile still loading
+      // keeps the persisted name until its own sync overwrites it. This
+      // also covers a session replaced without an explicit sign-out,
+      // where the sign-out branch above never fires.
+      const sessionUserId = auth?.user?.id ?? null;
+      const ownerKey = LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id';
+      const ownerId = localStorage.getItem(ownerKey);
+      if (sessionUserId && ownerId && sessionUserId !== ownerId) {
+        localStorage.setItem(ownerKey, sessionUserId);
+        setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '' }));
+      }
       return;
     }
     if (lastSyncedAuthId.current === p.id) return;
     lastSyncedAuthId.current = p.id;
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id', auth?.user?.id ?? p.id);
     setPlayerProfile((prev) => ({
       ...prev,
       name: p.name || prev.name,
@@ -733,7 +757,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       avatar: p.avatar_url || prev.avatar,
       level: p.level > 0 ? p.level : prev.level,
     }));
-  }, [auth?.profile]);
+    // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
+    // sign-in that replaces another profile-less session (expired session,
+    // no explicit sign-out) leaves auth.profile null throughout, so
+    // without this dep the owner check above would never re-run and the
+    // previous user's persisted name would survive for the new user.
+  }, [auth?.profile, auth?.user?.id]);
 
   // Load shared catalog data from Supabase when configured; fall back to
   // local mock data otherwise (or on error).
