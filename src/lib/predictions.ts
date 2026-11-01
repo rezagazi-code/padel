@@ -132,6 +132,17 @@ export function getPredictorName(): string {
   }
 }
 
+/** Drop the stored predictor name (shared-device sign-out / foreign-owner
+ * switch: without this the next account inherits the previous user's name
+ * as its predictor identity and its picks merge into that leaderboard entry). */
+export function clearPredictorName(): void {
+  try {
+    localStorage.removeItem(NAME_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function setPredictorName(name: string): void {
   try {
     localStorage.setItem(NAME_KEY, name.trim());

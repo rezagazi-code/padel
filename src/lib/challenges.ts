@@ -281,6 +281,17 @@ export function getEarnedBadges(): Record<string, string> {
   }
 }
 
+/** Drop the earned-badge map (shared-device sign-out / foreign-owner switch:
+ * BadgeCard renders earnedAt even for locked badges, so without this the next
+ * account sees the previous user's earned dates under «نشان‌های من»). */
+export function clearEarnedBadges(): void {
+  try {
+    localStorage.removeItem(BADGES_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Persist newly-earned badges; keeps the earliest earnedAt per badge. */
 function persistEarnedBadges(newlyEarned: string[]): Record<string, string> {
   const earned = getEarnedBadges();
