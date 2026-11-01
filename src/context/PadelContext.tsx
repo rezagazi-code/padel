@@ -31,7 +31,7 @@ import {
 } from '../mockData';
 import { levelToGrade, SKILL_GRADES, LEVEL_JOIN_TOLERANCE } from '../utils/skillGrades';
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
-import { deleteDongiRecord } from '../lib/dongi';
+import { deleteDongiRecord, clearDongiRecords } from '../lib/dongi';
 import {
   fetchClubs,
   fetchTournaments,
@@ -473,6 +473,19 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // effect, in localStorage) and prefill the next user's edit form —
       // and a save then pushes them to the next user's server row.
       setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], level: initialPlayerProfile.level, levelTitle: initialPlayerProfile.levelTitle, hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] }));
+      // Same shared-device leak, one layer down: court/coach bookings and
+      // the دنگی ledger are device-local with no owner field, so the
+      // sign-out branch above left the previous user's full booking
+      // history and balances visible to the next account — which could
+      // also cancel the previous user's local bookings (deleting their
+      // dongi record and need-player post with them). Server bookings
+      // are safe (fetchMyBookings is per-user); only the local lists
+      // need clearing. Tradeoff, accepted like the stats clear: a
+      // returning user's local-only bookings do not re-sync, so signing
+      // out forfeits them — privacy on a shared device wins.
+      setBookings([]);
+      setCoachBookings([]);
+      clearDongiRecords();
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -768,6 +781,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // prefill the next profile-less user's edit form (and a save would
         // push them to that user's server row).
         setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], level: initialPlayerProfile.level, levelTitle: initialPlayerProfile.levelTitle, hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] }));
+        // Proven-foreign only (ownerId !== null): the previous user's
+        // local bookings/dongi would otherwise leak to this profile-less
+        // session. A missing stamp is spared on purpose — unlike a name
+        // re-entry, wiping bookings is permanent, and an unstamped
+        // returning user may own them.
+        if (ownerId !== null) {
+          setBookings([]);
+          setCoachBookings([]);
+          clearDongiRecords();
+        }
       }
       return;
     }
@@ -805,6 +828,14 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       levelTitle: foreignOwner ? initialPlayerProfile.levelTitle : prev.levelTitle,
       ...(foreignOwner ? { phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] } : {}),
     }));
+    // Proven foreign owner without an explicit sign-out (expired session
+    // replaced): same device-local booking/dongi leak as the sign-out
+    // branch — clear the previous user's local lists for the new owner.
+    if (foreignOwner) {
+      setBookings([]);
+      setCoachBookings([]);
+      clearDongiRecords();
+    }
     // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
     // sign-in that replaces another profile-less session (expired session,
     // no explicit sign-out) leaves auth.profile null throughout, so

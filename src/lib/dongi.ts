@@ -105,6 +105,21 @@ export function deleteDongiRecord(bookingId: string): DongiRecord[] {
 }
 
 /**
+ * Drop the whole دنگی ledger — shared-device sign-out / foreign-owner
+ * switch: the ledger is device-local with no owner field, so the next
+ * device user would otherwise see (and could toggle/delete) the previous
+ * user's balances. Mounted panels refresh via the update event.
+ */
+export function clearDongiRecords(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Storage failures leave the in-memory panels stale-free on next mount.
+  }
+  notifyUpdated();
+}
+
+/**
  * Identity key for a person across bookings: case-insensitive and
  * whitespace-collapsed. Booking forms already dedupe case-insensitively
  * within one booking, but across bookings 'Ali' vs 'ali' (phone
