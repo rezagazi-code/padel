@@ -1,7 +1,7 @@
 import { ShopProduct } from './types';
 
 /** Last time the AI price research refreshed this catalog (Jalali display). */
-export const SHOP_LAST_UPDATED = '۹ آبان ۱۴۰۵';
+export const SHOP_LAST_UPDATED = '۱۰ آبان ۱۴۰۵';
 
 /**
  * Curated padel gear with real Iranian market prices.
@@ -97,7 +97,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nox',
     category: 'racket',
     offers: [
-      { store: 'هیوا پدل (ترب، تهران)', priceToman: 93077600, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
+      { store: 'هیوا پدل (ترب، تهران)', priceToman: 91759400, url: 'https://torob.com/p/980ef8f7-9ffb-4248-aa55-806bc8936919/%D8%B1%D8%A7%DA%A9%D8%AA-%D9%BE%D8%AF%D9%84-%D9%86%D9%88%DA%A9%D8%B3-nox-at10-genius-18k-alum-agustin-tapia-2025/', condition: 'نو', note: 'سایر فروشندگان ناموجود' },
     ],
   },
   {
@@ -130,7 +130,7 @@ export const SHOP_CATALOG: ShopProduct[] = [
     brand: 'Nox',
     category: 'racket',
     offers: [
-      { store: 'تنیس شاپ (ترب)', priceToman: 126000000, url: 'https://torob.com/search/?query=%D9%86%D8%A7%DA%A9%D8%B3%20AT10%20%D9%84%D8%A7%DA%A9%DA%86%D8%B1%DB%8C', condition: 'نو', note: 'AT10 Luxury GENIUS 18K Alum 2026' },
+      { store: 'تنیس شاپ (ترب)', priceToman: 94000000, url: 'https://torob.com/p/042150a6-dfc0-47cb-a90a-b4a4b3f60ddd/nox-at10-luxury-genius-18k-alum-2026/', condition: 'نو', note: 'AT10 Luxury GENIUS 18K Alum 2026؛ ارزان‌ترین' },
     ],
   },
   {
