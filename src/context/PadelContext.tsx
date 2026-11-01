@@ -495,6 +495,10 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setOpenMatches([]);
       setGroupSessions([]);
       setNeedPlayerPosts([]);
+      // Same leak: friendly tournaments are device-local and creator-
+      // owned (createdById / creator name), so a signed-out guest would
+      // otherwise browse the previous user's tournaments and join them.
+      setFriendlyTournaments([]);
       // Same leak, two more device-local identity artifacts: the signed-in
       // user's free-agent card (updatePlayerProfile's freeAgents sync never
       // runs on this direct setPlayerProfile clear, so the card — name,
@@ -812,6 +816,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setOpenMatches([]);
           setGroupSessions([]);
           setNeedPlayerPosts([]);
+          setFriendlyTournaments([]);
           setFreeAgents((agents) => agents.filter((a) => a.id !== playerProfile.id));
           clearEarnedBadges();
           clearPredictorName();
@@ -863,6 +868,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setOpenMatches([]);
       setGroupSessions([]);
       setNeedPlayerPosts([]);
+      setFriendlyTournaments([]);
       // Same leak, two more device-local identity artifacts: the signed-in
       // user's free-agent card (updatePlayerProfile's freeAgents sync never
       // runs on this direct setPlayerProfile clear, so the card — name,
@@ -2357,6 +2363,27 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const friendlyTourn = friendlyTournaments.find((x) => x.id === tournId);
     if (!friendlyTourn || !friendlyTourn.bracket.some((m) => m.id === matchId)) {
       setSyncNotification('این مسابقه یافت نشد؛ نتیجه ثبت نشد.');
+      return;
+    }
+    // Identity gate, mirroring drawFriendlyBracket/resetFriendlyBracket
+    // (2026-10-31): the view's organizer/player button is not enforcement
+    // — a copied creator name (legacy rows without createdById) or a stale
+    // closure must not record scores on someone else's tournament. Same
+    // rule as the view: the creator, or a player of this match, may record.
+    // Legacy rows keep the name-match fallback.
+    const normScoreName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+    const scoreMe = normScoreName(playerProfile.name);
+    const scoreMatch = friendlyTourn.bracket.find((m) => m.id === matchId)!;
+    const scoreIsCreator = friendlyTourn.createdById
+      ? friendlyTourn.createdById === (auth?.user?.id ?? '')
+      : (scoreMe !== '' && normScoreName(friendlyTourn.createdBy) === scoreMe);
+    const scoreTeamNames = [scoreMatch.team1Id, scoreMatch.team2Id]
+      .map((id) => friendlyTourn.teams.find((tm) => tm.id === id))
+      .filter((tm): tm is NonNullable<typeof tm> => !!tm)
+      .flatMap((tm) => [normScoreName(tm.player1Name), normScoreName(tm.player2Name)])
+      .filter((n) => n !== normScoreName('بازیکن ۱') && n !== normScoreName('بازیکن ۲'));
+    if (!scoreIsCreator && !(scoreMe !== '' && scoreTeamNames.includes(scoreMe))) {
+      setSyncNotification('فقط بازیکنان این بازی یا سازنده تورنمنت می‌توانند نتیجه را ثبت کنند.');
       return;
     }
     setFriendlyTournaments((prev) =>
