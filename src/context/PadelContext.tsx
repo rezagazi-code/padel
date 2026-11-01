@@ -523,7 +523,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem(bindingUserKey, signedInUserId);
     }
     const realProvince = (auth?.profile as any)?.adminProvince;
-    if (realProvince) {
+    if (realRole === 'province_admin') {
+      // Fail closed like the club_admin binding: a province_admin with no
+      // server province (migration 0011 not run, or a null column) must
+      // NOT keep the 'تهران' default or a stale previous admin's
+      // province — that silently granted manage rights over Tehran
+      // tournaments (canManageTournament compares tourn.province to
+      // adminProvince). Empty matches no province, so all manage and
+      // create gates fail closed until a real province is bound.
+      setAdminProvince(realProvince || '');
+    } else if (realProvince) {
       setAdminProvince(realProvince);
     }
     // NOTE: auth?.session is a dependency on purpose. A signed-in user

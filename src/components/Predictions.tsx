@@ -84,7 +84,7 @@ export const Predictions: React.FC<PredictionsProps> = ({
         </h4>
       </div>
       <p className="text-[11px] text-slate-500 text-center -mt-2">
-        برنده هر بازی را حدس بزن؛ امتیازت در جدول پیش‌بینی‌کننده‌ها ثبت می‌شود
+        برنده هر بازی را حدس بزن؛ امتیازت در جدول پیش‌بینی‌کننده‌ها ثبت می‌شود — فقط روی همین دستگاه
       </p>
 
       {/* Predictor identity — asked once, editable */}

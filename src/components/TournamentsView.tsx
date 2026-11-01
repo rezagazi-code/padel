@@ -221,6 +221,16 @@ export const TournamentsView: React.FC = () => {
       setTournSubmitError('باشگاه شما به حسابتان متصل نیست؛ تورنمنت ثبت نشد. لطفاً دوباره وارد شوید یا با مدیر تماس بگیرید.');
       return;
     }
+    // Mirror of the club_admin guard: a province_admin whose province
+    // binding is empty (migration 0011 not run, or a null column — the
+    // PadelContext effect now fails this closed to '') must fail loudly
+    // instead of filing the tournament under a club's province it then
+    // cannot manage (canManageTournament compares tourn.province to
+    // the empty binding).
+    if (currentUserRole === 'province_admin' && !adminProvince) {
+      setTournSubmitError('استان شما به حسابتان متصل نیست؛ تورنمنت ثبت نشد. لطفاً دوباره وارد شوید یا با مدیر تماس بگیرید.');
+      return;
+    }
     // The host-club select locks club_admin to their own club; resolve it
     // the same way here so create and display can never disagree.
     const effectiveClubId = currentUserRole === 'club_admin' && adminClubId ? adminClubId : newClubId;
@@ -582,7 +592,7 @@ export const TournamentsView: React.FC = () => {
                           </div>
                         </div>
                         <span className={`text-[10px] font-black px-2 py-0.5 rounded ${isAwardHeld ? 'bg-slate-500 text-white' : 'bg-amber-500 text-white'}`}>
-                          {isAwardHeld ? 'امتیاز در انتظار شروع' : '+۲۵۰ امتیاز رنکینگ'}
+                          {isAwardHeld ? 'امتیاز در انتظار شروع' : '+۲۵۰ امتیاز (فقط دستگاه نهایی‌کننده)'}
                         </span>
                       </div>
                     )}
@@ -598,7 +608,7 @@ export const TournamentsView: React.FC = () => {
                           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
                           {isAwardHeld
                             ? 'این مسابقات خاتمه یافته است، ولی چون پیش از شروع نهایی شده امتیاز رتبه‌بندی هنوز تعلق نگرفته است.'
-                            : 'این مسابقات با ثبت نتایج و به‌روزرسانی رنکینگ داخلی خاتمه یافته است.'}
+                            : 'این مسابقات با ثبت نتایج خاتمه یافته است؛ رنکینگ داخلی فقط در دستگاه نهایی‌کننده به‌روز شده است.'}
                         </span>
                         {/* Correction path for free-text finalizes: bracket tournaments
                             correct via re-recording the final, but a completed

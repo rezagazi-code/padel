@@ -1252,13 +1252,13 @@ export const CourtBookingView: React.FC<CourtBookingViewProps> = ({ onOpenClubOw
               <div className="w-16 h-16 rounded-2xl bg-[#ff2d55]/20 border border-[#ff2d55]/60 text-[#ff6b81] flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-black text-slate-100">{typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') ? 'رزرو روی همین دستگاه ثبت شد' : 'زمین با موفقیت رزرو گردید!'}</h3>
+              <h3 className="text-xl font-black text-slate-100">{typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') ? 'رزرو روی همین دستگاه ثبت شد' : 'رزرو روی سرور ثبت شد'}</h3>
               <p className="text-xs text-slate-500">رسید الکترونیکی رزرو کورت پدل شما صادر شد.</p>
-              {typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') && (
+              {(
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-start gap-2 text-right">
                   <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
                   <span>
-                    این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند —{' '}
+                    {typeof lastBookingInfo.id === 'string' && lastBookingInfo.id.startsWith('booking-') ? 'این رزرو فقط روی همین دستگاه ثبت شده؛ باشگاه آن را نمی‌بیند — ' : 'این رزرو روی سرور ثبت و سانس مسدود شد، اما باشگاه آن را نمی‌بیند — '}{' '}
                     {(() => {
                       const phone = clubs.find((c) => c.id === lastBookingInfo.clubId)?.phone?.trim();
                       return phone ? (
