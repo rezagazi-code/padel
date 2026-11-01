@@ -472,7 +472,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // racket and bio otherwise survive in state (and, via the persist
       // effect, in localStorage) and prefill the next user's edit form —
       // and a save then pushes them to the next user's server row.
-      setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] }));
+      setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], level: initialPlayerProfile.level, levelTitle: initialPlayerProfile.levelTitle, hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] }));
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -767,7 +767,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // bio are personal fields, not just the name — leaving them would
         // prefill the next profile-less user's edit form (and a save would
         // push them to that user's server row).
-        setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] }));
+        setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], level: initialPlayerProfile.level, levelTitle: initialPlayerProfile.levelTitle, hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] }));
       }
       return;
     }
@@ -798,8 +798,12 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       name: foreignOwner ? p.name : p.name || prev.name,
       email: foreignOwner ? p.email : p.email || prev.email,
       avatar: foreignOwner ? p.avatar_url : p.avatar_url || prev.avatar,
-      level: p.level > 0 ? p.level : prev.level,
-      ...(foreignOwner ? { phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] } : {}),
+      // Foreign owner with no server level must NOT inherit the previous
+      // device user's grade (levelToGrade derives the displayed grade
+      // from level): fall back to the fresh-profile default instead.
+      level: p.level > 0 ? p.level : (foreignOwner ? initialPlayerProfile.level : prev.level),
+      levelTitle: foreignOwner ? initialPlayerProfile.levelTitle : prev.levelTitle,
+      ...(foreignOwner ? { phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [], hand: initialPlayerProfile.hand, preferredSide: initialPlayerProfile.preferredSide, reliabilityScore: initialPlayerProfile.reliabilityScore, rankingPoints: 0, rankingPosition: 0, matchesPlayed: 0, matchesWon: 0, winRate: 0, tournamentsPlayed: 0, tournamentsWon: 0, recentMatches: [] } : {}),
     }));
     // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
     // sign-in that replaces another profile-less session (expired session,
