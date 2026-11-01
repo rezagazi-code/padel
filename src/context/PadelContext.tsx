@@ -483,9 +483,16 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // need clearing. Tradeoff, accepted like the stats clear: a
       // returning user's local-only bookings do not re-sync, so signing
       // out forfeits them — privacy on a shared device wins.
+      // Same for matchmaking: open matches, group sessions and
+      // need-player posts are device-local and keyed on the constant
+      // 'player-me' profile id, so without this the next account could
+      // delete/kick/join-block the previous user's posts.
       setBookings([]);
       setCoachBookings([]);
       clearDongiRecords();
+      setOpenMatches([]);
+      setGroupSessions([]);
+      setNeedPlayerPosts([]);
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -790,6 +797,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setBookings([]);
           setCoachBookings([]);
           clearDongiRecords();
+          setOpenMatches([]);
+          setGroupSessions([]);
+          setNeedPlayerPosts([]);
         }
       }
       return;
@@ -835,6 +845,9 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setBookings([]);
       setCoachBookings([]);
       clearDongiRecords();
+      setOpenMatches([]);
+      setGroupSessions([]);
+      setNeedPlayerPosts([]);
     }
     // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
     // sign-in that replaces another profile-less session (expired session,
