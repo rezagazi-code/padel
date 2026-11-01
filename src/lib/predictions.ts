@@ -143,6 +143,18 @@ export function clearPredictorName(): void {
   }
 }
 
+/** Drop all stored prediction picks (shared-device sign-out / foreign-owner
+ * switch: clearing only the predictor name left the previous user's picks
+ * in place, and Predictions.tsx shows any stored pick as "my predictions"
+ * for the next account). Call next to every clearPredictorName() call. */
+export function clearPredictions(): void {
+  try {
+    localStorage.removeItem(STORE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function setPredictorName(name: string): void {
   try {
     localStorage.setItem(NAME_KEY, name.trim());

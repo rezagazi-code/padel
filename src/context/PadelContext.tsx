@@ -33,7 +33,7 @@ import { levelToGrade, SKILL_GRADES, LEVEL_JOIN_TOLERANCE } from '../utils/skill
 import { getSupabase, getSupabaseConfig } from '../lib/supabase';
 import { deleteDongiRecord, clearDongiRecords } from '../lib/dongi';
 import { clearEarnedBadges } from '../lib/challenges';
-import { clearPredictorName } from '../lib/predictions';
+import { clearPredictorName, clearPredictions } from '../lib/predictions';
 import {
   fetchClubs,
   fetchTournaments,
@@ -509,6 +509,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setFreeAgents((agents) => agents.filter((a) => a.id !== playerProfile.id));
       clearEarnedBadges();
       clearPredictorName();
+      clearPredictions();
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -820,6 +821,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setFreeAgents((agents) => agents.filter((a) => a.id !== playerProfile.id));
           clearEarnedBadges();
           clearPredictorName();
+          clearPredictions();
         }
       }
       return;
@@ -879,6 +881,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setFreeAgents((agents) => agents.filter((a) => a.id !== playerProfile.id));
       clearEarnedBadges();
       clearPredictorName();
+      clearPredictions();
     }
     // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
     // sign-in that replaces another profile-less session (expired session,
