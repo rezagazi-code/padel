@@ -1481,7 +1481,7 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         setBookings((prev) => [newBooking, ...prev]);
         if (newBooking.playersNeeded > 0) createNeedPostForBooking(newBooking);
-        setSyncNotification(`زمین «${newBooking.courtName}» با موفقیت برای شما رزرو شد!`);
+        setSyncNotification(`رزرو زمین «${newBooking.courtName}» روی سرور ثبت و سانس مسدود شد؛ برای قطعی‌شدن با باشگاه تماس بگیرید.`);
         return newBooking;
       } catch (err) {
         if (err instanceof Error && err.message === DOUBLE_BOOKED) {
