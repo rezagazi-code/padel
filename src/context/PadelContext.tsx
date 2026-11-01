@@ -776,20 +776,28 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // The sync overwrites only name/email/avatar/level, so without this a
     // different user signing in on a shared device inherits the previous
     // user's persisted phone/city/racket/bio (the server profile carries
-    // no such fields back — AuthProfile lacks them). Fail-closed like the
-    // profile-less branch: a stored owner that differs from this user —
-    // including a missing (pre-fix) owner stamp — means the persisted
-    // personal fields belong to someone else, so drop them. A matching
-    // owner keeps its own local fields (the only copy that exists).
+    // no such fields back — AuthProfile lacks them). Only a stored owner
+    // that actually differs from this user proves a foreign device user,
+    // so drop the local-only fields then. A MISSING stamp must NOT count
+    // as foreign: owner stamping only landed in 487d678, after the
+    // released 3.15.46–48 lineage, so every upgrader from a released build
+    // has no stamp — treating null as foreign would wipe their phone,
+    // racket, bio and free-agent fields on first launch, permanently
+    // (the server never carries those fields back). Missing stamp means
+    // adopt: stamp this user and keep the local fields.
     const ownerKey = LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id';
     const newOwner = auth?.user?.id ?? p.id;
-    const foreignOwner = localStorage.getItem(ownerKey) !== newOwner;
+    const storedOwner = localStorage.getItem(ownerKey);
+    const foreignOwner = storedOwner !== null && storedOwner !== newOwner;
     localStorage.setItem(ownerKey, newOwner);
     setPlayerProfile((prev) => ({
       ...prev,
-      name: p.name || prev.name,
-      email: p.email || prev.email,
-      avatar: p.avatar_url || prev.avatar,
+      // For a proven foreign owner, never fall back to the previous
+      // device user's persisted identity — a blank server name/email/
+      // avatar stays blank instead of inheriting the previous user's.
+      name: foreignOwner ? p.name : p.name || prev.name,
+      email: foreignOwner ? p.email : p.email || prev.email,
+      avatar: foreignOwner ? p.avatar_url : p.avatar_url || prev.avatar,
       level: p.level > 0 ? p.level : prev.level,
       ...(foreignOwner ? { phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] } : {}),
     }));
