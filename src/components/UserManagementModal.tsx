@@ -75,7 +75,15 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({ isOpen
       const clubName = clubs.find((c) => c.id === managedClubId)?.name || '';
       if (!window.confirm(`«${target.name || target.email}» مدیر باشگاه «${clubName}» شود؟`)) return;
     } else if (newRole === 'province_admin') {
-      managedProvince = provinceSelect[userId] || target.adminProvince || target.province || 'تهران';
+      // No silent default: assigning province_admin without an explicit
+      // province pick (and no existing binding) used to bind the user to
+      // Tehran — the same silent-default pattern deliberately removed
+      // from the club_admin path above. Stop and ask instead.
+      managedProvince = provinceSelect[userId] || target.adminProvince || target.province || null;
+      if (!managedProvince) {
+        alert('اول یک استان انتخاب کنید.');
+        return;
+      }
       if (!window.confirm(`«${target.name || target.email}» مدیر استان «${managedProvince}» شود؟`)) return;
     } else {
       if (!window.confirm(`نقش «${target.name || target.email}» به «${roleLabels[newRole]}» تغییر کند؟`)) return;

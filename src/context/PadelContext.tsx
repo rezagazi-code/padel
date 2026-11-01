@@ -468,7 +468,11 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // identity fields on explicit sign-out; the next sign-in re-syncs
       // them from its own server profile.
       localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id');
-      setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '' }));
+      // Extended personal fields too: a signed-out user's phone, city,
+      // racket and bio otherwise survive in state (and, via the persist
+      // effect, in localStorage) and prefill the next user's edit form —
+      // and a save then pushes them to the next user's server row.
+      setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] }));
     }
     // Signed-out guests must not inherit the previous user's admin role:
     // role/province persist in localStorage and the context value falls
@@ -759,19 +763,35 @@ export const PadelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // user. A stamped same-owner name is untouched (ownerId match).
       if (sessionUserId && ownerId !== sessionUserId) {
         localStorage.setItem(ownerKey, sessionUserId);
-        setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '' }));
+        // Same extended clear as the sign-out branch: phone/city/racket/
+        // bio are personal fields, not just the name — leaving them would
+        // prefill the next profile-less user's edit form (and a save would
+        // push them to that user's server row).
+        setPlayerProfile((prev) => ({ ...prev, name: '', email: '', avatar: '', phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] }));
       }
       return;
     }
     if (lastSyncedAuthId.current === p.id) return;
     lastSyncedAuthId.current = p.id;
-    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id', auth?.user?.id ?? p.id);
+    // The sync overwrites only name/email/avatar/level, so without this a
+    // different user signing in on a shared device inherits the previous
+    // user's persisted phone/city/racket/bio (the server profile carries
+    // no such fields back — AuthProfile lacks them). Fail-closed like the
+    // profile-less branch: a stored owner that differs from this user —
+    // including a missing (pre-fix) owner stamp — means the persisted
+    // personal fields belong to someone else, so drop them. A matching
+    // owner keeps its own local fields (the only copy that exists).
+    const ownerKey = LOCAL_STORAGE_KEY_PREFIX + 'profile_owner_id';
+    const newOwner = auth?.user?.id ?? p.id;
+    const foreignOwner = localStorage.getItem(ownerKey) !== newOwner;
+    localStorage.setItem(ownerKey, newOwner);
     setPlayerProfile((prev) => ({
       ...prev,
       name: p.name || prev.name,
       email: p.email || prev.email,
       avatar: p.avatar_url || prev.avatar,
       level: p.level > 0 ? p.level : prev.level,
+      ...(foreignOwner ? { phone: '', city: '', province: '', racketBrand: '', racketModel: '', bio: '', isFreeAgent: false, freeAgentNote: '', availableDays: [] } : {}),
     }));
     // NOTE: auth?.user?.id is a dependency on purpose. A profile-less
     // sign-in that replaces another profile-less session (expired session,

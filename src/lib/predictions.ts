@@ -86,14 +86,19 @@ export function scorePredictions(
   const store = readStore();
   const preds = store[tournamentId] ?? {};
   const byMatch = new Map(matches.map((m) => [m.id, m]));
-  const agg = new Map<string, { correct: number; total: number }>();
+  // Aggregate by NORMALIZED name (same rule as dongi.ts): phone
+  // autocapitalization ("Ali" vs "ali") otherwise splits one player's
+  // picks across two leaderboard rows with split correct/total counts.
+  // First-seen casing is kept as the display name.
+  const agg = new Map<string, { name: string; correct: number; total: number }>();
   let changed = false;
 
   for (const [matchId, p] of Object.entries(preds)) {
-    let entry = agg.get(p.predictorName);
+    const key = (p.predictorName ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+    let entry = agg.get(key);
     if (!entry) {
-      entry = { correct: 0, total: 0 };
-      agg.set(p.predictorName, entry);
+      entry = { name: p.predictorName, correct: 0, total: 0 };
+      agg.set(key, entry);
     }
     entry.total += 1;
 
@@ -110,8 +115,8 @@ export function scorePredictions(
 
   if (changed) writeStore(store);
 
-  return [...agg.entries()]
-    .map(([name, s]) => ({ name, correct: s.correct, total: s.total }))
+  return [...agg.values()]
+    .map((s) => ({ name: s.name, correct: s.correct, total: s.total }))
     .sort(
       (a, b) =>
         b.correct - a.correct || b.total - a.total || a.name.localeCompare(b.name, 'fa')
