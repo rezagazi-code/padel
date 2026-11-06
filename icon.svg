@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="padelBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="limeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d9f99d" />
+      <stop offset="50%" stop-color="#a3e635" />
+      <stop offset="100%" stop-color="#65a30d" />
+    </linearGradient>
+    <linearGradient id="ballGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+  </defs>
+  <!-- Background squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#padelBg)" />
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#22c55e" stroke-opacity="0.25" stroke-width="6" />
+
+  <!-- Racket Head -->
+  <circle cx="256" cy="220" r="140" fill="#1e293b" stroke="url(#limeGlow)" stroke-width="16" />
+  
+  <!-- Perforated Padel Grid Holes -->
+  <g fill="url(#limeGlow)">
+    <circle cx="256" cy="220" r="12" />
+    <circle cx="216" cy="220" r="11" />
+    <circle cx="296" cy="220" r="11" />
+    <circle cx="256" cy="180" r="11" />
+    <circle cx="256" cy="260" r="11" />
+    
+    <circle cx="226" cy="190" r="9" />
+    <circle cx="286" cy="190" r="9" />
+    <circle cx="226" cy="250" r="9" />
+    <circle cx="286" cy="250" r="9" />
+    
+    <circle cx="180" cy="220" r="9" />
+    <circle cx="332" cy="220" r="9" />
+    <circle cx="256" cy="144" r="9" />
+    <circle cx="256" cy="296" r="9" />
+
+    <circle cx="200" cy="160" r="8" />
+    <circle cx="312" cy="160" r="8" />
+    <circle cx="200" cy="280" r="8" />
+    <circle cx="312" cy="280" r="8" />
+  </g>
+
+  <!-- Throat Bridge -->
+  <path d="M 220 340 L 292 340 L 280 380 L 232 380 Z" fill="#0f172a" stroke="url(#limeGlow)" stroke-width="8" />
+
+  <!-- Handle Grip -->
+  <rect x="236" y="380" width="40" height="90" rx="8" fill="#334155" stroke="#94a3b8" stroke-width="4" />
+  <!-- Grip Tape Wraps -->
+  <line x1="236" y1="400" x2="276" y2="410" stroke="#64748b" stroke-width="4" />
+  <line x1="236" y1="422" x2="276" y2="432" stroke="#64748b" stroke-width="4" />
+  <line x1="236" y1="444" x2="276" y2="454" stroke="#64748b" stroke-width="4" />
+
+  <!-- Wrist cord -->
+  <path d="M 256 470 C 256 496, 280 496, 280 478" fill="none" stroke="url(#limeGlow)" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Dynamic Padel Ball in motion -->
+  <circle cx="380" cy="120" r="44" fill="url(#ballGrad)" />
+  <path d="M 350 100 C 375 120, 375 140, 390 155" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.8" />
+</svg>
